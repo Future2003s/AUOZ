@@ -9,6 +9,7 @@ import { useI18n } from "@/i18n/I18nProvider";
 import { Search, Filter, Grid3X3, List } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { SearchOverlay } from "@/components/SearchOverlay";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -45,6 +46,7 @@ export default function ShopPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showSearchOverlay, setShowSearchOverlay] = useState(false);
 
   // Debounced search
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,6 +100,8 @@ export default function ShopPage() {
 
   // Load products
   useEffect(() => {
+    let cancelled = false;
+    
     const load = async () => {
       setLoading(true);
       try {
@@ -110,8 +114,6 @@ export default function ShopPage() {
           params.category = selectedCategory;
         if (selectedBrand && selectedBrand !== "all")
           params.brand = selectedBrand;
-
-        console.log("🔍 Loading products with params:", params);
 
         // Request a single page from our public API proxy
         const PAGE_LIMIT = 24;
@@ -129,6 +131,8 @@ export default function ShopPage() {
           }
         );
 
+        if (cancelled) return;
+
         if (!res.ok) {
           throw new Error(`Public products API failed: ${res.status}`);
         }
@@ -136,16 +140,24 @@ export default function ShopPage() {
         const data = await res.json();
         const list: Product[] = Array.isArray(data?.data) ? data.data : [];
 
-        console.log("📦 Public products page received:", list.length);
+        if (cancelled) return;
         setItems(list);
       } catch (error) {
+        if (cancelled) return;
         console.error("Failed to load products:", error);
         setItems([]);
       } finally {
+        if (!cancelled) {
         setLoading(false);
+        }
       }
     };
+    
     load();
+    
+    return () => {
+      cancelled = true;
+    };
   }, [q, selectedCategory, selectedBrand]);
 
   // Sort products
@@ -193,15 +205,23 @@ export default function ShopPage() {
             </p>
           </div>
 
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm kiếm sản phẩm..."
-              className="pl-10 h-12 text-base shadow-lg border-0 ring-1 ring-gray-200 focus:ring-2 focus:ring-blue-500"
-            />
+          {/* Search Bar - Click to open overlay */}
+          <div className="max-w-2xl mx-auto">
+            <Button
+              variant="outline"
+              onClick={() => setShowSearchOverlay(true)}
+              className="w-full h-12 text-base shadow-lg border-2 hover:border-blue-500 hover:bg-white justify-start text-left font-normal"
+            >
+              <Search className="mr-3 h-5 w-5 text-muted-foreground" />
+              <span className="text-muted-foreground">
+                {searchQuery || "Tìm kiếm sản phẩm..."}
+              </span>
+              {searchQuery && (
+                <span className="ml-auto text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                  {sortedItems.length} kết quả
+                </span>
+              )}
+            </Button>
           </div>
         </div>
       </div>
@@ -462,6 +482,16 @@ export default function ShopPage() {
           </div>
         </div>
       </div>
+
+      {/* Search Overlay */}
+      <SearchOverlay
+        isOpen={showSearchOverlay}
+        onClose={() => setShowSearchOverlay(false)}
+        onSearch={(query) => {
+          setSearchQuery(query);
+          setShowSearchOverlay(false);
+        }}
+      />
     </div>
   );
 }

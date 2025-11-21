@@ -19,8 +19,16 @@ const formatCurrency = (amount: number) =>
   );
 
 export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
-  const { items, removeItem, updateQuantity, totalPrice, totalQuantity } =
-    useCart();
+  const {
+    items,
+    removeItem,
+    updateQuantity,
+    subtotal,
+    totalQuantity,
+    discountAmount,
+    grandTotal,
+    appliedVoucher,
+  } = useCart();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -189,13 +197,28 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
               {/* Footer */}
               <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-4 bg-gray-50 dark:bg-gray-800">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
+                    <span>Tạm tính</span>
+                    <span className="font-medium">
+                      {formatCurrency(subtotal)}
+                    </span>
+                  </div>
+                  {appliedVoucher && discountAmount > 0 && (
+                    <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-300">
+                      <span>Voucher {appliedVoucher.code}</span>
+                      <span>-{formatCurrency(discountAmount)}</span>
+                    </div>
+                  )}
+                  <Separator className="my-2" />
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Tổng cộng:
+                      Thành tiền
                   </span>
                   <span className="text-xl font-bold text-rose-600 dark:text-rose-400">
-                    {formatCurrency(totalPrice)}
+                      {formatCurrency(grandTotal)}
                   </span>
+                  </div>
                 </div>
 
                 <div className="space-y-2">

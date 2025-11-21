@@ -8,6 +8,7 @@ export * from "./categories";
 export * from "./reviews";
 export * from "./account";
 export * from "./meta";
+export * from "./advertisements";
 
 // Main HTTP client
 export { http } from "../lib/http";

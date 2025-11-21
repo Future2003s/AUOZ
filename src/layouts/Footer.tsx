@@ -1,11 +1,20 @@
 "use client";
-import React, { useState, useEffect } from "react";
-
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import Script from "next/script";
+import Image from "next/image";
+import IconAnToan from "../../public/images/hg.png";
+import certISO from "../../public/images/iso 22000.2018.png";
+import IconInstagram from "../../public/images/instagram.png";
 function Footer() {
   const [isMounted, setIsMounted] = useState(false);
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
   return (
     <footer className="bg-gradient-to-br from-blue-600 to-blue-500 dark:from-gray-800 dark:to-gray-900 text-white py-16 px-4 rounded-t-sm shadow-lg">
@@ -22,42 +31,20 @@ function Footer() {
             sản Việt.
           </p>
           <div className="flex space-x-6">
-            {/* Social Media Icons */}
-            <a
-              href="#"
-              className="text-blue-200 dark:text-gray-400 hover:text-white transition duration-200 transform hover:scale-110"
-            >
-              {/* Facebook Icon */}
-              <svg
-                fill="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                className="w-7 h-7"
-                viewBox="0 0 24 24"
-              >
-                <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"></path>
-              </svg>
-            </a>
-
-            <a
-              href="#"
+            <Link
+              href="https://www.instagram.com/lala_lycheee?igsh=M2x5cmgwdmZrcDh1&utm_source=qr"
               className="text-blue-200 hover:text-white transition duration-200 transform hover:scale-110"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              {/* Instagram Icon */}
-              <svg
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                className="w-7 h-7"
-                viewBox="0 0 24 24"
-              >
-                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
-                <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zm1.5-4.87h.01"></path>
-              </svg>
-            </a>
+              <Image
+                src={IconInstagram}
+                alt="Instagram"
+                width={20}
+                height={20}
+                className="w-10 h-10"
+              />
+            </Link>
           </div>
         </div>
 
@@ -67,7 +54,7 @@ function Footer() {
             Liên hệ chúng tôi
           </h3>
           <address className="not-italic space-y-2">
-            <a
+            <Link
               href="https://maps.app.goo.gl/tKcvMmRWo9zHdDAR7"
               target="_blank"
               suppressHydrationWarning
@@ -76,17 +63,17 @@ function Footer() {
                 <span className="font-semibold text-blue-300">Địa chỉ: </span>
                 thôn Tú Y, xã Hà Đông, Thành Phố Hải Phòng.
               </p>
-            </a>
+            </Link>
 
             <p className="text-blue-200">
               <span className="font-semibold text-blue-300">Email:</span>{" "}
               {isMounted ? (
-              <a
-                href="mailto:lalalycheee1@gmail.com"
-                className="hover:text-white transition duration-200"
-              >
-                lalalycheee1@gmail.com
-              </a>
+                <Link
+                  href="mailto:lalalycheee1@gmail.com"
+                  className="hover:text-white transition duration-200"
+                >
+                  lalalycheee1@gmail.com
+                </Link>
               ) : (
                 <span>lalalycheee1@gmail.com</span>
               )}
@@ -94,12 +81,12 @@ function Footer() {
             <p className="text-blue-200">
               <span className="font-semibold text-blue-300">Điện thoại:</span>{" "}
               {isMounted ? (
-              <a
-                href="tel:+840962215666"
-                className="hover:text-white transition duration-200"
-              >
-                (+84) 0962-215-666
-              </a>
+                <Link
+                  href="tel:0962215666"
+                  className="hover:text-white transition duration-200"
+                >
+                  (+84) 0962-215-666
+                </Link>
               ) : (
                 <span>(+84) 0962-215-666</span>
               )}
@@ -112,37 +99,43 @@ function Footer() {
           <h3 className="text-xl font-bold text-white mb-4 rounded-xl">
             Liên kết nhanh
           </h3>
-          <nav className="flex flex-col space-y-2">
-            <a
-              href="#"
-              className="text-blue-200 hover:text-white transition duration-200 rounded-xl"
+          <nav className="flex flex-col space-y-3">
+            <Link
+              href={`/${locale}`}
+              className="text-blue-200 hover:text-white transition duration-200 rounded-xl hover:translate-x-1 inline-block"
             >
               Trang chủ
-            </a>
-            <a
-              href="#"
-              className="text-blue-200 hover:text-white transition duration-200 rounded-xl"
+            </Link>
+            <Link
+              href={`/${locale}/products`}
+              className="text-blue-200 hover:text-white transition duration-200 rounded-xl hover:translate-x-1 inline-block"
             >
               Sản phẩm
-            </a>
-            <a
-              href="#"
-              className="text-blue-200 hover:text-white transition duration-200 rounded-xl"
+            </Link>
+            <Link
+              href={`/${locale}/about`}
+              className="text-blue-200 hover:text-white transition duration-200 rounded-xl hover:translate-x-1 inline-block"
             >
               Về chúng tôi
-            </a>
-            <a
-              href="#"
-              className="text-blue-200 hover:text-white transition duration-200 rounded-xl"
+            </Link>
+            <Link
+              href={`/${locale}/contact`}
+              className="text-blue-200 hover:text-white transition duration-200 rounded-xl hover:translate-x-1 inline-block"
             >
               Liên hệ
-            </a>
-            <a
-              href="#"
-              className="text-blue-200 hover:text-white transition duration-200 rounded-xl"
+            </Link>
+            <Link
+              href={`/${locale}/news`}
+              className="text-blue-200 hover:text-white transition duration-200 rounded-xl hover:translate-x-1 inline-block"
             >
               Tin tức & Sự kiện
-            </a>
+            </Link>
+            <Link
+              href={`/${locale}/complaints`}
+              className="text-blue-200 hover:text-white transition duration-200 rounded-xl hover:translate-x-1 inline-block"
+            >
+              Giải quyết khiếu nại
+            </Link>
           </nav>
         </div>
 
@@ -151,10 +144,47 @@ function Footer() {
           <h3 className="text-xl font-bold text-white mb-4 rounded-xl">
             CÔNG TY TNHH LALA - LYCHEEE
           </h3>
-          <p className=" font-bold mb-4">Mã Số Thuế: 0801381660</p>
-          <p className="italic">
+          <p className=" font-bold mb-2">Mã Số Thuế: 0801381660</p>
+          <p className="italic mb-4">
             Quản Lý Bởi Thanh Hà - Thuế cơ sở 14 Thành Phố Hải Phòng
           </p>
+
+          <div className="flex items-center gap-5 mt-[-2rem]">
+            {/* DMCA Badge */}
+            <div className="mt-2 flex md:justify-start justify-center">
+              <Link
+                href="https://www.dmca.com/Protection/Status.aspx?ID=750e685b-0b4b-48fa-bcc5-d198a3f3bd73&refurl=https://lalalycheee.vn/"
+                title="DMCA.com Protection Status"
+                className="dmca-badge inline-block"
+                target="_blank"
+              >
+                <Image
+                  src="https://images.dmca.com/Badges/DMCA_logo-grn-btn150w.png?ID=750e685b-0b4b-48fa-bcc5-d198a3f3bd73"
+                  alt="DMCA.com Protection Status"
+                  width={200}
+                  height={60}
+                  className="h-10 w-auto"
+                  unoptimized
+                />
+              </Link>
+            </div>
+            {/* Certification Seal */}
+            <div className="mt-6 flex md:justify-start justify-center">
+              <Link
+                href="/complaints"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Image
+                  height={50}
+                  width={50}
+                  src={IconAnToan}
+                  alt="Hợp Phách Vệ Bảo An - Bộ Công Thương"
+                  className="h-20 w-auto"
+                />
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -163,6 +193,11 @@ function Footer() {
         <p className="mb-2">
           &copy; {new Date().getFullYear()} Lalalycheee. Bảo lưu mọi quyền.
         </p>
+
+        <Script
+          src="https://images.dmca.com/Badges/DMCABadgeHelper.min.js"
+          strategy="lazyOnload"
+        />
       </div>
     </footer>
   );

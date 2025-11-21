@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import {
   Trash2,
   ShoppingBag,
@@ -14,9 +15,11 @@ import {
   Truck,
   Shield,
   CreditCard,
+  Ticket,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
@@ -29,10 +32,46 @@ export default function CartPage() {
     removeItem,
     updateQuantity,
     clear,
-    totalPrice,
+    subtotal,
     totalQuantity,
+    appliedVoucher,
+    discountAmount,
+    grandTotal,
+    applyVoucher,
+    removeVoucher,
   } = useCart();
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [voucherLoading, setVoucherLoading] = useState(false);
+
+  useEffect(() => {
+    if (appliedVoucher) {
+      setVoucherCode(appliedVoucher.code);
+    } else {
+      setVoucherCode("");
+    }
+  }, [appliedVoucher]);
+
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) {
+      setVoucherError("Vui lòng nhập mã voucher");
+      return;
+    }
+    setVoucherError(null);
+    setVoucherLoading(true);
+    try {
+      await applyVoucher(voucherCode);
+    } catch (error) {
+      if (error instanceof Error) {
+        setVoucherError(error.message);
+      } else {
+        setVoucherError("Không thể áp dụng voucher");
+      }
+    } finally {
+      setVoucherLoading(false);
+    }
+  };
 
   const handleUpdateQuantity = async (
     id: string,
@@ -246,16 +285,85 @@ export default function CartPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Summary Details */}
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                      Mã ưu đãi
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Nhập mã voucher"
+                          value={voucherCode}
+                          disabled={voucherLoading}
+                          onChange={(e) => setVoucherCode(e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        onClick={handleApplyVoucher}
+                        disabled={voucherLoading || !voucherCode.trim()}
+                        className="flex items-center gap-2"
+                      >
+                        {voucherLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Đang áp dụng
+                          </>
+                        ) : (
+                          <>
+                            <Ticket className="h-4 w-4" />
+                            Áp dụng
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    {voucherError && (
+                      <p className="text-xs text-red-500 mt-1">{voucherError}</p>
+                    )}
+                    {appliedVoucher && (
+                      <div className="mt-3 flex items-center justify-between bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900 text-emerald-700 dark:text-emerald-200 rounded-lg p-3">
+                        <div>
+                          <p className="font-semibold">
+                            Đã áp dụng: {appliedVoucher.code}
+                          </p>
+                          <p className="text-xs">
+                            Giảm {formatCurrency(discountAmount)}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeVoucher}
+                          className="text-sm text-emerald-600 dark:text-emerald-200"
+                        >
+                          Gỡ
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
                     <span className="text-gray-700 dark:text-gray-300">
                       Tạm tính ({totalQuantity} sản phẩm):
                     </span>
                     <span className="font-medium text-gray-900 dark:text-white">
-                      {formatCurrency(totalPrice)}
+                        {formatCurrency(subtotal)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Mã giảm giá:
+                      </span>
+                      <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                        {discountAmount > 0
+                          ? `- ${formatCurrency(discountAmount)}`
+                          : "Không áp dụng"}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                    <div className="flex justify-between">
                     <span className="text-gray-700 dark:text-gray-300">
                       Phí vận chuyển:
                     </span>
@@ -269,8 +377,9 @@ export default function CartPage() {
                       Tổng cộng:
                     </span>
                     <span className="text-rose-600 dark:text-rose-400">
-                      {formatCurrency(totalPrice)}
+                        {formatCurrency(grandTotal)}
                     </span>
+                    </div>
                   </div>
                 </div>
 

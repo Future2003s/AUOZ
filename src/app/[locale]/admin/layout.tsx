@@ -13,6 +13,10 @@ import {
   Tags,
   Award,
   Home,
+  Megaphone,
+  Calendar,
+  FileWarning,
+  Ticket,
 } from "lucide-react";
 
 async function fetchMeServer() {
@@ -162,6 +166,12 @@ export default async function AdminLayout({
         icon: <Award size={18} />,
       },
       {
+        id: "vouchers",
+        label: "Voucher",
+        href: `/${locale}/admin/vouchers`,
+        icon: <Ticket size={18} />,
+      },
+      {
         id: "accounts",
         label: "Tài Khoản",
         href: `/${locale}/admin/accounts`,
@@ -184,6 +194,24 @@ export default async function AdminLayout({
         label: "Trang Chủ",
         href: `/${locale}/admin/homepage`,
         icon: <Home size={18} />,
+      },
+      {
+        id: "advertisements",
+        label: "Quảng Cáo",
+        href: `/${locale}/admin/advertisements`,
+        icon: <Megaphone size={18} />,
+      },
+      {
+        id: "activities",
+        label: "Hoạt Động",
+        href: `/${locale}/admin/activities`,
+        icon: <Calendar size={18} />,
+      },
+      {
+        id: "complaints",
+        label: "Khiếu Nại",
+        href: `/${locale}/admin/complaints`,
+        icon: <FileWarning size={18} />,
       },
       {
         id: "settings",

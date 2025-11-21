@@ -76,6 +76,15 @@ interface InteractiveHeroSliderProps {
   slides?: HeroSlide[];
 }
 
+// Helper to fix common HTML typos and ensure valid HTML
+const fixHtmlString = (html: string): string => {
+  if (!html || typeof html !== 'string') return html;
+  // Fix common typos in className
+  return html
+    .replace(/className="tex\s/g, 'className="text ')
+    .replace(/className='tex\s/g, "className='text ");
+};
+
 export const InteractiveHeroSlider: React.FC<InteractiveHeroSliderProps> = ({
   slides,
 }) => {
@@ -190,7 +199,7 @@ export const InteractiveHeroSlider: React.FC<InteractiveHeroSliderProps> = ({
           <div
             key={slideId}
             className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
-              index === currentIndex ? "opacity-100 z-10" : "opacity-0"
+              index === currentIndex ? "opacity-100 z-[1]" : "opacity-0 z-0"
             }`}
           >
             <div
@@ -200,7 +209,7 @@ export const InteractiveHeroSlider: React.FC<InteractiveHeroSliderProps> = ({
               style={{ backgroundImage: `url(${slide.imageUrl})` }}
             />
             <div
-              className="absolute inset-0 bg-black"
+              className="absolute inset-0 bg-black z-[2]"
               style={{
                 opacity:
                   typeof slide.overlayOpacity === "number"
@@ -213,15 +222,20 @@ export const InteractiveHeroSlider: React.FC<InteractiveHeroSliderProps> = ({
       })}
 
       {/* Content */}
-      <div className="relative z-20 container mx-auto px-4 sm:px-6 h-full flex flex-col justify-center items-center text-center md:items-start md:text-left pointer-events-none">
-        <div className="max-w-2xl">
+      <div className="relative z-[30] container mx-auto px-4 sm:px-6 h-full flex flex-col justify-center items-center text-center md:items-start md:text-left pointer-events-none">
+        <div className="max-w-2xl relative z-[31]">
           <div className="overflow-hidden">
             <h1
               key={`title-${computedSlides[currentIndex]?.id ?? currentIndex}`}
               className="font-serif text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-bold animate-slide-up-text leading-tight"
             >
-              {/* Prefer translation if present; else fallback to slide.title */}
-              {computedSlides[currentIndex]?.title || ""}
+              {/* Render title - if it's a string with HTML, parse it; otherwise render as ReactNode */}
+              {typeof computedSlides[currentIndex]?.title === 'string' && 
+               computedSlides[currentIndex]?.title?.includes('<') ? (
+                <span dangerouslySetInnerHTML={{ __html: fixHtmlString(computedSlides[currentIndex]?.title as string) }} />
+              ) : (
+                computedSlides[currentIndex]?.title || ""
+              )}
             </h1>
           </div>
           <div className="overflow-hidden">
@@ -247,7 +261,7 @@ export const InteractiveHeroSlider: React.FC<InteractiveHeroSliderProps> = ({
       </div>
 
       {/* Navigation */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 p-3 sm:p-4 md:p-6">
+      <div className="absolute bottom-0 left-0 right-0 z-[40] p-3 sm:p-4 md:p-6">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4">
           {/* Thumbnails */}
           <div className="flex items-end gap-1 sm:gap-2 md:gap-3">

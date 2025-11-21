@@ -139,6 +139,12 @@ export const API_CONFIG = {
     BY_CODE: "/coupons/:code",
   },
 
+  VOUCHERS: {
+    ALL: "/vouchers",
+    BY_ID: "/vouchers/:id",
+    APPLY: "/vouchers/apply",
+  },
+
   PAYMENTS: {
     CREATE_INTENT: "/payments/create-intent",
     CONFIRM: "/payments/confirm",

@@ -4,16 +4,20 @@ import { FadeInWhenVisible } from "./fade-in-visiable";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 
-type CraftStep = {
-  id: number;
+export type CraftStep = {
   title: string;
-  description: string;
-  imageUrl: string;
+  description?: string;
+  imageUrl?: string;
 };
 
-const craftSteps: CraftStep[] = [
+interface OurCraftSectionProps {
+  heading?: string;
+  subheading?: string;
+  steps?: CraftStep[];
+}
+
+const defaultSteps: CraftStep[] = [
   {
-    id: 1,
     title: "Tuyển Chọn Tinh Tế",
     description:
       "Từng trái vải được lựa chọn thủ công từ những khu vườn đạt chuẩn, đảm bảo độ chín mọng và hương vị ngọt ngào nhất.",
@@ -21,7 +25,6 @@ const craftSteps: CraftStep[] = [
       "https://images.unsplash.com/photo-1552010099-5dc86fcfaa38?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8ODB8fGZydWl0c3xlbnwwfHwwfHx8MA%3D%3D",
   },
   {
-    id: 2,
     title: "Chế Biến Tỉ Mỉ",
     description:
       "Quy trình sản xuất khép kín, ứng dụng công nghệ hiện đại để giữ trọn vẹn dưỡng chất và hương vị tự nhiên của trái vải.",
@@ -29,7 +32,6 @@ const craftSteps: CraftStep[] = [
       "https://plus.unsplash.com/premium_photo-1700145523324-1da4b9000d80?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8ODV8fGZydWl0c3xlbnwwfHwwfHx8MA%3D%3D",
   },
   {
-    id: 3,
     title: "Đóng Gói Sang Trọng",
     description:
       "Mỗi sản phẩm là một tác phẩm nghệ thuật, được khoác lên mình bao bì đẳng cấp, tinh xảo trong từng chi tiết.",
@@ -38,7 +40,20 @@ const craftSteps: CraftStep[] = [
   },
 ];
 
-export const OurCraftSection: React.FC = () => {
+export const OurCraftSection: React.FC<OurCraftSectionProps> = ({
+  heading = "Quy Trình Sáng Tạo",
+  subheading = "Hành trình từ trái vải tươi ngon đến sản phẩm tinh hoa trên tay bạn.",
+  steps,
+}) => {
+  const stepsToUse = (steps && steps.length > 0 ? steps : defaultSteps).map(
+    (s) => ({
+      ...s,
+      imageUrl:
+        s.imageUrl ||
+        "https://images.unsplash.com/photo-1552010099-5dc86fcfaa38?w=500&auto=format&fit=crop&q=60",
+    })
+  );
+
   const [activeIndex, setActiveIndex] = useState(0);
   return (
     <section
@@ -49,11 +64,10 @@ export const OurCraftSection: React.FC = () => {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-800">
-              Quy Trình Sáng Tạo
+              {heading}
             </h2>
             <p className="mt-3 text-lg text-slate-500 max-w-2xl mx-auto">
-              Hành trình từ trái vải tươi ngon đến sản phẩm tinh hoa trên tay
-              bạn.
+              {subheading}
             </p>
             <p className="mt-2 text-sm text-slate-400 italic">
               (Nhấp vào từng bước để xem chi tiết)
@@ -61,10 +75,10 @@ export const OurCraftSection: React.FC = () => {
           </div>
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative w-full aspect-square rounded-2xl overflow-hidden shadow-xl">
-              {craftSteps.map((step, index) => (
+              {stepsToUse.map((step, index) => (
                 <img
-                  key={step.id}
-                  src={step.imageUrl}
+                  key={index}
+                  src={step.imageUrl!}
                   alt={step.title}
                   onError={handleImageError}
                   className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${
@@ -74,9 +88,9 @@ export const OurCraftSection: React.FC = () => {
               ))}
             </div>
             <div className="flex flex-col space-y-4">
-              {craftSteps.map((step, index) => (
+              {stepsToUse.map((step, index) => (
                 <div
-                  key={step.id}
+                  key={index}
                   className={`group p-6 rounded-xl cursor-pointer transition-all duration-300 ${
                     activeIndex === index
                       ? "bg-white shadow-lg"

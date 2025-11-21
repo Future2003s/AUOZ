@@ -58,6 +58,8 @@ export function HomePageClient({ settings }: HomePageClientProps) {
       ? mergedSettings.sections.marquee.data?.phrases
       : undefined;
 
+  const craftData = mergedSettings.sections.craft.data;
+
   const themeStyle: CSSProperties = {
     fontFamily: mergedSettings.typography.fontFamily,
     backgroundColor: mergedSettings.colors.background,
@@ -102,7 +104,13 @@ export function HomePageClient({ settings }: HomePageClientProps) {
         )}
         {mergedSettings.sections.socialProof.enabled && <SocialProofSection />}
         {mergedSettings.sections.collection.enabled && <CollectionSection />}
-        {mergedSettings.sections.craft.enabled && <OurCraftSection />}
+        {mergedSettings.sections.craft.enabled && (
+          <OurCraftSection
+            heading={craftData?.heading}
+            subheading={craftData?.subheading}
+            steps={craftData?.steps}
+          />
+        )}
         {mergedSettings.sections.map.enabled && <MapsLocationCompany />}
       </main>
       <ScrollToTopButton />

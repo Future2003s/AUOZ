@@ -47,7 +47,15 @@ export interface HomepageSettings {
     featuredProducts: HomepageSection<{ productIds: string[]; layout?: "grid" | "carousel" }>;
     socialProof: HomepageSection<{ testimonials: any[]; logos: any[] }>;
     collection: HomepageSection<{ cards: any[] }>;
-    craft: HomepageSection<{ steps: any[] }>;
+    craft: HomepageSection<{
+      heading?: string;
+      subheading?: string;
+      steps: {
+        title: string;
+        description?: string;
+        imageUrl?: string;
+      }[];
+    }>;
     map: HomepageSection<{ title?: string; description?: string; coordinates?: { lat: number; lng: number } }>;
   };
   seo: {

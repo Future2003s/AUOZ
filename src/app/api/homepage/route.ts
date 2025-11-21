@@ -6,9 +6,16 @@ const baseUrl =
   envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
 
 export async function GET(request: NextRequest) {
-  return proxyJson(`${baseUrl}/homepage`, request, {
+  const response = await proxyJson(`${baseUrl}/homepage`, request, {
     method: "GET",
   });
+  
+  // Add cache control headers to prevent caching - always fetch fresh data
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+  
+  return response;
 }
 
 export async function PUT(request: NextRequest) {

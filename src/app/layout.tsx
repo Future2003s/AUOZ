@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
 import "./globals.css";
 import { NextFont } from "next/dist/compiled/@next/font";
+import NextTopLoader from "nextjs-toploader";
 import AppProvider from "@/context/app-provider";
 import LayoutMain from "@/layouts/layout-main";
 import { Toaster } from "sonner";
@@ -34,6 +35,13 @@ export default async function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body className={`${fontSans.className}`} suppressHydrationWarning>
+        <NextTopLoader
+          color="#e11d48"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          showSpinner={false}
+        />
         <AppProvider>
           <AppContext initialSessionToken={sessionToken?.value as string}>
             <QueryProvider>
