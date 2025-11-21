@@ -1,13 +1,7 @@
 "use client";
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,6 +48,7 @@ type Voucher = {
   status: string;
   manualStatus?: string;
   isActive: boolean;
+  autoApply?: boolean;
   startDate?: string;
   endDate?: string;
   createdAt?: string;
@@ -75,6 +70,8 @@ const initialForm: Partial<Voucher> & {
   startDate: "",
   endDate: "",
   isActive: true,
+  status: "draft",
+  autoApply: false,
 };
 
 const formatCurrency = (value?: number) => {
@@ -98,6 +95,51 @@ const statusBadgeClass: Record<string, string> = {
   expired: "bg-gray-200 text-gray-600",
   disabled: "bg-red-100 text-red-700",
   draft: "bg-yellow-100 text-yellow-800",
+};
+
+const statusOptions: Array<{ value: Voucher["status"]; label: string }> = [
+  { value: "draft", label: "Nháp" },
+  { value: "active", label: "Đang hoạt động" },
+  { value: "disabled", label: "Đã tắt" },
+];
+
+type VoucherIdentifier = {
+  id?: string | number | null;
+  _id?: string | number | null;
+  code?: string | number | null;
+};
+
+type RawVoucher = VoucherIdentifier & {
+  name?: string;
+  description?: string;
+  discountType?: Voucher["discountType"];
+  discountValue?: number | string;
+  maxDiscountValue?: number | string;
+  minOrderValue?: number | string;
+  usageLimit?: number | string;
+  usageCount?: number | string;
+  perUserLimit?: number | string;
+  status?: Voucher["status"];
+  manualStatus?: string;
+  isActive?: boolean;
+  autoApply?: boolean;
+  startDate?: string;
+  endDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+const normalizeIdValue = (value?: string | number | null) => {
+  if (value === undefined || value === null) return null;
+  const normalized = String(value).trim();
+  if (!normalized || normalized === "undefined" || normalized === "null") {
+    return null;
+  }
+  return normalized;
+};
+
+const extractVoucherId = (voucher: VoucherIdentifier | null | undefined) => {
+  return normalizeIdValue(voucher?.id) || normalizeIdValue(voucher?._id);
 };
 
 export default function VoucherPageClient() {
@@ -132,57 +174,67 @@ export default function VoucherPageClient() {
       const payload = text ? JSON.parse(text) : null;
 
       if (!res.ok) {
-        throw new Error(
-          payload?.message || "Không thể tải danh sách voucher"
-        );
+        throw new Error(payload?.message || "Không thể tải danh sách voucher");
       }
 
       const data = payload?.data ?? payload;
-      const list: Voucher[] = Array.isArray(data?.data)
-        ? data.data
+      const list: RawVoucher[] = Array.isArray(data?.data)
+        ? (data.data as RawVoucher[])
         : Array.isArray(data?.vouchers)
-        ? data.vouchers
+        ? (data.vouchers as RawVoucher[])
         : [];
 
-      setVouchers(
-        list.map((voucher: any) => ({
-          id: String(voucher.id || voucher._id),
-          code: voucher.code,
-          name: voucher.name,
-          description: voucher.description,
-          discountType: voucher.discountType,
-          discountValue: Number(voucher.discountValue || 0),
-          maxDiscountValue: voucher.maxDiscountValue
-            ? Number(voucher.maxDiscountValue)
-            : undefined,
-          minOrderValue: voucher.minOrderValue
-            ? Number(voucher.minOrderValue)
-            : undefined,
-          usageLimit: voucher.usageLimit
-            ? Number(voucher.usageLimit)
-            : undefined,
-          usageCount: Number(voucher.usageCount || 0),
-          perUserLimit: voucher.perUserLimit
-            ? Number(voucher.perUserLimit)
-            : undefined,
-          status: voucher.status || "active",
-          manualStatus: voucher.manualStatus,
-          isActive: voucher.isActive !== false,
-          startDate: voucher.startDate,
-          endDate: voucher.endDate,
-          createdAt: voucher.createdAt,
-          updatedAt: voucher.updatedAt,
-        }))
-      );
+      const normalizedVouchers = list
+        .map((voucher: RawVoucher) => {
+          const id = extractVoucherId(voucher);
+          if (!id) {
+            console.warn("Voucher missing identifier, skipping entry", voucher);
+            return null;
+          }
+          return {
+            id,
+            code: voucher.code ?? "",
+            name: voucher.name ?? "",
+            description: voucher.description,
+            discountType: voucher.discountType ?? "fixed",
+            discountValue: Number(voucher.discountValue || 0),
+            maxDiscountValue: voucher.maxDiscountValue
+              ? Number(voucher.maxDiscountValue)
+              : undefined,
+            minOrderValue: voucher.minOrderValue
+              ? Number(voucher.minOrderValue)
+              : undefined,
+            usageLimit: voucher.usageLimit
+              ? Number(voucher.usageLimit)
+              : undefined,
+            usageCount: Number(voucher.usageCount || 0),
+            perUserLimit: voucher.perUserLimit
+              ? Number(voucher.perUserLimit)
+              : undefined,
+            status: voucher.status || "active",
+            manualStatus: voucher.manualStatus,
+            isActive: voucher.isActive !== false,
+            autoApply: voucher.autoApply || false,
+            startDate: voucher.startDate,
+            endDate: voucher.endDate,
+            createdAt: voucher.createdAt,
+            updatedAt: voucher.updatedAt,
+          } as Voucher;
+        })
+        .filter((voucher): voucher is Voucher => Boolean(voucher));
+
+      setVouchers(normalizedVouchers);
 
       if (data?.pagination) {
         setTotalPages(data.pagination.totalPages || 1);
       } else {
         setTotalPages(1);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Fetch vouchers failed:", err);
-      setError(err?.message || "Không thể tải voucher");
+      const message =
+        err instanceof Error ? err.message : "Không thể tải voucher";
+      setError(message);
       setVouchers([]);
     } finally {
       setLoading(false);
@@ -246,13 +298,15 @@ export default function VoucherPageClient() {
       minOrderValue: toNumber(formState.minOrderValue) ?? 0,
       usageLimit: toNumber(formState.usageLimit),
       perUserLimit: toNumber(formState.perUserLimit),
+      status: formState.status,
       startDate: formState.startDate
         ? new Date(formState.startDate).toISOString()
         : undefined,
       endDate: formState.endDate
         ? new Date(formState.endDate).toISOString()
         : undefined,
-      isActive: formState.isActive !== false,
+      isActive: Boolean(formState.isActive),
+      autoApply: Boolean(formState.autoApply),
     };
   };
 
@@ -262,10 +316,24 @@ export default function VoucherPageClient() {
         toast.error("Vui lòng nhập mã và tên voucher");
         return;
       }
+      const normalizedEditingId =
+        typeof editingId === "string" ? editingId.trim() : "";
+      if (
+        editingId &&
+        (!normalizedEditingId || normalizedEditingId === "undefined")
+      ) {
+        toast.error(
+          "Voucher không hợp lệ. Vui lòng tải lại danh sách và thử lại."
+        );
+        return;
+      }
       setSaving(true);
       const payload = buildPayload();
-      const url = editingId ? `/api/vouchers/${editingId}` : "/api/vouchers";
-      const method = editingId ? "PUT" : "POST";
+      const isEditing = Boolean(normalizedEditingId);
+      const url = isEditing
+        ? `/api/vouchers/${normalizedEditingId}`
+        : "/api/vouchers";
+      const method = isEditing ? "PUT" : "POST";
 
       const res = await fetch(url, {
         method,
@@ -285,9 +353,11 @@ export default function VoucherPageClient() {
       toast.success(editingId ? "Đã cập nhật voucher" : "Đã tạo voucher");
       closeModal();
       fetchVouchers();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Save voucher failed:", error);
-      toast.error(error?.message || "Không thể lưu voucher");
+      const message =
+        error instanceof Error ? error.message : "Không thể lưu voucher";
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -309,9 +379,11 @@ export default function VoucherPageClient() {
       }
       toast.success("Đã xóa voucher");
       fetchVouchers();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Delete voucher failed:", error);
-      toast.error(error?.message || "Không thể xóa voucher");
+      const message =
+        error instanceof Error ? error.message : "Không thể xóa voucher";
+      toast.error(message);
     }
   };
 
@@ -436,9 +508,7 @@ export default function VoucherPageClient() {
                         </div>
                         <p className="text-xs text-gray-500">
                           Đã dùng: {voucher.usageCount}
-                          {voucher.usageLimit
-                            ? ` / ${voucher.usageLimit}`
-                            : ""}
+                          {voucher.usageLimit ? ` / ${voucher.usageLimit}` : ""}
                         </p>
                       </TableCell>
                       <TableCell>
@@ -525,9 +595,7 @@ export default function VoucherPageClient() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setCurrentPage((prev) => Math.max(1, prev - 1))
-                }
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
                 Trang trước
@@ -601,7 +669,10 @@ export default function VoucherPageClient() {
                 <Select
                   value={formState.discountType}
                   onValueChange={(value) =>
-                    handleChange("discountType", value as "percentage" | "fixed")
+                    handleChange(
+                      "discountType",
+                      value as "percentage" | "fixed"
+                    )
                   }
                 >
                   <SelectTrigger>
@@ -665,9 +736,7 @@ export default function VoucherPageClient() {
                 <Input
                   type="number"
                   value={formState.perUserLimit ?? ""}
-                  onChange={(e) =>
-                    handleChange("perUserLimit", e.target.value)
-                  }
+                  onChange={(e) => handleChange("perUserLimit", e.target.value)}
                   placeholder="Không giới hạn"
                   min={1}
                 />
@@ -693,6 +762,29 @@ export default function VoucherPageClient() {
               </div>
             </div>
 
+            <div>
+              <Label>Trạng thái quản trị</Label>
+              <Select
+                value={formState.status || "draft"}
+                onValueChange={(value) => handleChange("status", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Trạng thái thực tế vẫn phụ thuộc điều kiện ngày sử dụng, giới
+                hạn và kích hoạt tự động.
+              </p>
+            </div>
+
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div>
                 <Label>Kích hoạt</Label>
@@ -703,6 +795,21 @@ export default function VoucherPageClient() {
               <Switch
                 checked={formState.isActive !== false}
                 onCheckedChange={(checked) => handleChange("isActive", checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <Label>Tự động áp dụng</Label>
+                <p className="text-sm text-gray-500">
+                  Tự động áp dụng voucher cho đơn hàng phù hợp
+                </p>
+              </div>
+              <Switch
+                checked={formState.autoApply !== false}
+                onCheckedChange={(checked) =>
+                  handleChange("autoApply", checked)
+                }
               />
             </div>
           </div>
@@ -721,4 +828,3 @@ export default function VoucherPageClient() {
     </div>
   );
 }
-

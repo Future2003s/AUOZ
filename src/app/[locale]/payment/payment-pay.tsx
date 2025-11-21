@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Address, useAddresses } from "@/hooks/useAddresses";
 import { Badge } from "@/components/ui/badge";
+import { Loader2, Ticket } from "lucide-react";
 
 const formatAddress = (addr?: Address | null) => {
   if (!addr) return "";
@@ -31,6 +32,24 @@ const formatAddress = (addr?: Address | null) => {
     .join(", ");
 };
 
+const formatCurrency = (value: number) =>
+  Number(value || 0).toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  });
+
+type AppliedVoucher = {
+  code: string;
+  name?: string;
+  description?: string;
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+  maxDiscountValue?: number;
+  minOrderValue?: number;
+  status?: string;
+  discountAmount: number;
+};
+
 const addressTypeLabels: Record<Address["type"], string> = {
   home: "Nhà riêng",
   work: "Cơ quan",
@@ -46,6 +65,12 @@ function PaymentPage() {
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucher | null>(
+    null
+  );
 
   const params = useParams<{ locale: string }>();
   const localePrefix = `/${(params?.locale as string) || "vi"}`;
@@ -100,10 +125,140 @@ function PaymentPage() {
   const bigProductTotal = bigProductQuantity * productInfo.big.price;
   const totalQuantity = smallProductQuantity + bigProductQuantity;
   const totalPrice = smallProductTotal + bigProductTotal;
+  const discountAmount = appliedVoucher?.discountAmount ?? 0;
+  const grandTotal = Math.max(totalPrice - discountAmount, 0);
+
+  useEffect(() => {
+    if (appliedVoucher) {
+      setVoucherCode(appliedVoucher.code);
+    } else {
+      setVoucherCode("");
+    }
+  }, [appliedVoucher]);
+
+  useEffect(() => {
+    if (!appliedVoucher) return;
+    if (totalPrice <= 0) {
+      setAppliedVoucher(null);
+      setVoucherError(null);
+      return;
+    }
+    let cancelled = false;
+    const controller = new AbortController();
+
+    const revalidate = async () => {
+      try {
+        const res = await fetch("/api/vouchers/apply", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: appliedVoucher.code,
+            subtotal: totalPrice,
+          }),
+          signal: controller.signal,
+        });
+        const text = await res.text();
+        const payload = text ? JSON.parse(text) : null;
+        if (!res.ok) {
+          throw new Error(
+            payload?.message ||
+              payload?.data?.message ||
+              "Voucher không còn hợp lệ"
+          );
+        }
+        if (cancelled) return;
+        const data = payload?.data ?? payload;
+        setAppliedVoucher((prev) =>
+          prev
+            ? {
+                ...prev,
+                discountAmount: Number(data?.discountAmount || 0),
+                status: data?.runtimeStatus || data?.voucher?.status || prev.status,
+              }
+            : prev
+        );
+      } catch (err) {
+        if (cancelled) return;
+        console.warn("Voucher revalidation failed", err);
+        setAppliedVoucher(null);
+        setVoucherError(
+          err instanceof Error ? err.message : "Voucher không còn hợp lệ"
+        );
+      }
+    };
+
+    revalidate();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [totalPrice, appliedVoucher?.code]);
+
+  const handleApplyVoucher = async () => {
+    const code = voucherCode.trim().toUpperCase();
+    if (!code) {
+      setVoucherError("Vui lòng nhập mã voucher");
+      return;
+    }
+    if (totalPrice <= 0) {
+      setVoucherError("Vui lòng chọn sản phẩm trước khi áp dụng voucher");
+      return;
+    }
+    setVoucherError(null);
+    setVoucherLoading(true);
+    try {
+      const res = await fetch("/api/vouchers/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal: totalPrice }),
+      });
+      const text = await res.text();
+      const payload = text ? JSON.parse(text) : null;
+      if (!res.ok) {
+        throw new Error(
+          payload?.message ||
+            payload?.data?.message ||
+            "Không thể áp dụng voucher"
+        );
+      }
+      const data = payload?.data ?? payload;
+      const normalized: AppliedVoucher = {
+        code: data?.voucher?.code || code,
+        name: data?.voucher?.name,
+        description: data?.voucher?.description,
+        discountType: data?.voucher?.discountType || "fixed",
+        discountValue: Number(data?.voucher?.discountValue || 0),
+        maxDiscountValue: data?.voucher?.maxDiscountValue,
+        minOrderValue: data?.voucher?.minOrderValue,
+        status: data?.voucher?.status || data?.runtimeStatus || "active",
+        discountAmount: Number(data?.discountAmount || 0),
+      };
+      setAppliedVoucher(normalized);
+      setVoucherCode(code);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Không thể áp dụng voucher";
+      setVoucherError(message);
+      setAppliedVoucher(null);
+    } finally {
+      setVoucherLoading(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherError(null);
+    setVoucherCode("");
+  };
 
   const handleCreatePaymentLink = async () => {
     if (totalPrice === 0) {
       setError("Vui lòng chọn ít nhất một sản phẩm.");
+      return;
+    }
+    if (grandTotal <= 0) {
+      setError("Tổng tiền sau ưu đãi phải lớn hơn 0.");
       return;
     }
     // Validate customer info
@@ -130,9 +285,18 @@ function PaymentPage() {
       });
     }
 
+    const descriptionParts = [
+      `${totalQuantity} sản phẩm - Người mua: ${fullName} - ĐT: ${phone}`,
+    ];
+    if (appliedVoucher && discountAmount > 0) {
+      descriptionParts.push(
+        `Voucher ${appliedVoucher.code} giảm ${formatCurrency(discountAmount)}`
+      );
+    }
+
     const orderPayload = {
-      amount: totalPrice,
-      description: `${totalQuantity} sản phẩm - Người mua: ${fullName} - ĐT: ${phone}`,
+      amount: grandTotal,
+      description: descriptionParts.join(" | "),
       items: orderItems,
       customer: {
         fullName,
@@ -389,6 +553,62 @@ function PaymentPage() {
           (注文概要)
         </p>
 
+        <div className="mb-6">
+          <p className="text-sm font-semibold text-gray-800 mb-2">Mã ưu đãi</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              value={voucherCode}
+              disabled={voucherLoading}
+              onChange={(e) => {
+                setVoucherCode(e.target.value);
+                if (voucherError) setVoucherError(null);
+              }}
+              placeholder="Nhập mã voucher"
+              className="flex-1 border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
+            />
+            <button
+              type="button"
+              onClick={handleApplyVoucher}
+              disabled={
+                voucherLoading || !voucherCode.trim() || totalPrice <= 0
+              }
+              className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {voucherLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Đang áp dụng</span>
+                </>
+              ) : (
+                <>
+                  <Ticket className="h-4 w-4" />
+                  <span>Áp dụng</span>
+                </>
+              )}
+            </button>
+          </div>
+          {voucherError && (
+            <p className="text-xs text-red-500 mt-1">{voucherError}</p>
+          )}
+          {appliedVoucher && (
+            <div className="mt-3 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-md p-3 text-sm text-emerald-700">
+              <div>
+                <p className="font-semibold">
+                  Đã áp dụng: {appliedVoucher.code}
+                </p>
+                <p>Giảm {formatCurrency(discountAmount)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleRemoveVoucher}
+                className="text-emerald-700 font-medium hover:underline"
+              >
+                Gỡ
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="space-y-3 text-gray-700">
           {/* Item 1: Mật Ong Hoa Vải 165g */}
           {bigProductQuantity > 0 && (
@@ -437,16 +657,31 @@ function PaymentPage() {
             </span>
           </p>
           <p className="text-indigo-600 text-right sm:text-left">
-            {totalPrice.toLocaleString("vi-VN", {
-              style: "currency",
-              currency: "VND",
-            })}
+            {formatCurrency(grandTotal)}
           </p>
+        </div>
+        <div className="mt-3 space-y-2 text-sm text-gray-700">
+          <div className="flex justify-between">
+            <span>Tạm tính</span>
+            <span>{formatCurrency(totalPrice)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Ưu đãi</span>
+            <span
+              className={
+                discountAmount > 0 ? "text-emerald-600 font-semibold" : ""
+              }
+            >
+              {discountAmount > 0
+                ? `- ${formatCurrency(discountAmount)}`
+                : "0₫"}
+            </span>
+          </div>
         </div>
         {error && <p className="text-red-500 text-center mt-4">{error}</p>}
         <button
           onClick={handleCreatePaymentLink}
-          disabled={loading || totalQuantity === 0}
+          disabled={loading || totalQuantity === 0 || grandTotal <= 0}
           className="w-full mt-6 bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {loading ? (

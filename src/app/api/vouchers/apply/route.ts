@@ -1,12 +1,10 @@
 import { NextRequest } from "next/server";
 import { envConfig } from "@/config";
-import { cookies } from "next/headers";
 
 const backendBase = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
 
-async function buildAuthHeaders(request: NextRequest) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("sessionToken")?.value;
+function buildAuthHeaders(request: NextRequest) {
+  const token = request.cookies.get("sessionToken")?.value;
   const authHeader = request.headers.get("authorization");
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

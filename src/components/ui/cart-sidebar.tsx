@@ -4,7 +4,15 @@ import { useCart } from "@/context/cart-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { X, ShoppingBag, Plus, Minus, Trash2 } from "lucide-react";
+import {
+  X,
+  ShoppingBag,
+  Plus,
+  Minus,
+  Trash2,
+  Ticket,
+  Loader2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -28,12 +36,54 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     discountAmount,
     grandTotal,
     appliedVoucher,
+    applyVoucher,
+    removeVoucher,
   } = useCart();
   const [mounted, setMounted] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [voucherLoading, setVoucherLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (appliedVoucher) {
+      setVoucherCode(appliedVoucher.code);
+    } else {
+      setVoucherCode("");
+    }
+  }, [appliedVoucher]);
+
+  const handleApplyVoucher = async () => {
+    const code = voucherCode.trim();
+    if (!code) {
+      setVoucherError("Vui lòng nhập mã voucher");
+      return;
+    }
+    if (subtotal <= 0) {
+      setVoucherError("Giỏ hàng trống, không thể áp dụng voucher");
+      return;
+    }
+    setVoucherLoading(true);
+    setVoucherError(null);
+    try {
+      await applyVoucher(code);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Không thể áp dụng voucher";
+      setVoucherError(message);
+    } finally {
+      setVoucherLoading(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    removeVoucher();
+    setVoucherError(null);
+    setVoucherCode("");
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -197,7 +247,68 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
               {/* Footer */}
               <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-4 bg-gray-50 dark:bg-gray-800">
-                <div className="space-y-2 text-sm">
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <p className="font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                      Mã ưu đãi
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        value={voucherCode}
+                        onChange={(e) => {
+                          setVoucherCode(e.target.value);
+                          if (voucherError) setVoucherError(null);
+                        }}
+                        placeholder="Nhập mã voucher"
+                        className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-200 dark:border-gray-600 dark:bg-gray-900"
+                        disabled={voucherLoading}
+                      />
+                      <Button
+                        onClick={handleApplyVoucher}
+                        disabled={
+                          voucherLoading || !voucherCode.trim() || subtotal <= 0
+                        }
+                        className="flex items-center gap-2"
+                      >
+                        {voucherLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Đang áp dụng
+                          </>
+                        ) : (
+                          <>
+                            <Ticket className="h-4 w-4" />
+                            Áp dụng
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    {voucherError && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {voucherError}
+                      </p>
+                    )}
+                    {appliedVoucher && (
+                      <div className="mt-3 flex items-center justify-between rounded-md border border-emerald-100 bg-emerald-50 px-3 py-2 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-900/10 dark:text-emerald-300">
+                        <div>
+                          <p className="font-semibold text-sm">
+                            Đã áp dụng: {appliedVoucher.code}
+                          </p>
+                          <p className="text-xs">
+                            Giảm {formatCurrency(discountAmount)}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-emerald-700 hover:text-emerald-900 dark:text-emerald-200"
+                          onClick={handleRemoveVoucher}
+                        >
+                          Gỡ
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
                     <span>Tạm tính</span>
                     <span className="font-medium">
