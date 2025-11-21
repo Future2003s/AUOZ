@@ -168,22 +168,24 @@ export const useOrders = () => {
     );
   };
 
-  const syncOrderStatus = (backendId: string, status: string) => {
+  const syncOrderStatus = (backendId: string, backendStatus: string) => {
+    const statusMap: Record<string, Order["status"]> = {
+      pending: "Chờ xử lý",
+      processing: "Đang xử lý",
+      shipped: "Đang giao",
+      delivered: "Đã giao",
+      cancelled: "Đã huỷ",
+    };
+    const normalizedStatus =
+      typeof backendStatus === "string" ? backendStatus.toLowerCase() : "";
+    const mappedStatus = statusMap[normalizedStatus] ?? "Chờ xử lý";
+
     setOrders((prevOrders) =>
       prevOrders.map((o) =>
         o.backendId === backendId || o.id === backendId
           ? {
               ...o,
-              status:
-                status === "processing"
-                  ? "Đang xử lý"
-                  : status === "shipped"
-                  ? "Đang giao"
-                  : status === "delivered"
-                  ? "Đã giao"
-                  : status === "cancelled"
-                  ? "Đã huỷ"
-                  : status,
+              status: mappedStatus,
             }
           : o
       )

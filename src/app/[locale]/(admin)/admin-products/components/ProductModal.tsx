@@ -46,7 +46,7 @@ export default function ProductModal({
   brands,
   onCreateCategory,
 }: ProductModalProps) {
-  const [formData, setFormData] = useState({
+  const createEmptyFormData = () => ({
     name: "",
     description: "",
     price: "",
@@ -58,6 +58,7 @@ export default function ProductModal({
     isFeatured: false,
     images: [] as string[],
   });
+  const [formData, setFormData] = useState(createEmptyFormData);
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -134,17 +135,7 @@ export default function ProductModal({
           : [],
       });
     } else {
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        stock: "",
-        sku: "",
-        categoryId: "",
-        brandId: "",
-        status: "draft", // Always ensure valid default
-        images: [],
-      });
+      setFormData(createEmptyFormData());
     }
   }, [product, mode]);
 
@@ -306,7 +297,7 @@ export default function ProductModal({
     const value = imageUrl.trim();
     if (!value) return;
     pushImageAsPrimary(value);
-      setImageUrl("");
+    setImageUrl("");
   };
 
   const removeImage = (index: number) => {
@@ -344,7 +335,7 @@ export default function ProductModal({
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.data?.url) {
         const uploadedUrl = result.data.url;
         pushImageAsPrimary(uploadedUrl);
@@ -637,7 +628,7 @@ export default function ProductModal({
               <Label className="text-sm font-medium text-gray-700">
                 Hình ảnh
               </Label>
-              
+
               {/* Upload Area - Drag & Drop */}
               <div
                 onDragEnter={handleDrag}
@@ -665,13 +656,18 @@ export default function ProductModal({
                   {uploadingImage ? (
                     <>
                       <Loader isLoading={true} size="sm" />
-                      <span className="text-sm text-gray-600">Đang upload...</span>
+                      <span className="text-sm text-gray-600">
+                        Đang upload...
+                      </span>
                     </>
                   ) : (
                     <>
                       <Upload className="h-8 w-8 text-gray-400" />
                       <div className="text-sm text-gray-600">
-                        <span className="text-blue-600 font-medium">Click để chọn</span> hoặc kéo thả ảnh vào đây
+                        <span className="text-blue-600 font-medium">
+                          Click để chọn
+                        </span>{" "}
+                        hoặc kéo thả ảnh vào đây
                       </div>
                       <span className="text-xs text-gray-500">
                         PNG, JPG, GIF, WebP (tối đa 10MB)

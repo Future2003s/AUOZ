@@ -16,7 +16,7 @@ export const useRealtimeUser = (enabled: boolean = true) => {
   const previousStatusRef = useRef<boolean | null>(null);
 
   const checkUserStatus = useCallback(async () => {
-    if (!isAuthenticated || !token || !user?.id) {
+    if (!isAuthenticated || !token || !(user?._id || user?.id)) {
       return;
     }
 

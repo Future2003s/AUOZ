@@ -8,6 +8,7 @@ import {
   useDeleteAddress,
   useSetDefaultAddress,
 } from "./useAddresses";
+import type { Address } from "@/hooks/useAddresses";
 import { useOrders } from "./useOrders";
 import { useUploadAvatar } from "./useAvatar";
 import { Button } from "@/components/ui/button";
@@ -139,7 +140,7 @@ export default function ProfilePage() {
 
   // Address management
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [addressForm, setAddressForm] = useState<AddressFormData>({
     type: "home",
     street: "",
@@ -291,7 +292,7 @@ export default function ProfilePage() {
     setIsAddressModalOpen(true);
   };
 
-  const handleOpenEditAddress = (address: any) => {
+  const handleOpenEditAddress = (address: Address) => {
     setSelectedAddress(address);
     setAddressForm({
       type: address.type || "home",
@@ -326,8 +327,14 @@ export default function ProfilePage() {
 
     try {
       if (selectedAddress) {
+        const addressId = selectedAddress._id ?? selectedAddress.id;
+        if (!addressId) {
+          toast.error("Không xác định được địa chỉ cần cập nhật");
+          return;
+        }
+
         await updateAddressMutation.mutateAsync({
-          addressId: selectedAddress._id || selectedAddress.id,
+          addressId,
           addressData: addressForm,
         });
         toast.success("Cập nhật địa chỉ thành công");

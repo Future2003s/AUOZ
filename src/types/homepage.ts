@@ -43,7 +43,14 @@ export interface HomepageSettings {
   sections: {
     hero: HomepageSection<{ slides: HomepageHeroSlide[] }>;
     marquee: HomepageSection<{ phrases: string[]; speed?: number }>;
-    about: HomepageSection<{ heading?: string; body?: string; media?: { url: string; alt?: string } }>;
+    about: HomepageSection<{
+      heading?: string;
+      body?: string;
+      media?: { url: string; alt?: string };
+      founderName?: string;
+      founderTitle?: string;
+      founderQuote?: string;
+    }>;
     featuredProducts: HomepageSection<{ productIds: string[]; layout?: "grid" | "carousel" }>;
     socialProof: HomepageSection<{ testimonials: any[]; logos: any[] }>;
     collection: HomepageSection<{ cards: any[] }>;

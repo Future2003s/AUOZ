@@ -64,7 +64,7 @@ interface SortableSlideItemProps {
   updateHeroSlide: (index: number, updater: (slide: any) => any) => void;
   removeHeroSlide: (index: number) => void;
   moveHeroSlide: (from: number, to: number) => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   uploadingImage: boolean;
   handleImageUploadForSlide: (file: File, slideIndex: number) => void;
 }
@@ -1860,10 +1860,12 @@ export default function HomepageBuilderPage() {
                               const sections =
                                 prev?.sections ||
                                 defaultHomepageSettings.sections;
-                              const steps =
-                                [...(sections.craft.data?.steps ||
-                                  defaultHomepageSettings.sections.craft.data
-                                    .steps)] || [];
+                              const steps = [
+                                ...(
+                                  sections.craft.data?.steps ??
+                                  defaultHomepageSettings.sections.craft.data.steps
+                                ),
+                              ];
                               if (index === 0) return prev;
                               const tmp = steps[index];
                               steps[index] = steps[index - 1];
@@ -1896,10 +1898,12 @@ export default function HomepageBuilderPage() {
                               const sections =
                                 prev?.sections ||
                                 defaultHomepageSettings.sections;
-                              const steps =
-                                [...(sections.craft.data?.steps ||
-                                  defaultHomepageSettings.sections.craft.data
-                                    .steps)] || [];
+                              const steps = [
+                                ...(
+                                  sections.craft.data?.steps ??
+                                  defaultHomepageSettings.sections.craft.data.steps
+                                ),
+                              ];
                               if (index === arr.length - 1) return prev;
                               const tmp = steps[index];
                               steps[index] = steps[index + 1];
@@ -1932,10 +1936,12 @@ export default function HomepageBuilderPage() {
                               const sections =
                                 prev?.sections ||
                                 defaultHomepageSettings.sections;
-                              const steps =
-                                [...(sections.craft.data?.steps ||
-                                  defaultHomepageSettings.sections.craft.data
-                                    .steps)] || [];
+                              const steps = [
+                                ...(
+                                  sections.craft.data?.steps ??
+                                  defaultHomepageSettings.sections.craft.data.steps
+                                ),
+                              ];
                               steps.splice(index, 1);
                               return {
                                 ...prev,
@@ -1968,10 +1974,12 @@ export default function HomepageBuilderPage() {
                               const sections =
                                 prev?.sections ||
                                 defaultHomepageSettings.sections;
-                              const steps =
-                                [...(sections.craft.data?.steps ||
-                                  defaultHomepageSettings.sections.craft.data
-                                    .steps)] || [];
+                              const steps = [
+                                ...(
+                                  sections.craft.data?.steps ??
+                                  defaultHomepageSettings.sections.craft.data.steps
+                                ),
+                              ];
                               steps[index] = {
                                 ...steps[index],
                                 title: e.target.value,
@@ -2003,10 +2011,12 @@ export default function HomepageBuilderPage() {
                               const sections =
                                 prev?.sections ||
                                 defaultHomepageSettings.sections;
-                              const steps =
-                                [...(sections.craft.data?.steps ||
-                                  defaultHomepageSettings.sections.craft.data
-                                    .steps)] || [];
+                              const steps = [
+                                ...(
+                                  sections.craft.data?.steps ??
+                                  defaultHomepageSettings.sections.craft.data.steps
+                                ),
+                              ];
                               steps[index] = {
                                 ...steps[index],
                                 imageUrl: url,
@@ -2041,10 +2051,12 @@ export default function HomepageBuilderPage() {
                             const sections =
                               prev?.sections ||
                               defaultHomepageSettings.sections;
-                            const steps =
-                              [...(sections.craft.data?.steps ||
-                                defaultHomepageSettings.sections.craft.data
-                                  .steps)] || [];
+                            const steps = [
+                              ...(
+                                sections.craft.data?.steps ??
+                                defaultHomepageSettings.sections.craft.data.steps
+                              ),
+                            ];
                             steps[index] = {
                               ...steps[index],
                               description: e.target.value,

@@ -26,9 +26,9 @@ function buildUrl(id: string) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
-  const id = params.id;
+  const { id } = await params;
   try {
     const headers = await buildAuthHeaders(request);
     const res = await fetch(buildUrl(id), {
@@ -59,9 +59,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
-  const id = params.id;
+  const { id } = await params;
   try {
     const body = await request.json();
     const headers = await buildAuthHeaders(request);
@@ -94,9 +94,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
-  const id = params.id;
+  const { id } = await params;
   try {
     const headers = await buildAuthHeaders(request);
     const res = await fetch(buildUrl(id), {

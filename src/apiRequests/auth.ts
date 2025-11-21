@@ -18,6 +18,7 @@ export interface BackendAuthResponse {
   data: {
     user: {
       _id: string;
+      id?: string;
       firstName: string;
       lastName: string;
       email: string;
@@ -45,10 +46,14 @@ export interface BackendAuthResponse {
 
 export interface BackendUserProfile {
   _id: string;
+  id?: string;
   firstName: string;
   lastName: string;
   email: string;
   role: string;
+  isActive?: boolean;
+  isEmailVerified?: boolean;
+  phone?: string;
   avatar?: string;
   addresses: any[];
   preferences: {

@@ -67,7 +67,8 @@ export const FeaturedProductsSection: React.FC = () => {
         if (result.success && result.data) {
           // Map backend product format to frontend Product format
           const mappedProducts: Product[] = result.data.map(
-            (product: {
+            (
+              product: {
               _id?: string;
               id?: string | number;
               name?: string;
@@ -79,7 +80,9 @@ export const FeaturedProductsSection: React.FC = () => {
               averageRating?: number;
               description?: string;
               longDescription?: string;
-            }) => {
+              },
+              index: number
+            ) => {
               // Get first image from images array or use placeholder
               const imageUrl =
                 product.images && product.images.length > 0

@@ -58,6 +58,9 @@ export const defaultHomepageSettings: HomepageSettings = {
           url: "https://res.cloudinary.com/demo/image/upload/v1720000000/about.jpg",
           alt: "About",
         },
+        founderName: "",
+        founderTitle: "",
+        founderQuote: "",
       },
     },
     featuredProducts: {

@@ -8,6 +8,7 @@ type OrderStatus =
   | "delivered"
   | "cancelled"
   | "refunded";
+type OrderFilter = OrderStatus | "all";
 
 type OrderProductInfo = {
   _id?: string;
@@ -50,7 +51,7 @@ type Order = {
 
 const ordersQueryKey = ["orders"] as const;
 
-async function fetchOrders(status?: OrderStatus): Promise<Order[]> {
+async function fetchOrders(status?: OrderFilter): Promise<Order[]> {
   const url = new URL("/api/orders", window.location.origin);
   if (status && status !== "all") {
     url.searchParams.set("status", status);
@@ -81,9 +82,9 @@ type UseOrdersOptions = {
   refetchIntervalMs?: number;
 };
 
-export function useOrders(status?: OrderStatus, options?: UseOrdersOptions) {
+export function useOrders(status?: OrderFilter, options?: UseOrdersOptions) {
   const { enabled = true, refetchIntervalMs = 15000 } = options || {};
-  const normalizedStatus = status || "all";
+  const normalizedStatus: OrderFilter = status || "all";
 
   return useQuery({
     queryKey: [...ordersQueryKey, normalizedStatus],

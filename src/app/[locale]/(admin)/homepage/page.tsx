@@ -151,16 +151,16 @@ export default function HomepageBuilderPage() {
           <Button
             variant="outline"
             onClick={() => mutation.mutate("draft")}
-            disabled={mutation.isLoading}
+            disabled={mutation.isPending}
           >
             <Save className="w-4 h-4 mr-2" />
             Lưu nháp
           </Button>
           <Button
             onClick={() => mutation.mutate("published")}
-            disabled={mutation.isLoading}
+            disabled={mutation.isPending}
           >
-            {mutation.isLoading ? (
+            {mutation.isPending ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <Save className="w-4 h-4 mr-2" />

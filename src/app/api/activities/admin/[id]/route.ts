@@ -7,9 +7,10 @@ const baseUrl =
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
-  return proxyJson(`${baseUrl}/activities/admin/${params.id}`, request, {
+  const { id } = await params;
+  return proxyJson(`${baseUrl}/activities/admin/${id}`, request, {
     method: "GET",
     requireAuth: true,
   });

@@ -278,7 +278,7 @@ export const InteractiveHeroSlider: React.FC<InteractiveHeroSliderProps> = ({
                   width={100}
                   height={100}
                   src={slide.imageUrl}
-                  alt={slide.subtitle}
+                  alt={slide.subtitle || "Hero slide thumbnail"}
                   className={`w-12 h-16 sm:w-16 sm:h-20 md:w-20 md:h-24 object-cover transition-all duration-300 ease-in-out ${
                     currentIndex === index
                       ? "sm:w-18 sm:h-22 md:w-24 md:h-32"
