@@ -27,7 +27,6 @@ import { useAuth } from "@/hooks/useAuth";
 import accountApiRequest from "@/apiRequests/account";
 import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
-import { useRealtimeUser } from "@/hooks/useRealtimeUser";
 
 // Navigation links will be translated in component
 const getNavLinks = (
@@ -176,7 +175,6 @@ export default function Header() {
   const { totalQuantity } = useCart();
   
   // Enable realtime user updates - tự động cập nhật khi admin thay đổi
-  useRealtimeUser(isAuthenticated);
   const { openSidebar } = useCartSidebar();
   const t = useTranslations();
   const { locale } = useI18n();
