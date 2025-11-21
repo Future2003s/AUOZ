@@ -13,8 +13,10 @@ import {
   Ticket,
   Loader2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { defaultLocale, getLocaleFromPathname } from "@/i18n/config";
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -43,6 +45,12 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [voucherCode, setVoucherCode] = useState("");
   const [voucherError, setVoucherError] = useState<string | null>(null);
   const [voucherLoading, setVoucherLoading] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const locale = useMemo(() => {
+    if (!pathname) return defaultLocale;
+    return getLocaleFromPathname(pathname) ?? defaultLocale;
+  }, [pathname]);
 
   useEffect(() => {
     setMounted(true);
@@ -83,6 +91,15 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     removeVoucher();
     setVoucherError(null);
     setVoucherCode("");
+  };
+
+  const handleCheckout = () => {
+    if (items.length === 0) {
+      return;
+    }
+    const checkoutPath = `/${locale}/payment`;
+    router.push(checkoutPath);
+    onClose();
   };
 
   useEffect(() => {
@@ -333,7 +350,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Button className="w-full" size="lg">
+                  <Button className="w-full" size="lg" onClick={handleCheckout}>
                     Thanh toán
                   </Button>
                   <Button

@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, PhoneCall, Mail, Shield } from "lucide-react";
 import { ComplaintSettings } from "@/types/complaints";
+import { complaintApi } from "@/apiRequests/complaints";
 
 interface ComplaintForm {
   fullName: string;
@@ -34,6 +35,7 @@ export function ComplaintsPageClient({ settings }: ComplaintsPageClientProps) {
   const [formData, setFormData] = useState<ComplaintForm>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -45,11 +47,22 @@ export function ComplaintsPageClient({ settings }: ComplaintsPageClientProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setFormData(initialForm);
-    setTimeout(() => setIsSubmitted(false), 4000);
+    setErrorMessage(null);
+    try {
+      const response = await complaintApi.submitRequest(formData);
+      if (!response?.success) {
+        throw new Error(response?.message || "Không thể gửi yêu cầu");
+      }
+      setIsSubmitted(true);
+      setFormData(initialForm);
+      setTimeout(() => setIsSubmitted(false), 4000);
+    } catch (error: any) {
+      setErrorMessage(
+        error?.message || "Có lỗi xảy ra, vui lòng thử lại sau ít phút."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -215,6 +228,9 @@ export function ComplaintsPageClient({ settings }: ComplaintsPageClientProps) {
                     placeholder="Vui lòng mô tả chi tiết vấn đề, thời gian, sản phẩm liên quan..."
                   />
                 </div>
+                {errorMessage && (
+                  <p className="text-sm text-red-500 text-center">{errorMessage}</p>
+                )}
                 <Button
                   type="submit"
                   disabled={isSubmitting}

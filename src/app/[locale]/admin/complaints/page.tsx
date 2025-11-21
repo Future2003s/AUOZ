@@ -17,6 +17,8 @@ import { complaintApi } from "@/apiRequests/complaints";
 import {
   ComplaintSettings,
   defaultComplaintSettings,
+  ComplaintRequest,
+  ComplaintStatus,
 } from "@/types/complaints";
 import { toast } from "sonner";
 
@@ -27,6 +29,29 @@ export default function AdminComplaintsPage() {
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [requests, setRequests] = useState<ComplaintRequest[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<ComplaintStatus | "all">(
+    "all"
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [updatingRequestId, setUpdatingRequestId] = useState<string | null>(
+    null
+  );
+  const statusOptions: { value: ComplaintStatus | "all"; label: string }[] = [
+    { value: "all", label: "Tất cả" },
+    { value: "new", label: "Mới" },
+    { value: "in_progress", label: "Đang xử lý" },
+    { value: "resolved", label: "Đã giải quyết" },
+    { value: "rejected", label: "Từ chối" },
+  ];
+
+  const statusLabel: Record<ComplaintStatus, string> = {
+    new: "Mới",
+    in_progress: "Đang xử lý",
+    resolved: "Đã giải quyết",
+    rejected: "Từ chối",
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -45,6 +70,35 @@ export default function AdminComplaintsPage() {
     };
     fetchSettings();
   }, []);
+
+  const fetchRequests = async () => {
+    if (!sessionToken) return;
+    try {
+      setRequestsLoading(true);
+      const response = await complaintApi.getRequests(
+        {
+          status: statusFilter,
+          search: searchTerm.trim() || undefined,
+        },
+        sessionToken
+      );
+      if (response.success) {
+        setRequests(response.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to load complaint requests:", error);
+      toast.error("Không thể tải danh sách khiếu nại");
+    } finally {
+      setRequestsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (sessionToken) {
+      fetchRequests();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionToken, statusFilter]);
 
   const handleSave = async () => {
     if (!sessionToken) {
@@ -66,6 +120,37 @@ export default function AdminComplaintsPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleUpdateRequestStatus = async (
+    id: string,
+    nextStatus: ComplaintStatus
+  ) => {
+    if (!sessionToken) {
+      toast.error("Bạn cần đăng nhập lại");
+      return;
+    }
+    try {
+      setUpdatingRequestId(id);
+      const res = await complaintApi.updateRequest(
+        id,
+        { status: nextStatus },
+        sessionToken
+      );
+      if (res.success) {
+        toast.success("Đã cập nhật trạng thái khiếu nại");
+        fetchRequests();
+      }
+    } catch (error: any) {
+      console.error("Failed to update complaint request:", error);
+      toast.error(error?.message || "Không thể cập nhật trạng thái");
+    } finally {
+      setUpdatingRequestId(null);
+    }
+  };
+
+  const handleSearchRequests = () => {
+    fetchRequests();
   };
 
   const updateStep = (index: number, field: "title" | "description", value: string) => {
@@ -140,6 +225,136 @@ export default function AdminComplaintsPage() {
           )}
         </Button>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Yêu cầu khiếu nại từ khách hàng</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label>Trạng thái</Label>
+              <select
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value as ComplaintStatus | "all")
+                }
+                className="w-full border rounded-md px-3 py-2"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label>Tìm kiếm</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Tên, mã đơn, email..."
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSearchRequests}
+                >
+                  Tìm kiếm
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {requestsLoading ? (
+            <div className="py-10 text-center text-slate-500">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+              Đang tải yêu cầu...
+            </div>
+          ) : requests.length === 0 ? (
+            <p className="py-6 text-center text-slate-500">
+              Chưa có yêu cầu khiếu nại nào phù hợp.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {requests.map((request) => (
+                <div
+                  key={request._id}
+                  className="border rounded-xl p-4 shadow-sm bg-white space-y-3"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-lg">
+                        {request.title}
+                      </p>
+                      <p className="text-sm text-slate-500">
+                        Mã đơn: {request.orderCode}
+                      </p>
+                    </div>
+                    <span className="text-sm font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-700">
+                      {statusLabel[request.status]}
+                    </span>
+                  </div>
+                  <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
+                    <p>
+                      <span className="font-semibold">Khách hàng:</span>{" "}
+                      {request.fullName}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Email:</span>{" "}
+                      {request.email}
+                    </p>
+                    {request.phone && (
+                      <p>
+                        <span className="font-semibold">SĐT:</span>{" "}
+                        {request.phone}
+                      </p>
+                    )}
+                    <p>
+                      <span className="font-semibold">Ngày gửi:</span>{" "}
+                      {new Date(request.createdAt).toLocaleString("vi-VN")}
+                    </p>
+                  </div>
+                  <p className="text-sm text-slate-700 whitespace-pre-line bg-slate-50 rounded-lg p-3">
+                    {request.description}
+                  </p>
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <p className="text-sm text-slate-500 flex-1">
+                      <span className="font-semibold">Ghi chú nội bộ:</span>{" "}
+                      {request.adminNotes || "Chưa có"}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={request.status}
+                        onChange={(e) =>
+                          handleUpdateRequestStatus(
+                            request._id,
+                            e.target.value as ComplaintStatus
+                          )
+                        }
+                        className="border rounded-md px-3 py-2 text-sm"
+                        disabled={updatingRequestId === request._id}
+                      >
+                        {statusOptions
+                          .filter((opt) => opt.value !== "all")
+                          .map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                      </select>
+                      {updatingRequestId === request._id && (
+                        <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

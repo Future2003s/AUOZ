@@ -55,4 +55,20 @@ export const defaultComplaintSettings: ComplaintSettings = {
     "Toàn bộ khiếu nại được bảo mật theo chính sách dữ liệu của LALA-LYCHEEE.",
 };
 
+export type ComplaintStatus = "new" | "in_progress" | "resolved" | "rejected";
+
+export interface ComplaintRequest {
+  _id: string;
+  fullName: string;
+  orderCode: string;
+  email: string;
+  phone?: string;
+  title: string;
+  description: string;
+  status: ComplaintStatus;
+  adminNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 

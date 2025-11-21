@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { defaultLocale, getLocaleFromPathname } from "@/i18n/config";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
@@ -44,6 +46,9 @@ export default function CartPage() {
   const [voucherCode, setVoucherCode] = useState("");
   const [voucherError, setVoucherError] = useState<string | null>(null);
   const [voucherLoading, setVoucherLoading] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname || "") ?? defaultLocale;
 
   useEffect(() => {
     if (appliedVoucher) {
@@ -399,6 +404,10 @@ export default function CartPage() {
                 <Button
                   size="lg"
                   className="w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700"
+                  onClick={() => {
+                    if (items.length === 0) return;
+                    router.push(`/${locale}/payment`);
+                  }}
                 >
                   <CreditCard className="h-5 w-5 mr-2" />
                   Thanh toán ngay

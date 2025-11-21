@@ -5,6 +5,7 @@ import { ButtonLoader } from "@/components/ui/loader";
 import { envConfig } from "@/config";
 import { useAuth } from "@/hooks/useAuth";
 import { Address, useAddresses } from "@/hooks/useAddresses";
+import type { AppliedVoucher } from "@/context/cart-context";
 
 export interface BuyNowItem {
   name: string;
@@ -71,6 +72,12 @@ export default function BuyNowModal({
     useState<OrderSuccessData | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "bank">("cod");
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucher | null>(
+    null
+  );
 
   const { totalQty, totalPrice } = useMemo(() => {
     const totalQty = items.reduce((s, it) => s + (Number(it.quantity) || 0), 0);
@@ -80,6 +87,9 @@ export default function BuyNowModal({
     );
     return { totalQty, totalPrice };
   }, [items]);
+
+  const discountAmount = appliedVoucher?.discountAmount ?? 0;
+  const grandTotal = Math.max(totalPrice - discountAmount, 0);
 
   const defaultAddress = useMemo(() => {
     if (!addresses?.length) {
@@ -114,6 +124,71 @@ export default function BuyNowModal({
     setAddress((prev) => (prev ? prev : formatAddress(defaultAddress)));
   }, [open, defaultAddress]);
 
+  useEffect(() => {
+    if (open) return;
+    setVoucherCode("");
+    setVoucherError(null);
+    setAppliedVoucher(null);
+    setVoucherLoading(false);
+  }, [open]);
+
+  const handleApplyVoucher = async () => {
+    const code = voucherCode.trim().toUpperCase();
+    if (!code) {
+      setVoucherError("Vui lòng nhập mã voucher");
+      return;
+    }
+    if (totalPrice <= 0) {
+      setVoucherError("Vui lòng chọn sản phẩm trước khi áp dụng voucher");
+      return;
+    }
+    setVoucherError(null);
+    setVoucherLoading(true);
+    try {
+      const res = await fetch("/api/vouchers/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal: totalPrice }),
+      });
+      const text = await res.text();
+      const payload = text ? JSON.parse(text) : null;
+      if (!res.ok) {
+        throw new Error(
+          payload?.message ||
+            payload?.data?.message ||
+            "Không thể áp dụng voucher"
+        );
+      }
+      const data = payload?.data ?? payload;
+      const normalized: AppliedVoucher = {
+        code: data?.voucher?.code || code,
+        name: data?.voucher?.name,
+        description: data?.voucher?.description,
+        discountType: data?.voucher?.discountType || "fixed",
+        discountValue: Number(data?.voucher?.discountValue || 0),
+        maxDiscountValue: data?.voucher?.maxDiscountValue,
+        minOrderValue: data?.voucher?.minOrderValue,
+        status: data?.voucher?.status || data?.runtimeStatus || "active",
+        discountAmount: Number(data?.discountAmount || 0),
+      };
+      setAppliedVoucher(normalized);
+      setVoucherCode(code);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Không thể áp dụng voucher";
+      setVoucherError(message);
+      setAppliedVoucher(null);
+    } finally {
+      setVoucherLoading(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherError(null);
+    setVoucherCode("");
+  };
+
   const createPayment = async () => {
     if (totalPrice <= 0 || totalQty <= 0) {
       setError("Vui lòng chọn sản phẩm và số lượng hợp lệ.");
@@ -121,6 +196,10 @@ export default function BuyNowModal({
     }
     if (!fullName.trim() || !phone.trim() || !address.trim()) {
       setError("Vui lòng nhập họ tên, số điện thoại và địa chỉ nhận hàng.");
+      return;
+    }
+    if (grandTotal <= 0) {
+      setError("Tổng tiền sau ưu đãi phải lớn hơn 0.");
       return;
     }
     // Login is optional for guest checkout
@@ -136,12 +215,32 @@ export default function BuyNowModal({
       .filter((it) => it.quantity > 0)
       .map((it) => ({ name: it.name, quantity: it.quantity, price: it.price }));
 
+    const descriptionParts = [
+      `${totalQty} sản phẩm - Người mua: ${fullName} - ĐT: ${phone}`,
+    ];
+
+    if (appliedVoucher && discountAmount > 0) {
+      descriptionParts.push(
+        `Voucher ${appliedVoucher.code} giảm ${formatCurrency(discountAmount)}`
+      );
+    }
+
     const orderPayload = {
-      amount: totalPrice,
-      description: `${totalQty} sản phẩm - Người mua: ${fullName} - ĐT: ${phone}`,
+      amount: grandTotal,
+      originalAmount: totalPrice,
+      discountAmount,
+      voucherCode: appliedVoucher?.code,
+      description: descriptionParts.join(" | "),
       items: orderItems,
       customer: { fullName, phone, email, address, note },
       paymentMethod,
+      voucher: appliedVoucher
+        ? {
+            code: appliedVoucher.code,
+            description: appliedVoucher.description,
+            discountAmount,
+          }
+        : undefined,
     };
 
     try {
@@ -223,7 +322,7 @@ export default function BuyNowModal({
 
         // Create order success data
         const orderNumber = orderResult?.data?.orderNumber || "N/A";
-        const orderTotal = orderResult?.data?.total || totalPrice;
+        const orderTotal = orderResult?.data?.total || grandTotal;
 
         setOrderSuccessData({
           orderNumber,
@@ -251,6 +350,9 @@ export default function BuyNowModal({
               setError(null);
               setOrderSuccessData(null);
               setCountdown(null);
+              setAppliedVoucher(null);
+              setVoucherCode("");
+              setVoucherError(null);
               return null;
             }
             return prev - 1;
@@ -310,6 +412,73 @@ export default function BuyNowModal({
                       {formatCurrency(totalPrice)}
                     </div>
                   </div>
+                  {discountAmount > 0 && (
+                    <div className="flex items-center justify-between text-sm text-green-600">
+                      <div>Giảm giá</div>
+                      <div>-{formatCurrency(discountAmount)}</div>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between text-base font-semibold border-t pt-2">
+                    <div>Tổng thanh toán</div>
+                    <div className="text-pink-600">
+                      {formatCurrency(grandTotal)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Mã ưu đãi</h4>
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      value={voucherCode}
+                      onChange={(e) => {
+                        setVoucherCode(e.target.value);
+                        if (voucherError) setVoucherError(null);
+                      }}
+                      placeholder="Nhập mã voucher"
+                      className="flex-1 border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:bg-gray-100"
+                      disabled={voucherLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyVoucher}
+                      disabled={
+                        voucherLoading || !voucherCode.trim() || totalPrice <= 0
+                      }
+                      className="px-4 py-2 rounded-md bg-pink-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {voucherLoading ? (
+                        <div className="flex items-center gap-2 justify-center">
+                          <ButtonLoader size="sm" />
+                          <span>Đang áp dụng</span>
+                        </div>
+                      ) : (
+                        "Áp dụng"
+                      )}
+                    </button>
+                    {appliedVoucher && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveVoucher}
+                        className="px-4 py-2 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+                      >
+                        Gỡ mã
+                      </button>
+                    )}
+                  </div>
+                  {voucherError && (
+                    <p className="text-sm text-red-500">{voucherError}</p>
+                  )}
+                  {appliedVoucher && (
+                    <div className="bg-green-50 border border-green-200 rounded-md p-3 text-sm text-green-800">
+                      <p className="font-semibold">
+                        Đã áp dụng: {appliedVoucher.code}
+                      </p>
+                      <p>Giảm {formatCurrency(discountAmount)}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
