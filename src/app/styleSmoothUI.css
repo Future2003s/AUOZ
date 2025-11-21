@@ -1,0 +1,156 @@
+body {
+  font-family: "Inter", sans-serif;
+  scroll-behavior: smooth;
+}
+.font-serif {
+  font-family: "Lora", serif;
+}
+
+/* Marquee animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+@keyframes marquee2 {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+.animate-marquee2 {
+  animation: marquee2 40s linear infinite;
+}
+.group:hover .animate-marquee,
+.group:hover .animate-marquee2 {
+  animation-play-state: paused;
+}
+
+/* Coverflow slider perspective */
+.coverflow-container {
+  perspective: 1200px;
+}
+
+/* 3D Partner Carousel */
+.scene {
+  perspective: 1000px;
+}
+.carousel {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  transform-style: preserve-3d;
+  animation: rotate-carousel 25s linear infinite;
+}
+.scene:hover .carousel {
+  animation-play-state: paused;
+}
+.carousel__cell {
+  position: absolute;
+  width: 200px;
+  height: 100px;
+  left: 0;
+  top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(241, 245, 249, 0.8);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(226, 232, 240, 1);
+}
+@keyframes rotate-carousel {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+/* Hero Slider Animations */
+@keyframes ken-burns {
+  0% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1.15);
+  }
+}
+.animate-ken-burns {
+  animation: ken-burns 7s ease-out forwards;
+}
+@keyframes slide-up-text {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-slide-up-text {
+  animation: slide-up-text 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes progress-bar {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+.animate-progress-bar {
+  animation-name: progress-bar;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/* Cursor Effect Animation */
+@keyframes cursor-sparkle {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+.animate-cursor-sparkle {
+  animation: cursor-sparkle 0.5s forwards ease-out;
+}
+
+/* Quick View Modal Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+@keyframes slide-up-modal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-slide-up-modal {
+  animation: slide-up-modal 0.4s ease-out forwards;
+}

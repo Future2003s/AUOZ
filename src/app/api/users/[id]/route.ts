@@ -1,0 +1,82 @@
+import { NextRequest } from "next/server";
+import { envConfig } from "@/config";
+import { proxyJson } from "@/lib/next-api-auth";
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
+  try {
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const id = resolvedParams?.id;
+
+    if (!id) {
+      return new Response(
+        JSON.stringify({ message: "User ID is required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const baseUrl =
+      envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
+    const url = `${baseUrl}/admin/users/${id}`;
+
+    const body = await request.json();
+
+    const response = await proxyJson(url, request, {
+      method: "PUT",
+      requireAuth: true,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    return response;
+  } catch (e) {
+    console.error("Update user API error:", e);
+    return new Response(
+      JSON.stringify({
+        message: "Internal Error",
+        error: e instanceof Error ? e.message : "Unknown error",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
+  try {
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const id = resolvedParams?.id;
+
+    if (!id) {
+      return new Response(
+        JSON.stringify({ message: "User ID is required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const baseUrl =
+      envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
+    const url = `${baseUrl}/admin/users/${id}`;
+
+    const response = await proxyJson(url, request, {
+      method: "DELETE",
+      requireAuth: true,
+    });
+
+    return response;
+  } catch (e) {
+    console.error("Delete user API error:", e);
+    return new Response(
+      JSON.stringify({
+        message: "Internal Error",
+        error: e instanceof Error ? e.message : "Unknown error",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
+
