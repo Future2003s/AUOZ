@@ -51,7 +51,7 @@ export function ComplaintsPageClient({ settings }: ComplaintsPageClientProps) {
     try {
       const response = await complaintApi.submitRequest(formData);
       if (!response?.success) {
-        throw new Error(response?.message || "Không thể gửi yêu cầu");
+        throw new Error("Không thể gửi yêu cầu");
       }
       setIsSubmitted(true);
       setFormData(initialForm);

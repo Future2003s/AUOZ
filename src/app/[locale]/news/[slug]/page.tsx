@@ -5,7 +5,7 @@ import { isValidLocale } from "@/i18n/config";
 import { NewsArticle } from "@/types/news";
 
 async function fetchArticle(locale: string, slug: string): Promise<NewsArticle | null> {
-  const h = headers();
+  const h = await headers();
   const host = h.get("host");
   if (!host) return null;
   const proto = h.get("x-forwarded-proto") ?? "http";
@@ -21,9 +21,9 @@ async function fetchArticle(locale: string, slug: string): Promise<NewsArticle |
 export default async function ArticleDetailPage({
   params,
 }: {
-  params: { locale: string; slug: string };
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { locale, slug } = params;
+  const { locale, slug } = await params;
   if (!locale || !isValidLocale(locale)) {
     notFound();
   }

@@ -161,6 +161,7 @@ export default function BuyNowModal({
       }
       const data = payload?.data ?? payload;
       const normalized: AppliedVoucher = {
+        id: data?.voucher?.id || data?.id || code,
         code: data?.voucher?.code || code,
         name: data?.voucher?.name,
         description: data?.voucher?.description,

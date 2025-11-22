@@ -297,7 +297,7 @@ const ResourcesSection = () => {
 };
 
 async function fetchNews(locale: string): Promise<NewsArticle[]> {
-  const h = headers();
+  const h = await headers();
   const host = h.get("host");
   if (!host) return [];
   const proto = h.get("x-forwarded-proto") ?? "http";
@@ -314,9 +314,9 @@ async function fetchNews(locale: string): Promise<NewsArticle[]> {
 export default async function NewsPage({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = params;
+  const { locale } = await params;
   if (!locale || !isValidLocale(locale)) {
     notFound();
   }

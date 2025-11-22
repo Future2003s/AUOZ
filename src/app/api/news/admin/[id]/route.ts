@@ -5,12 +5,12 @@ import { envConfig } from "@/config";
 const baseUrl =
   envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+type ParamsContext = { params: Promise<{ id: string }> };
+
+export async function PUT(request: NextRequest, { params }: ParamsContext) {
+  const { id } = await params;
   const body = await request.text();
-  return proxyJson(`${baseUrl}/news/admin/${params.id}`, request, {
+  return proxyJson(`${baseUrl}/news/admin/${id}`, request, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body,
@@ -18,11 +18,9 @@ export async function PUT(
   });
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  return proxyJson(`${baseUrl}/news/admin/${params.id}`, request, {
+export async function DELETE(request: NextRequest, { params }: ParamsContext) {
+  const { id } = await params;
+  return proxyJson(`${baseUrl}/news/admin/${id}`, request, {
     method: "DELETE",
     requireAuth: true,
   });

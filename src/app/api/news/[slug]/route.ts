@@ -5,12 +5,12 @@ import { envConfig } from "@/config";
 const baseUrl =
   envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+type ParamsContext = { params: Promise<{ slug: string }> };
+
+export async function GET(request: NextRequest, { params }: ParamsContext) {
+  const { slug } = await params;
   const qs = request.nextUrl.searchParams.toString();
-  const url = `${baseUrl}/news/${params.slug}${qs ? `?${qs}` : ""}`;
+  const url = `${baseUrl}/news/${slug}${qs ? `?${qs}` : ""}`;
   return proxyJson(url, request, {
     method: "GET",
   });

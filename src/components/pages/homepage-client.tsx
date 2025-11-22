@@ -13,6 +13,7 @@ import { ScrollToTopButton } from "@/components/scroll-to-top-button";
 import { OurCraftSection } from "@/components/our-craft-section";
 import { CollectionSection } from "@/components/collection-section";
 import { MarqueeBannerSection } from "@/components/marquee-banner-section";
+import { VideoSection } from "@/components/video-section";
 import { HomepageSettings } from "@/types/homepage";
 import { defaultHomepageSettings } from "@/lib/homepage-default";
 
@@ -99,6 +100,7 @@ export function HomePageClient({ settings }: HomePageClientProps) {
             founderQuote={mergedSettings.sections.about.data?.founderQuote}
           />
         )}
+        <VideoSection />
         {mergedSettings.sections.featuredProducts.enabled && (
           <FeaturedProductsSection />
         )}
