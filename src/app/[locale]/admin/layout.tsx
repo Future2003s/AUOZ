@@ -20,25 +20,36 @@ import {
 } from "lucide-react";
 
 async function fetchMeServer() {
-  const h = await headers();
-  const host = h.get("host");
-  const proto = h.get("x-forwarded-proto") || "http";
-  const url = `${proto}://${host}/api/auth/me`;
-  const cookieHeader = h.get("cookie") || "";
+  try {
+    const h = await headers();
+    const host = h.get("host");
+    const proto = h.get("x-forwarded-proto") || "https";
+    const url = `${proto}://${host}/api/auth/me`;
+    const cookieHeader = h.get("cookie") || "";
 
-  console.log("Admin layout auth check:", {
-    url,
-    hasCookie: !!cookieHeader,
-    cookieValue: cookieHeader,
-  });
+    console.log("Admin layout auth check:", {
+      url,
+      hasCookie: !!cookieHeader,
+      cookieValue: cookieHeader ? "Present" : "Missing",
+    });
 
-  const res = await fetch(url, {
-    cache: "no-store",
-    headers: { cookie: cookieHeader },
-  });
+    const res = await fetch(url, {
+      cache: "no-store",
+      headers: { cookie: cookieHeader },
+      // Thêm timeout để tránh hang
+      signal: AbortSignal.timeout(5000),
+    });
 
-  console.log("Auth response status:", res.status, "ok:", res.ok);
-  return res;
+    console.log("Auth response status:", res.status, "ok:", res.ok);
+    return res;
+  } catch (error) {
+    console.error("fetchMeServer error:", error);
+    // Return a mock response với status 401 để trigger redirect
+    return new Response(JSON.stringify({ success: false, error: "Network error" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }
 
 export default async function AdminLayout({
@@ -235,6 +246,21 @@ export default async function AdminLayout({
     console.error("Admin layout error:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
+    
+    // Không redirect nếu error là NEXT_REDIRECT (tránh redirect loop)
+    if (errorMessage.includes("NEXT_REDIRECT")) {
+      console.error("NEXT_REDIRECT error detected, not redirecting to avoid loop");
+      // Return error page instead
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Lỗi xác thực</h1>
+            <p className="text-gray-600">Vui lòng đăng nhập lại để tiếp tục.</p>
+          </div>
+        </div>
+      );
+    }
+    
     // Use locale from params if available, otherwise default to 'vi'
     const fallbackLocale = params
       ? await params.then((p) => p.locale).catch(() => "vi")

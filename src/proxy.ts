@@ -122,15 +122,23 @@ export async function proxy(request: NextRequest) {
   }
 
   // Redirect logged-in users away from public pages
+  // NHƯNG không redirect nếu có error param hoặc reason=error (để tránh redirect loop)
+  const hasErrorParam = 
+    url.searchParams.has("error") || 
+    url.searchParams.get("reason") === "error" ||
+    url.searchParams.get("reason")?.includes("error");
+  
   if (
     publicPath.some((path) => pathWithoutLocale.startsWith(path)) &&
-    sessionId
+    sessionId &&
+    !hasErrorParam
   ) {
     // Redirect to profile without adding noisy query params
     url.pathname = `/${locale}/me`;
     url.searchParams.delete("from");
     url.searchParams.delete("reason");
     url.searchParams.delete("redirect");
+    url.searchParams.delete("error");
     return NextResponse.redirect(url);
   }
 

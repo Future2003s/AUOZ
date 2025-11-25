@@ -206,13 +206,13 @@ export default function Header() {
   useEffect(() => {
     // Chỉ check admin status nếu đã authenticated và có user
     if (!isAuthenticated || !user) {
-      setIsAdmin(false);
-      return;
-    }
-    
+        setIsAdmin(false);
+        return;
+      }
+      
     // Check admin status từ user data đã có (không cần gọi API)
     const isUserAdmin = user?.role === "admin" || user?.role === "ADMIN";
-    setIsAdmin(isUserAdmin);
+        setIsAdmin(isUserAdmin);
   }, [user, isAuthenticated]);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

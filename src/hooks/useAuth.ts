@@ -120,16 +120,16 @@ export const useAuth = (): UseAuthReturn => {
     if (meData?.success && meData?.user) {
       const user = meData.user;
       const rememberMe = getCookie(COOKIE_KEYS.REMEMBER_ME) === "true";
-      
-      setAuthState({
-        user,
+
+          setAuthState({
+            user,
         token: null,
         refreshToken: null,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
-      });
-    } else {
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+        } else {
       setAuthState({
         user: null,
         token: null,
