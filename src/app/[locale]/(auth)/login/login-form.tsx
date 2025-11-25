@@ -44,7 +44,7 @@ function LoginForm() {
     handleSubmit,
   } = useForm<LoginBodyType>({ resolver: zodResolver(authSchema) });
 
-  // Khi login thành công, token sẽ được lưu vào localStorage và cookie nhờ useAuth đã refactor
+  // Khi login thành công, token và user data sẽ được lưu vào cookie (httpOnly cho token, non-httpOnly cho user data)
 
   const onSubmit = async (data: LoginBodyType) => {
     setIsSubmitting(true);

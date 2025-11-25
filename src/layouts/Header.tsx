@@ -169,7 +169,8 @@ export default function Header() {
   const lastScrollY = useRef(0);
   const router = useRouter();
   const { sessionToken, setSessionToken } = useAppContextProvider();
-  const { logout, isAuthenticated } = useAuth();
+  // Sử dụng useAuth để lấy user data thay vì gọi API trực tiếp
+  const { logout, isAuthenticated, user } = useAuth();
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const { totalQuantity } = useCart();
@@ -203,52 +204,16 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!sessionToken) {
-        console.log("🔍 No sessionToken, setting isAdmin to false");
-        setIsAdmin(false);
-        return;
-      }
-      
-      console.log("🔍 Checking admin status with sessionToken:", sessionToken.substring(0, 20) + "...");
-      
-      try {
-        // Gọi API route thay vì gọi trực tiếp backend
-        const response = await fetch("/api/auth/me", {
-          cache: "no-store",
-        });
-        const data = await response.json();
-        
-        console.log("🔍 /api/auth/me response:", data);
-        
-        // Kiểm tra response structure - backend trả về { success: true, data: user }
-        // Frontend API route trả về { success: true, user: user }
-        const user = data?.user || data?.data || data;
-        const isUserAdmin = user?.role === "admin";
-        
-        console.log("🔍 User data:", user);
-        console.log("🔍 Is Admin?", isUserAdmin, "Role:", user?.role);
-        
-        setIsAdmin(isUserAdmin);
-        
-        if (isUserAdmin) {
-          console.log("✅ Admin status confirmed - showing admin button");
-        } else {
-          console.log("ℹ️ User is not admin, role:", user?.role);
-        }
-      } catch (error) {
-        console.error("❌ Failed to check admin status:", error);
-        setIsAdmin(false);
-      }
-    };
+    // Chỉ check admin status nếu đã authenticated và có user
+    if (!isAuthenticated || !user) {
+      setIsAdmin(false);
+      return;
+    }
     
-    // Delay nhỏ để đảm bảo sessionToken đã được set
-    const timeoutId = setTimeout(() => {
-      checkAdminStatus();
-    }, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [sessionToken]);
+    // Check admin status từ user data đã có (không cần gọi API)
+    const isUserAdmin = user?.role === "admin" || user?.role === "ADMIN";
+    setIsAdmin(isUserAdmin);
+  }, [user, isAuthenticated]);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

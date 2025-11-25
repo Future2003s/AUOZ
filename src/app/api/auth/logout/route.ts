@@ -16,6 +16,8 @@ export async function POST() {
   } finally {
     cookieStore.delete("sessionToken");
     cookieStore.delete("refreshToken");
+    cookieStore.delete("auth_user");
+    cookieStore.delete("auth_remember_me");
   }
 
   return new Response(JSON.stringify({ success: true }), {

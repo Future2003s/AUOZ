@@ -176,9 +176,9 @@ class AuthService {
   }
 
   /**
-   * Refresh access token
+   * Refresh access token - gọi API route để refresh (token từ cookie httpOnly)
    */
-  async refreshToken(): Promise<AuthTokens> {
+  async refreshToken(refreshToken?: string): Promise<AuthTokens> {
     // Prevent multiple simultaneous refresh requests
     if (this.tokenRefreshPromise) {
       return this.tokenRefreshPromise;
@@ -195,25 +195,29 @@ class AuthService {
   }
 
   /**
-   * Get current user
+   * Get current user - gọi API route để lấy user (token từ cookie httpOnly)
    */
   async getCurrentUser(): Promise<User | null> {
     if (this.currentUser) {
       return this.currentUser;
     }
 
-    const token = this.getStoredToken();
-    if (!token) {
-      return null;
-    }
-
     try {
-      const response = await httpClient.get<User>('/auth/me');
+      // Gọi Next.js API route để lấy user (token từ cookie httpOnly)
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' },
+      });
       
-      if (response.success && response.data) {
-        this.currentUser = response.data;
-        this.setStoredUser(response.data);
-        return response.data;
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data?.success && data?.user) {
+          this.currentUser = data.user;
+          this.setStoredUser(data.user);
+          return data.user;
+        }
       }
     } catch (error) {
       // Token might be invalid, clear auth data
@@ -304,10 +308,15 @@ class AuthService {
 
   /**
    * Check if user is authenticated
+   * Vì token lưu trong cookie httpOnly, cần gọi API để check
    */
-  isAuthenticated(): boolean {
-    const token = this.getStoredToken();
-    return !!token && !this.isTokenExpired(token);
+  async isAuthenticated(): Promise<boolean> {
+    try {
+      const user = await this.getCurrentUser();
+      return !!user;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -330,30 +339,31 @@ class AuthService {
   // Private methods
 
   private async performTokenRefresh(): Promise<AuthTokens> {
-    const refreshToken = this.getStoredRefreshToken();
-    
-    if (!refreshToken) {
-      throw new AuthenticationError('No refresh token available');
-    }
-
+    // Refresh token được lưu trong cookie httpOnly
+    // Gọi API route để refresh token (API sẽ đọc refreshToken từ cookie)
     try {
-      const response = await httpClient.post<{
-        token: string;
-        refreshToken: string;
-      }>('/auth/refresh-token', { refreshToken });
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-      if (!response.success || !response.data) {
+      if (!response.ok) {
         throw new AuthenticationError('Token refresh failed');
       }
 
-      const tokens: AuthTokens = {
-        accessToken: response.data.token,
-        refreshToken: response.data.refreshToken,
-        expiresIn: this.getTokenExpiration(response.data.token),
-      };
+      const data = await response.json();
+      
+      if (!data?.success || !data?.data?.token) {
+        throw new AuthenticationError('Token refresh failed');
+      }
 
-      this.setStoredToken(tokens.accessToken);
-      this.setStoredRefreshToken(tokens.refreshToken);
+      // Token đã được set trong cookie bởi API route
+      const tokens: AuthTokens = {
+        accessToken: data.data.token,
+        refreshToken: data.data.refreshToken || '',
+        expiresIn: this.getTokenExpiration(data.data.token),
+      };
 
       return tokens;
     } catch (error) {
@@ -363,28 +373,13 @@ class AuthService {
   }
 
   private async authInterceptor(config: any): Promise<any> {
-    const token = this.getStoredToken();
+    // Token được lưu trong cookie httpOnly, sẽ tự động gửi kèm request
+    // Không cần set Authorization header ở đây
+    // Nếu cần refresh token, sẽ được xử lý bởi API route
     
-    if (token && config.requireAuth !== false) {
-      // Check if token is expired and refresh if needed
-      if (this.isTokenExpired(token)) {
-        try {
-          const newTokens = await this.refreshToken();
-          config.headers = {
-            ...config.headers,
-            Authorization: `Bearer ${newTokens.accessToken}`,
-          };
-        } catch (error) {
-          // Refresh failed, redirect to login
-          await this.clearAuthData();
-          throw new AuthenticationError('Session expired');
-        }
-      } else {
-        config.headers = {
-          ...config.headers,
-          Authorization: `Bearer ${token}`,
-        };
-      }
+    // Chỉ cần đảm bảo credentials được include để gửi cookie
+    if (config.requireAuth !== false) {
+      config.credentials = config.credentials || 'include';
     }
 
     return config;
@@ -412,8 +407,9 @@ class AuthService {
   private async setAuthData(user: User, tokens: AuthTokens): Promise<void> {
     this.currentUser = user;
     this.setStoredUser(user);
-    this.setStoredToken(tokens.accessToken);
-    this.setStoredRefreshToken(tokens.refreshToken);
+    // Token được set trong cookie bởi API route, không cần set ở đây
+    // this.setStoredToken(tokens.accessToken);
+    // this.setStoredRefreshToken(tokens.refreshToken);
   }
 
   private async clearAuthData(): Promise<void> {
@@ -423,51 +419,61 @@ class AuthService {
     this.removeStoredRefreshToken();
   }
 
-  // Storage methods (implement based on your storage strategy)
+  // Storage methods - Token được lưu trong cookie httpOnly, không lưu trong localStorage
+  // Client-side không thể đọc token từ cookie httpOnly, nên các method này không cần thiết
+  // Token sẽ được tự động gửi kèm request qua cookie
   private getStoredToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem(this.TOKEN_KEY);
+    // Token không lưu ở client, chỉ trong cookie httpOnly
+    // API route sẽ đọc token từ cookie
+    return null;
   }
 
   private setStoredToken(token: string): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(this.TOKEN_KEY, token);
+    // Token được set trong cookie bởi API route, không cần set ở đây
+    // Chỉ cần gọi API để set cookie
   }
 
   private removeStoredToken(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(this.TOKEN_KEY);
+    // Token được xóa bởi API route khi logout, không cần xóa ở đây
   }
 
   private getStoredRefreshToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+    // Refresh token không lưu ở client, chỉ trong cookie httpOnly
+    return null;
   }
 
   private setStoredRefreshToken(token: string): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
+    // Refresh token được set trong cookie bởi API route, không cần set ở đây
   }
 
   private removeStoredRefreshToken(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    // Refresh token được xóa bởi API route khi logout, không cần xóa ở đây
   }
 
   private getStoredUser(): User | null {
+    // User data được lưu trong cookie, đọc từ cookie
     if (typeof window === 'undefined') return null;
-    const userData = localStorage.getItem(this.USER_KEY);
-    return userData ? JSON.parse(userData) : null;
+    const getCookie = (name: string): string | null => {
+      const nameEQ = name + "=";
+      const ca = document.cookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+      }
+      return null;
+    };
+    const userData = getCookie('auth_user');
+    return userData ? JSON.parse(decodeURIComponent(userData)) : null;
   }
 
   private setStoredUser(user: User): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    // User data được set trong cookie bởi API route, không cần set ở đây
+    // Chỉ cập nhật state
   }
 
   private removeStoredUser(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(this.USER_KEY);
+    // User data được xóa bởi API route khi logout, không cần xóa ở đây
   }
 
   // Validation methods

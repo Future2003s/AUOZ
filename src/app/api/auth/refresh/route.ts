@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 export async function POST() {
   try {
@@ -27,44 +28,58 @@ export async function POST() {
     // If backend returned new tokens, set them as HttpOnly cookies
     if (res.ok && data?.success && data?.data?.token) {
       const isProd = process.env.NODE_ENV === "production";
-      const accessCookie = [
-        `sessionToken=${data.data.token}`,
-        "Path=/",
-        "HttpOnly",
-        "SameSite=Lax",
-      ];
-      if (isProd) accessCookie.push("Secure");
-
-      const cookiesToSet: string[] = [accessCookie.join("; ")];
-      if (data.data.refreshToken) {
-        const refreshCookie = [
-          `refreshToken=${data.data.refreshToken}`,
-          "Path=/",
-          "HttpOnly",
-          "SameSite=Strict",
-        ];
-        if (isProd) refreshCookie.push("Secure");
-        cookiesToSet.push(refreshCookie.join("; "));
-      }
-
-      return new Response(JSON.stringify(data), {
+      
+      // Sử dụng NextResponse để set cookie đúng cách
+      const nextResponse = NextResponse.json(data, {
         status: 200,
         headers: {
           "Content-Type": contentType,
-          "Set-Cookie": cookiesToSet.join(", "),
         },
       });
+
+      // Set token cookies
+      nextResponse.cookies.set("sessionToken", data.data.token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: isProd,
+        path: "/",
+      });
+
+      if (data.data.refreshToken) {
+        nextResponse.cookies.set("refreshToken", data.data.refreshToken, {
+          httpOnly: true,
+          sameSite: "strict",
+          secure: isProd,
+          path: "/",
+        });
+      }
+
+      // Nếu có user data trong response, cập nhật cookie
+      if (data.data.user) {
+        const userData = JSON.stringify(data.data.user);
+        if (userData.length < 4000) {
+          nextResponse.cookies.set("auth_user", userData, {
+            httpOnly: false,
+            sameSite: "lax",
+            secure: isProd,
+            path: "/",
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+          });
+        }
+      }
+
+      return nextResponse;
     }
 
-    return new Response(
-      typeof data === "string" ? data : JSON.stringify(data),
+    return NextResponse.json(
+      typeof data === "string" ? JSON.parse(data) : data,
       {
         status: res.status,
         headers: { "Content-Type": contentType },
       }
     );
   } catch (e) {
-    return new Response(JSON.stringify({ message: "Internal Error" }), {
+    return NextResponse.json({ message: "Internal Error" }, {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

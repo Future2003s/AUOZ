@@ -100,12 +100,14 @@ export async function POST(request: NextRequest) {
       const isProd = process.env.NODE_ENV === "production";
       const sessionToken = data.data.token as string;
       const refreshToken = data.data.refreshToken as string | undefined;
+      const user = data.data.user;
 
       const response = NextResponse.json(
         typeof data === "string" ? JSON.parse(data) : data,
         { status: res.status }
       );
 
+      // Set token cookies
       response.cookies.set("sessionToken", sessionToken, {
         httpOnly: true,
         sameSite: "lax",
@@ -119,6 +121,32 @@ export async function POST(request: NextRequest) {
           sameSite: "strict",
           secure: isProd,
           path: "/",
+        });
+      }
+
+      // Set user data cookie (không httpOnly để client có thể đọc)
+      if (user) {
+        const userData = JSON.stringify(user);
+        // Lưu ý: Cookie có giới hạn 4KB, nếu user data quá lớn có thể cần lưu vào database
+        if (userData.length < 4000) {
+          response.cookies.set("auth_user", userData, {
+            httpOnly: false, // Cho phép client đọc
+            sameSite: "lax",
+            secure: isProd,
+            path: "/",
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+          });
+        }
+      }
+
+      // Set remember_me cookie nếu có
+      if (body.rememberMe) {
+        response.cookies.set("auth_remember_me", "true", {
+          httpOnly: false,
+          sameSite: "lax",
+          secure: isProd,
+          path: "/",
+          maxAge: 60 * 60 * 24 * 30, // 30 days
         });
       }
 

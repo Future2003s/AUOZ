@@ -404,17 +404,14 @@ export const httpClient = new HttpClient();
 // Export for custom instances
 export { HttpClient };
 
-// Attach Authorization header if token exists in localStorage
+// Token được lưu trong cookie httpOnly, sẽ tự động gửi kèm request
+// Không cần set Authorization header từ localStorage nữa
+// Đảm bảo credentials được include để gửi cookie
 try {
   httpClient.addRequestInterceptor((config) => {
-    if (typeof window !== "undefined" && window.localStorage) {
-      const token = window.localStorage.getItem("auth_token");
-      if (token) {
-        config.headers = {
-          ...(config.headers || {}),
-          Authorization: `Bearer ${token}`,
-        } as Record<string, string>;
-      }
+    // Đảm bảo credentials được include để gửi cookie httpOnly
+    if (typeof window !== "undefined" && config.requireAuth !== false) {
+      config.credentials = config.credentials || 'include';
     }
     return config;
   });

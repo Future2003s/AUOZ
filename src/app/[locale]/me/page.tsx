@@ -183,7 +183,7 @@ export default function ProfilePage() {
         hasShownToastRef.current = true;
         if (!hasRedirectedRef.current) {
           hasRedirectedRef.current = true;
-          toast.error("Vui lòng đăng nhập để xem trang cá nhân");
+        toast.error("Vui lòng đăng nhập để xem trang cá nhân");
           // Extract locale from pathname
           const locale = pathname.split('/')[1] || 'vi';
           router.push(`/${locale}/login`);
@@ -206,20 +206,20 @@ export default function ProfilePage() {
       const hasNoAuth = data?.success && !data?.user;
       
       if (hasNoAuth) {
-        const timer = setTimeout(() => {
+      const timer = setTimeout(() => {
           // Double check before redirecting
           if (!me && !hasRedirectedRef.current && !pathname?.includes('/login')) {
             hasRedirectedRef.current = true;
             if (!hasShownToastRef.current) {
               hasShownToastRef.current = true;
-              toast.error("Vui lòng đăng nhập để xem trang cá nhân");
+          toast.error("Vui lòng đăng nhập để xem trang cá nhân");
             }
             const locale = pathname.split('/')[1] || 'vi';
             router.push(`/${locale}/login`);
-          }
-        }, 1000);
-        return () => clearTimeout(timer);
-      }
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
     }
     
     // Reset refs if user becomes available (e.g., after login)
