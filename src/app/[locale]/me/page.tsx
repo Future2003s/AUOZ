@@ -31,8 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { ButtonLoader } from "@/components/ui/loader";
 import { useRealtimeUser } from "@/hooks/useRealtimeUser";
@@ -128,8 +128,11 @@ type TabType = "overview" | "addresses" | "orders" | "settings";
 export default function ProfilePage() {
   // const t = useTranslations();
   const router = useRouter();
+  const pathname = usePathname();
   const { data, isLoading, error } = useMe();
   const { isAuthenticated } = useAuth();
+  const hasRedirectedRef = useRef(false);
+  const hasShownToastRef = useRef(false);
   const { data: addresses = [], isLoading: addressesLoading } = useAddresses();
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("all");
   const {
@@ -175,28 +178,56 @@ export default function ProfilePage() {
 
   // Handle authentication errors
   useEffect(() => {
-    if (error) {
+    if (error && !hasShownToastRef.current) {
       if (error.message === "No authentication token found") {
-        toast.error("Vui lòng đăng nhập để xem trang cá nhân");
-        router.push("/login");
+        hasShownToastRef.current = true;
+        if (!hasRedirectedRef.current) {
+          hasRedirectedRef.current = true;
+          toast.error("Vui lòng đăng nhập để xem trang cá nhân");
+          // Extract locale from pathname
+          const locale = pathname.split('/')[1] || 'vi';
+          router.push(`/${locale}/login`);
+        }
       } else {
+        hasShownToastRef.current = true;
         toast.error("Có lỗi xảy ra khi tải thông tin cá nhân");
       }
     }
-  }, [error, router]);
+  }, [error, router, pathname]);
 
   // Redirect to login if no user data and not loading
   useEffect(() => {
-    if (!isLoading && !me && !error) {
-      const timer = setTimeout(() => {
-        if (!me) {
-          toast.error("Vui lòng đăng nhập để xem trang cá nhân");
-          router.push("/login");
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
+    // Only redirect if we're sure there's no user and not loading
+    // Also check that we're not already on login page
+    const isOnLoginPage = pathname?.includes('/login');
+    
+    if (!isLoading && !me && !error && !hasRedirectedRef.current && !isOnLoginPage) {
+      // Check if data exists but user is null (meaning no auth)
+      const hasNoAuth = data?.success && !data?.user;
+      
+      if (hasNoAuth) {
+        const timer = setTimeout(() => {
+          // Double check before redirecting
+          if (!me && !hasRedirectedRef.current && !pathname?.includes('/login')) {
+            hasRedirectedRef.current = true;
+            if (!hasShownToastRef.current) {
+              hasShownToastRef.current = true;
+              toast.error("Vui lòng đăng nhập để xem trang cá nhân");
+            }
+            const locale = pathname.split('/')[1] || 'vi';
+            router.push(`/${locale}/login`);
+          }
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isLoading, me, error, router, data]);
+    
+    // Reset refs if user becomes available (e.g., after login)
+    if (me && (hasRedirectedRef.current || hasShownToastRef.current)) {
+      hasRedirectedRef.current = false;
+      hasShownToastRef.current = false;
+    }
+  }, [isLoading, me, error, router, data, pathname]);
 
   if (isLoading) {
     return (
