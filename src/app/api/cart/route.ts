@@ -16,8 +16,45 @@ function buildCandidates(templateEnv: string | undefined, fallbacks: string[]) {
   return candidates;
 }
 
+function buildSessionHeader(request: NextRequest) {
+  const sessionId = request.headers.get("x-session-id");
+  if (sessionId && sessionId.trim() !== "") {
+    return { "X-Session-Id": sessionId };
+  }
+  return {};
+}
+
+type JsonRecord = Record<string, unknown>;
+
+const isJsonRecord = (value: unknown): value is JsonRecord =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+async function readJsonBody(request: NextRequest): Promise<JsonRecord | null> {
+  try {
+    const payload = await request.json();
+    return isJsonRecord(payload) ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+const pickString = (source: JsonRecord | null, ...keys: string[]): string => {
+  if (!source) return "";
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === "string" && value.trim() !== "") {
+      return value;
+    }
+  }
+  return "";
+};
+
+const pickBoolean = (source: JsonRecord | null, key: string): boolean =>
+  source?.[key] === true;
+
 export async function GET(request: NextRequest) {
   const base = API_CONFIG.API_BASE_URL;
+  const sessionHeader = buildSessionHeader(request);
   const template = process.env.API_CART_GET_URL_TEMPLATE; // e.g., /cart or /cart/me
   const candidates = buildCandidates(template, [
     API_CONFIG.CART.GET,
@@ -32,7 +69,10 @@ export async function GET(request: NextRequest) {
     }`;
     const res = await proxyJson(backendUrl, request, {
       method: "GET",
-      requireAuth: true,
+      requireAuth: false,
+      headers: {
+        ...sessionHeader,
+      },
     });
     if (res.status !== 404 && res.status !== 405) return res;
   }
@@ -43,24 +83,25 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const base = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8081";
+  const base = API_CONFIG.API_BASE_URL;
+  const sessionHeader = buildSessionHeader(request);
   const template = process.env.API_CART_ADD_URL_TEMPLATE; // e.g., /cart/items
   const candidates = buildCandidates(template, [
-    "/api/v1/cart/items",
-    "/api/v1/cart",
+    API_CONFIG.CART.ADD_ITEM,
+    API_CONFIG.CART.GET,
   ]);
-  let body: any = null;
-  try {
-    body = await request.json();
-  } catch {}
+  const body = await readJsonBody(request);
 
   for (const path of candidates) {
     const backendUrl = `${base}${path.startsWith("/") ? path : `/${path}`}`;
     const res = await proxyJson(backendUrl, request, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        ...sessionHeader,
+      },
       body: JSON.stringify(body ?? {}),
-      requireAuth: true,
+      requireAuth: false,
     });
     if (res.status !== 404 && res.status !== 405) return res;
   }
@@ -75,36 +116,49 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   const base = API_CONFIG.API_BASE_URL;
+  const sessionHeader = buildSessionHeader(request);
   const template = process.env.API_CART_UPDATE_URL_TEMPLATE; // e.g., /cart/items/{itemId}
-  let body: any = null;
-  try {
-    body = await request.json();
-  } catch {}
+  const body = await readJsonBody(request);
 
-  const itemId = body?.itemId || body?.id || "";
-  const productId = body?.productId || body?.product_id || "";
-  const variantId = body?.variantId ?? body?.variant_id ?? null;
+  const itemId = pickString(body, "itemId", "id");
+  const productId = pickString(body, "productId", "product_id");
+  const variantId = pickString(body, "variantId", "variant_id");
 
-  const fallbacks: string[] = [];
-  if (itemId) fallbacks.push(`/cart/items/${itemId}`);
-  // Some backends update by productId + variantId
-  if (productId)
-    fallbacks.push(
+  const fallbackSet = new Set<string>();
+  if (productId) {
+    fallbackSet.add(
+      API_CONFIG.CART.UPDATE_ITEM.replace(":productId", productId)
+    );
+    fallbackSet.add(
       `/cart/products/${productId}${variantId ? `?variantId=${variantId}` : ""}`
     );
+  }
+  if (itemId) {
+    fallbackSet.add(
+      API_CONFIG.CART.UPDATE_ITEM.replace(":productId", itemId)
+    );
+  }
+  if (fallbackSet.size === 0) {
+    fallbackSet.add(API_CONFIG.CART.GET);
+  }
 
   const candidates = buildCandidates(
-    template ? template.replace("{itemId}", itemId) : undefined,
-    fallbacks.length > 0 ? fallbacks : ["/cart"]
+    template
+      ? template.replace("{itemId}", itemId || productId || "")
+      : undefined,
+    Array.from(fallbackSet)
   );
 
   for (const path of candidates) {
     const backendUrl = `${base}${path.startsWith("/") ? path : `/${path}`}`;
     const res = await proxyJson(backendUrl, request, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        ...sessionHeader,
+      },
       body: JSON.stringify(body ?? {}),
-      requireAuth: true,
+      requireAuth: false,
     });
     if (res.status !== 404 && res.status !== 405) return res;
   }
@@ -119,35 +173,56 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const base = API_CONFIG.API_BASE_URL;
+  const sessionHeader = buildSessionHeader(request);
   const template = process.env.API_CART_DELETE_URL_TEMPLATE; // e.g., /cart/items/{itemId}
 
-  let body: any = null;
-  try {
-    body = await request.json();
-  } catch {}
+  const body = await readJsonBody(request);
 
   const { searchParams } = new URL(request.url);
-  const itemId = body?.itemId || searchParams.get("itemId") || "";
-  const productId = body?.productId || searchParams.get("productId") || "";
-  const variantId = body?.variantId ?? searchParams.get("variantId");
+  const itemId = pickString(body, "itemId", "id") || searchParams.get("itemId") || "";
+  const productId =
+    pickString(body, "productId") || searchParams.get("productId") || "";
+  const variantId =
+    pickString(body, "variantId") || searchParams.get("variantId") || "";
+  const clearAll =
+    pickBoolean(body, "clearAll") ||
+    searchParams.get("clear") === "true" ||
+    searchParams.get("clearAll") === "true";
 
-  const fallbacks: string[] = [];
-  if (itemId) fallbacks.push(`/cart/items/${itemId}`);
-  if (productId)
-    fallbacks.push(
+  const fallbackSet = new Set<string>();
+  if (clearAll) {
+    fallbackSet.add(API_CONFIG.CART.CLEAR);
+  }
+  if (itemId) {
+    fallbackSet.add(API_CONFIG.CART.REMOVE_ITEM.replace(":productId", itemId));
+  }
+  if (productId) {
+    fallbackSet.add(
+      API_CONFIG.CART.REMOVE_ITEM.replace(":productId", productId)
+    );
+    fallbackSet.add(
       `/cart/products/${productId}${variantId ? `?variantId=${variantId}` : ""}`
     );
+  }
+  if (fallbackSet.size === 0) {
+    fallbackSet.add(API_CONFIG.CART.GET);
+  }
 
   const candidates = buildCandidates(
-    template ? template.replace("{itemId}", itemId) : undefined,
-    fallbacks.length > 0 ? fallbacks : ["/cart/items"]
+    template
+      ? template.replace("{itemId}", itemId || productId || "")
+      : undefined,
+    Array.from(fallbackSet)
   );
 
   for (const path of candidates) {
     const backendUrl = `${base}${path.startsWith("/") ? path : `/${path}`}`;
     const res = await proxyJson(backendUrl, request, {
       method: "DELETE",
-      requireAuth: true,
+      requireAuth: false,
+      headers: {
+        ...sessionHeader,
+      },
     });
     if (res.status !== 404 && res.status !== 405) return res;
   }

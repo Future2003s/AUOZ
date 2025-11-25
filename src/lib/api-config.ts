@@ -59,6 +59,7 @@ export const API_CONFIG = {
     UPDATE_ITEM: "/cart/items/:productId",
     REMOVE_ITEM: "/cart/items/:productId",
     CLEAR: "/cart/clear",
+    MERGE: "/cart/merge",
     COUNT: "/cart/count",
     SUMMARY: "/cart/summary",
     VALIDATE: "/cart/validate",
@@ -99,6 +100,14 @@ export const API_CONFIG = {
     ALL: "/reviews", // Admin only
     VERIFY: "/reviews/:id/verify", // Admin only
     REPORT: "/reviews/:id/report",
+  },
+
+  COMMENTS: {
+    BASE: "/comments",
+    CREATE: "/comments",
+    DELETE: "/comments/:id",
+    PRODUCT: "/comments/product/:productId",
+    REPLIES: "/comments/:commentId/replies",
   },
 
   // Admin endpoints - matching backend exactly
@@ -203,7 +212,7 @@ export function getCommonHeaders(): Record<string, string> {
 }
 
 // Helper function to build query string
-export function buildQueryString(params: Record<string, any>): string {
+export function buildQueryString(params: Record<string, unknown>): string {
   const searchParams = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
@@ -224,7 +233,7 @@ export function buildQueryString(params: Record<string, any>): string {
 export function buildFullUrl(
   endpoint: string,
   pathParams?: Record<string, string | number>,
-  queryParams?: Record<string, any>
+  queryParams?: Record<string, unknown>
 ): string {
   const baseUrl = buildApiUrl(endpoint, pathParams);
   const queryString = queryParams ? buildQueryString(queryParams) : "";

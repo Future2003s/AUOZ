@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { productApiRequest, type Product } from "@/apiRequests/products";
+import type { Product } from "@/apiRequests/products";
 import { useParams, useRouter } from "next/navigation";
 import BuyNowModal from "@/components/ui/buy-now-modal";
 import { useAppContextProvider } from "@/context/app-context";
@@ -9,7 +9,6 @@ import { useCartSidebar } from "@/context/cart-sidebar-context";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader } from "@/components/ui/loader";
 import {
-  ArrowLeft,
   ShoppingCart,
   Heart,
   Share2,
@@ -22,6 +21,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import ProductCommentsSection from "@/components/product-comments";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
@@ -66,9 +66,9 @@ export default function ProductDetailPage() {
         } else {
           setError("Không thể tải thông tin sản phẩm");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error loading product:", err);
-        setError(err?.message || "Có lỗi xảy ra khi tải sản phẩm");
+        setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi tải sản phẩm");
       } finally {
         setLoading(false);
       }
@@ -82,12 +82,17 @@ export default function ProductDetailPage() {
       return "https://placehold.co/800x600";
     }
 
-    const image = item.images[index];
-    if (typeof image === "string") {
-      return image; // Fallback for old format
+    const imageEntry =
+      item.images[index] as Product["images"][number] | string | undefined;
+    if (!imageEntry) {
+      return "https://placehold.co/800x600";
     }
 
-    return (image as any)?.url || "https://placehold.co/800x600";
+    if (typeof imageEntry === "string") {
+      return imageEntry;
+    }
+
+    return imageEntry.url || "https://placehold.co/800x600";
   };
 
   // Helper function to get all image URLs
@@ -98,12 +103,11 @@ export default function ProductDetailPage() {
 
     return item.images
       .map((img) => {
-        if (typeof img === "string") {
-          return img; // Fallback for old format
-        }
-        return (img as any)?.url || "";
+        const entry = img as Product["images"][number] | string;
+        if (typeof entry === "string") return entry;
+        return entry.url || "";
       })
-      .filter((url) => url);
+      .filter((url) => url.length > 0);
   };
 
   const price = useMemo(() => {
@@ -428,7 +432,7 @@ export default function ProductDetailPage() {
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    {(item.variants ?? []).map((variant: any) => (
+                    {item.variants?.map((variant) => (
                       <Button
                         key={variant._id || variant.id}
                         variant={
@@ -528,9 +532,13 @@ export default function ProductDetailPage() {
                             x._id === selectedVariant ||
                             x.id === selectedVariant
                         ) || null;
+                      const normalizedProductId =
+                        item._id ||
+                        (item as { id?: string }).id ||
+                        "";
                       addItem({
-                        id: (item as any)._id || (item as any).id,
-                        productId: (item as any)._id || (item as any).id,
+                        id: normalizedProductId,
+                        productId: normalizedProductId,
                         variantId: variant?._id || variant?.id || null,
                         variantName: variant?.name || null,
                         name: variant
@@ -599,6 +607,8 @@ export default function ProductDetailPage() {
           </Card>
         </div>
       </div>
+
+      <ProductCommentsSection productId={id} />
 
       <BuyNowModal
         open={buyOpen}
