@@ -67,6 +67,7 @@ interface SortableSlideItemProps {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   uploadingImage: boolean;
   handleImageUploadForSlide: (file: File, slideIndex: number) => void;
+  newSlideIndex?: number | null;
 }
 
 function SortableSlideItem({
@@ -80,6 +81,7 @@ function SortableSlideItem({
   fileInputRef,
   uploadingImage,
   handleImageUploadForSlide,
+  newSlideIndex,
 }: SortableSlideItemProps) {
   const {
     attributes,
@@ -96,12 +98,20 @@ function SortableSlideItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  // Check if this is the newly added slide
+  const isNewSlide = newSlideIndex === index;
+  
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`border-2 rounded-xl p-6 space-y-6 bg-white hover:border-blue-300 transition-colors ${
-        isDragging ? "border-blue-500 shadow-lg" : "border-gray-200"
+      data-slide-index={index}
+      className={`border-2 rounded-xl p-6 space-y-6 bg-white hover:border-blue-300 transition-all duration-300 ${
+        isDragging 
+          ? "border-blue-500 shadow-lg scale-95" 
+          : isNewSlide
+          ? "border-green-500 shadow-xl ring-4 ring-green-200 animate-pulse"
+          : "border-gray-200"
       }`}
     >
       <div className="flex items-center justify-between pb-4 border-b">
@@ -116,6 +126,11 @@ function SortableSlideItem({
           <span className="font-bold text-lg text-gray-900">
             Slide {index + 1}
           </span>
+          {isNewSlide && (
+            <span className="px-2 py-1 text-xs bg-green-500 text-white rounded-full animate-bounce font-semibold">
+              ✨ Mới thêm
+            </span>
+          )}
           {slide?.desktopImage?.url && (
             <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
               Có ảnh
@@ -601,7 +616,34 @@ export default function HomepageBuilderPage() {
     setFormState((prev) => {
       const sections = prev?.sections || defaultHomepageSettings.sections;
       const slides = [...(sections.hero?.data?.slides || [])];
+      const newIndex = slides.length;
       slides.push({ ...heroSlideDefaults });
+      
+      // Set new slide index để highlight
+      setNewSlideIndex(newIndex);
+      
+      // Clear highlight sau 3 giây
+      setTimeout(() => {
+        setNewSlideIndex(null);
+      }, 3000);
+      
+      // Scroll đến slide mới sau một chút
+      setTimeout(() => {
+        const slideElement = document.querySelector(`[data-slide-index="${newIndex}"]`);
+        if (slideElement) {
+          slideElement.scrollIntoView({ 
+            behavior: "smooth", 
+            block: "center" 
+          });
+        }
+      }, 100);
+      
+      // Hiển thị toast thông báo
+      toast.success(`Đã thêm slide mới (Slide ${newIndex + 1})`, {
+        description: "Bạn có thể kéo thả để sắp xếp lại thứ tự",
+        duration: 3000,
+      });
+      
       return {
         ...prev,
         sections: {
@@ -787,6 +829,8 @@ export default function HomepageBuilderPage() {
   // Image upload state
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const slidesContainerRef = useRef<HTMLDivElement>(null);
+  const [newSlideIndex, setNewSlideIndex] = useState<number | null>(null);
 
   // Upload image function for specific slide
   const handleImageUploadForSlide = async (file: File, slideIndex: number) => {
@@ -1097,9 +1141,9 @@ export default function HomepageBuilderPage() {
                 <Button
                   type="button"
                   onClick={addHeroSlide}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
                   Thêm Slide
                 </Button>
               </CardHeader>
@@ -1113,7 +1157,7 @@ export default function HomepageBuilderPage() {
                     items={heroSlides.map((_, index) => `slide-${index}`)}
                     strategy={verticalListSortingStrategy}
                   >
-                    <div className="space-y-4">
+                    <div className="space-y-4" ref={slidesContainerRef}>
                       {heroSlides.map((slide, index) => (
                         <SortableSlideItem
                           key={`slide-${index}`}
@@ -1127,6 +1171,7 @@ export default function HomepageBuilderPage() {
                           fileInputRef={fileInputRef}
                           uploadingImage={uploadingImage}
                           handleImageUploadForSlide={handleImageUploadForSlide}
+                          newSlideIndex={newSlideIndex}
                         />
                       ))}
                     </div>
