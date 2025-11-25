@@ -8,6 +8,20 @@ import { toast } from "sonner";
 
 const ADMIN_SSE_ENDPOINT = "/api/notifications/admin-sse";
 
+const isIOSBrowser = () => {
+  if (typeof window === "undefined") return false;
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+};
+
+const isStandaloneMode = () => {
+  if (typeof window === "undefined") return false;
+  const nav = window.navigator as Navigator & { standalone?: boolean };
+  return (
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    nav.standalone === true
+  );
+};
+
 interface NotificationBellProps {
   className?: string;
 }
@@ -32,6 +46,13 @@ export function NotificationBell({ className }: NotificationBellProps) {
   const requestPermission = useCallback(async () => {
     if (typeof window === "undefined" || !("Notification" in window)) {
       toast.error("Trình duyệt không hỗ trợ thông báo");
+      return;
+    }
+
+    if (isIOSBrowser() && !isStandaloneMode()) {
+      toast.info(
+        "Vui lòng thêm website vào màn hình chính (Add to Home Screen) để bật thông báo trên iOS."
+      );
       return;
     }
 
@@ -67,6 +88,13 @@ export function NotificationBell({ className }: NotificationBellProps) {
     if (permission !== "granted") {
       requestPermission();
     } else {
+      if (isIOSBrowser() && !isStandaloneMode()) {
+        toast.info(
+          "Thông báo chỉ khả dụng khi bạn mở ứng dụng từ màn hình chính trên iOS."
+        );
+        return;
+      }
+
       const newEnabled = !enabled;
       setEnabled(newEnabled);
       localStorage.setItem("admin-notifications-enabled", String(newEnabled));

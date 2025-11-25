@@ -22,6 +22,14 @@ const fontSans: NextFont = Quicksand({
 export const metadata: Metadata = {
   title: "LALA-LYCHEEE",
   description: "CÔNG TY TNHH LALA-LYCHEEE",
+  themeColor: "#e11d48",
+  icons: {
+    icon: [
+      { url: "/images/logo.png", type: "image/png", sizes: "192x192" },
+      { url: "/images/logo.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/images/logo.png" }],
+  },
 };
 
 export default async function RootLayout({
