@@ -16,8 +16,6 @@ export async function GET(request: NextRequest) {
     envConfig.NEXT_PUBLIC_API_VERSION
   }/categories${query ? `?${query}` : ""}`;
 
-  console.log("Categories API called, backend URL:", backendUrl);
-
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("sessionToken")?.value || "";
@@ -41,7 +39,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    console.log("Categories API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -80,9 +77,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/categories`;
 
-    console.log("Creating category, backend URL:", backendUrl);
-    console.log("Category data:", body);
-
     const res = await fetch(backendUrl, {
       method: "POST",
       headers: {
@@ -108,7 +102,6 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await res.json();
-    console.log("Category created successfully:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,

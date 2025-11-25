@@ -9,8 +9,6 @@ export async function GET(
   const resolvedParams = params instanceof Promise ? await params : params;
   const id = resolvedParams?.id as string;
 
-  console.log("Product detail API called for ID:", id);
-
   if (!id) {
     return new Response(
       JSON.stringify({
@@ -29,10 +27,8 @@ export async function GET(
       envConfig.NEXT_PUBLIC_API_END_POINT ||
       `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
     const backendUrl = `${base}/products/${id}`;
-    console.log("Backend URL:", backendUrl);
 
     const res = await fetch(backendUrl, { cache: "no-store" });
-    console.log("Product detail API response status:", res.status);
 
     if (!res.ok) {
       console.error("Product detail API error - status:", res.status);
@@ -57,7 +53,6 @@ export async function GET(
       console.error("JSON parse error:", error);
       raw = null;
     }
-    console.log("Product detail API raw response:", raw);
 
     // Normalize product data: support raw object or wrapped formats
     let productData: any = null;
@@ -76,8 +71,6 @@ export async function GET(
         productData = raw; // raw product object
       }
     }
-
-    console.log("Product detail normalized data:", productData);
 
     return new Response(JSON.stringify({ data: productData }), {
       status: 200,

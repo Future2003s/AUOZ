@@ -9,11 +9,8 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    console.log(`Updating category ${id} with data:`, body);
 
     const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/categories/${id}`;
-
-    console.log("Update category API called, backend URL:", backendUrl);
 
     const cookieStore = await cookies();
     const token = cookieStore.get("sessionToken")?.value || "";
@@ -47,7 +44,6 @@ export async function PUT(
     }
 
     const data = await res.json();
-    console.log("Update category API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -75,11 +71,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    console.log(`Deleting category ${id}`);
 
     const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/categories/${id}`;
-
-    console.log("Delete category API called, backend URL:", backendUrl);
 
     const cookieStore = await cookies();
     const token = cookieStore.get("sessionToken")?.value || "";
@@ -110,7 +103,6 @@ export async function DELETE(
     }
 
     const data = await res.json();
-    console.log("Delete category API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import {
   Edit,
@@ -99,39 +99,89 @@ export const OrdersView = ({
     }
   };
 
-  // Context menu handlers
-  const handleContextMenu = (event: React.MouseEvent, order: Order) => {
+  // Context menu handlers - memoized for performance
+  const handleContextMenu = useCallback((event: React.MouseEvent, order: Order) => {
     event.preventDefault();
+    event.stopPropagation();
     setContextMenu({
       order,
       position: { x: event.clientX, y: event.clientY },
     });
-  };
+  }, []);
 
-  const handleQuickStatusUpdate = async (
+  const handleQuickStatusUpdate = useCallback(async (
     orderId: string,
     newStatus: string
   ) => {
     try {
-      // Map Vietnamese status to backend status
-      const statusMap: Record<string, string> = {
+      // Find the order to get backendId
+      const order = orders.find((o) => o.id === orderId || o.backendId === orderId);
+      if (!order) {
+        throw new Error("Không tìm thấy đơn hàng");
+      }
+
+      const apiId = order.backendId || order.id;
+      if (!apiId) {
+        throw new Error("Không xác định được ID đơn hàng");
+      }
+
+      // Optimistic update - update UI immediately
+      const statusMap: Record<string, Order["status"]> = {
+        pending: "Chờ xử lý",
         processing: "Đang xử lý",
         shipped: "Đang giao",
         delivered: "Đã giao",
         cancelled: "Đã huỷ",
       };
-
-      const updatedOrder: Order = {
-        ...orders.find((o) => o.id === orderId)!,
-        status: (statusMap[newStatus] || newStatus) as Order["status"],
+      const mappedStatus = statusMap[newStatus] || "Chờ xử lý";
+      const optimisticOrder: Order = {
+        ...order,
+        status: mappedStatus,
       };
+      onUpdateOrder(optimisticOrder);
 
-      onUpdateOrder(updatedOrder);
+      // Call API to update status in database
+      const response = await fetch(`/api/orders/${apiId}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        // Revert on error
+        onUpdateOrder(order);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.message || `Cập nhật thất bại (${response.status})`
+        );
+      }
+
+      const responseData = await response.json().catch(() => ({}));
+      
+      // Get the actual status from response
+      const backendStatus = responseData?.data?.status || responseData?.status || newStatus;
+      const normalizedStatus = typeof backendStatus === "string" ? backendStatus.toLowerCase() : "";
+      const finalStatus = statusMap[normalizedStatus] || mappedStatus;
+
+      // Update with actual status from server
+      if (finalStatus !== mappedStatus) {
+        const finalOrder: Order = {
+          ...order,
+          status: finalStatus,
+        };
+        onUpdateOrder(finalOrder);
+      }
+      
+      // Trigger status changed callback if provided
+      if (onStatusChanged) {
+        onStatusChanged(apiId, backendStatus);
+      }
     } catch (error) {
       console.error("Quick status update failed:", error);
       throw error;
     }
-  };
+  }, [orders, onUpdateOrder, onStatusChanged]);
 
   if (error) {
     return (
@@ -230,7 +280,7 @@ export const OrdersView = ({
                 <TableRow
                   key={order.id}
                   onContextMenu={(e) => handleContextMenu(e, order)}
-                  className="cursor-context-menu hover:bg-gray-50"
+                  className="cursor-context-menu hover:bg-gray-50 transition-colors duration-150"
                 >
                   <TableCell className="font-medium">{order.id}</TableCell>
                   <TableCell>{order.customerName}</TableCell>

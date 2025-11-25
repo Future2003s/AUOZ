@@ -331,19 +331,15 @@ export default function PageClient() {
   };
   const handleCreate = async (productData: any) => {
     try {
-      console.log("🟢 [PageClient] Creating product with data:", productData);
       setSaving(true);
       const response = await productApiRequest.createProduct(
         sessionToken || "",
         productData
       );
-      console.log("🟢 [PageClient] Create product response:", response);
 
       if (response.success) {
         const backend = response.data;
-        console.log("🟢 [PageClient] Created product backend data:", backend);
         const mapped = mapBackendToUI(backend, null);
-        console.log("🟢 [PageClient] Mapped product:", mapped);
 
         setProducts((prev) => {
           const withoutDuplicate = prev.filter((p) => p.id !== mapped.id);
@@ -352,16 +348,10 @@ export default function PageClient() {
 
         const forcedStatusAll = statusFilter !== "all";
         if (forcedStatusAll) {
-          console.log(
-            "🟡 [PageClient] Resetting status filter to 'all' to show new product"
-          );
           setStatusFilter("all");
         }
 
         if (currentPage !== 1) {
-          console.log(
-            "🟡 [PageClient] Resetting page to 1 to show newly created product"
-          );
           setCurrentPage(1);
         }
 
@@ -481,23 +471,12 @@ export default function PageClient() {
       params.set("page", String(currentPage));
       params.set("size", String(productsPerPage));
 
-      console.log(
-        "🟢 [PageClient] Fetching products with params:",
-        params.toString()
-      );
-
       const res = await fetch(`/api/products/admin?${params.toString()}`, {
         cache: "no-store",
       });
 
-      console.log("🟢 [PageClient] Fetch response status:", res.status);
-
       if (res.ok) {
         const data = await res.json();
-        console.log("🟢 [PageClient] Fetch response data:", {
-          dataLength: data?.data?.length || 0,
-          pagination: data?.pagination,
-        });
 
         const list = Array.isArray(data?.data) ? data.data : [];
         const pagination = data?.pagination || {};

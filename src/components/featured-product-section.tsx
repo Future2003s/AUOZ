@@ -16,34 +16,18 @@ export const FeaturedProductsSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log("🎨 FeaturedProductsSection: Component rendered", {
-    loading,
-    error,
-    productsCount: featuredProducts.length,
-  });
-
   // Fetch featured products from API
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
-        console.log(
-          "🔄 FeaturedProductsSection: Starting to fetch featured products..."
-        );
         setLoading(true);
         setError(null);
 
         const apiUrl = "/api/products/featured?limit=8";
-        console.log("📡 FeaturedProductsSection: Fetching from:", apiUrl);
 
         const response = await fetch(apiUrl, {
           cache: "no-store",
         });
-
-        console.log(
-          "📥 FeaturedProductsSection: Response status:",
-          response.status,
-          response.ok
-        );
 
         if (!response.ok) {
           const errorText = await response.text().catch(() => "");
@@ -58,11 +42,6 @@ export const FeaturedProductsSection: React.FC = () => {
         }
 
         const result = await response.json();
-        console.log("✅ FeaturedProductsSection: API response:", {
-          success: result.success,
-          dataLength: result.data?.length || 0,
-          data: result.data,
-        });
 
         if (result.success && result.data) {
           // Map backend product format to frontend Product format
@@ -111,10 +90,6 @@ export const FeaturedProductsSection: React.FC = () => {
             }
           );
 
-          console.log(
-            "✅ FeaturedProductsSection: Mapped products:",
-            mappedProducts.length
-          );
           setFeaturedProducts(mappedProducts);
         } else {
           console.warn(
@@ -133,13 +108,9 @@ export const FeaturedProductsSection: React.FC = () => {
         setFeaturedProducts([]);
       } finally {
         setLoading(false);
-        console.log("🏁 FeaturedProductsSection: Fetch completed");
       }
     };
 
-    console.log(
-      "🚀 FeaturedProductsSection: Component mounted, starting fetch..."
-    );
     fetchFeaturedProducts();
   }, []);
 

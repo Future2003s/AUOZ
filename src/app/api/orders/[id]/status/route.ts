@@ -13,16 +13,7 @@ export async function PUT(
     const body = await request.json();
     const url = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/orders/${id}/status`;
 
-    console.log("Updating order status:", { id, body, url });
-    console.log("Request body type:", typeof body);
-    console.log("Request body keys:", Object.keys(body));
-
     // Log request details for debugging
-    console.log(
-      "Request headers:",
-      Object.fromEntries(request.headers.entries())
-    );
-    console.log("Request cookies:", request.cookies.getAll());
 
     const response = await proxyJson(url, request, {
       method: "PUT",
@@ -32,13 +23,6 @@ export async function PUT(
     });
 
     // Log the response for debugging
-    console.log("Order status update response status:", response.status);
-    console.log(
-      "Order status update response headers:",
-      Object.fromEntries(response.headers.entries())
-    );
-
-    console.log("Order status update response:", response.status);
 
     if (response.status >= 200 && response.status < 300) {
       try {

@@ -283,8 +283,6 @@ export const productApiRequest = {
     productData: Partial<Product>
   ): Promise<ProductResponse> => {
     // Use Next.js API route to handle authentication via cookies
-    console.log("🟢 [Create Product] Calling Next.js API route");
-    console.log("🟢 [Create Product] Product data:", productData);
     
     const res = await fetch(`/api/products/create`, {
       method: "POST",
@@ -297,16 +295,12 @@ export const productApiRequest = {
       cache: "no-store",
     });
 
-    console.log("🟢 [Create Product] Response status:", res.status);
-
     const contentType = res.headers.get("content-type") || "application/json";
     const text = await res.text();
     const data =
       contentType.includes("application/json") && text
         ? JSON.parse(text)
         : (text as any);
-
-    console.log("🟢 [Create Product] Response data:", data);
 
     const apiResp: ApiResponse<Product> =
       data && typeof data === "object" && "success" in data

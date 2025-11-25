@@ -28,11 +28,6 @@ export const useOrders = () => {
     setError(null);
 
     try {
-      console.log("🔍 Fetching orders:", { page, size });
-      console.log(
-        "🌐 API URL:",
-        `/api/orders/admin/all?page=${page}&size=${size}`
-      );
 
       const res = await fetch(
         `/api/orders/admin/all?page=${page}&size=${size}`,
@@ -40,12 +35,6 @@ export const useOrders = () => {
           credentials: "include", // Use cookies instead of Authorization header
           cache: "no-store",
         }
-      );
-
-      console.log("📊 Orders API response status:", res.status);
-      console.log(
-        "📋 Response headers:",
-        Object.fromEntries(res.headers.entries())
       );
 
       if (!res.ok) {
@@ -68,18 +57,14 @@ export const useOrders = () => {
       let payload;
       try {
         const text = await res.text();
-        console.log("📄 Raw response:", text);
         payload = text ? JSON.parse(text) : null;
-        console.log("📦 Parsed payload:", payload);
       } catch (error) {
         console.error("JSON parse error:", error);
         payload = null;
       }
       const data = payload?.data || payload;
-      console.log("📊 Final data:", data);
 
       // Extract pagination info
-      console.log("📊 Extracting pagination info from:", data);
       const paginationInfo: PaginationInfo = {
         page: data.page || 1,
         size: data.size || 10,
@@ -88,14 +73,10 @@ export const useOrders = () => {
         first: data.first || true,
         last: data.last || false,
       };
-      console.log("📋 Pagination info:", paginationInfo);
 
       const list: any[] = data.content || data || [];
-      console.log("📦 Raw orders list:", list);
-      console.log("📊 Orders count:", list.length);
 
       const mapped: Order[] = list.map((o: any) => {
-        console.log("🔄 Mapping order:", o);
         const backendId =
           (typeof o._id === "object" ? o._id?.toString() : o._id) ||
           o.id ||
@@ -142,19 +123,13 @@ export const useOrders = () => {
         };
       });
 
-      console.log("✅ Mapped orders:", mapped);
-
       setOrders(mapped);
       setPagination(paginationInfo);
-      console.log("🎉 Orders loaded successfully!");
-      console.log("📊 Final orders count:", mapped.length);
-      console.log("📋 Final pagination:", paginationInfo);
     } catch (err) {
       console.error("💥 Error in fetchOrders:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
-      console.log("🏁 fetchOrders completed");
     }
   };
 

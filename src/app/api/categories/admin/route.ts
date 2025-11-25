@@ -21,8 +21,6 @@ export async function GET(request: NextRequest) {
     envConfig.NEXT_PUBLIC_API_VERSION
   }/categories?${params.toString()}`;
 
-  console.log("Admin categories API called, backend URL:", backendUrl);
-
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("sessionToken")?.value || "";
@@ -55,7 +53,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    console.log("Admin categories API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -80,14 +77,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log("Creating category with data:", body);
 
     const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/categories`;
 
     const cookieStore = await cookies();
     const token = cookieStore.get("sessionToken")?.value || "";
-
-    console.log("Create category API called, backend URL:", backendUrl);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -124,8 +118,6 @@ export async function POST(request: NextRequest) {
       contentType.includes("application/json") && text
         ? JSON.parse(text)
         : { data: text };
-
-    console.log("Create category API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 201,

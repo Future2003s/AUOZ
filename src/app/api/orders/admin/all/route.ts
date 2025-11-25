@@ -4,10 +4,6 @@ import { envConfig } from "@/config";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log(
-      "Admin Orders API called with params:",
-      request.nextUrl.searchParams.toString()
-    );
 
     // Sử dụng envConfig thay vì process.env trực tiếp
     const baseUrl =
@@ -35,13 +31,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log("Backend URL:", url.toString());
-
     const response = await proxyJson(url.toString(), request, {
       method: "GET",
       requireAuth: true,
     });
-    console.log("Admin Orders API response status:", response.status);
 
     return response;
   } catch (e) {

@@ -971,11 +971,6 @@ export default function HomepageBuilderPage() {
   const mutation = useMutation({
     mutationFn: async (status: "draft" | "published") => {
       const backendData = transformFrontendToBackend({ ...formState, status });
-      console.log("📝 [Admin Homepage] Publishing with status:", status);
-      console.log(
-        "📝 [Admin Homepage] Backend data:",
-        JSON.stringify(backendData, null, 2)
-      );
 
       // Validate hero slides before sending
       const validSlides =
@@ -1022,7 +1017,6 @@ export default function HomepageBuilderPage() {
         throw new Error(errorMessage);
       }
       const result = await response.json();
-      console.log("📝 [Admin Homepage] Success response:", result);
       return result;
     },
     onSuccess: (_, status) => {

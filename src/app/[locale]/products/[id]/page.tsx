@@ -6,6 +6,7 @@ import BuyNowModal from "@/components/ui/buy-now-modal";
 import { useAppContextProvider } from "@/context/app-context";
 import { useCart } from "@/context/cart-context";
 import { useCartSidebar } from "@/context/cart-sidebar-context";
+import { useAuth } from "@/hooks/useAuth";
 import { Loader } from "@/components/ui/loader";
 import {
   ArrowLeft,
@@ -32,6 +33,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const id = params?.id as string;
   const { sessionToken } = useAppContextProvider();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { addItem } = useCart();
   const { openSidebar } = useCartSidebar();
 
@@ -549,12 +551,15 @@ export default function ProductDetailPage() {
                     size="lg"
                     className="flex-1 h-14 text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
                     onClick={() => {
-                      if (!sessionToken) {
+                      // Check authentication using both sessionToken and isAuthenticated
+                      // Since we're using cookies now, isAuthenticated is more reliable
+                      if (!authLoading && !isAuthenticated && !sessionToken) {
                         setLoginPromptOpen(true);
                         return;
                       }
                       setBuyOpen(true);
                     }}
+                    disabled={authLoading}
                   >
                     Mua ngay
                   </Button>

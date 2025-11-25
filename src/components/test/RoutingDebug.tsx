@@ -8,30 +8,22 @@ export function RoutingDebug() {
   const router = useRouter();
 
   const testRedirects = () => {
-    console.log("=== Testing Redirects ===");
 
     // Test redirect to /me
-    console.log("Testing redirect to /me...");
     router.push("/me");
 
     setTimeout(() => {
-      console.log("Current pathname after /me:", window.location.pathname);
 
       // Test redirect to /vi/me
-      console.log("Testing redirect to /vi/me...");
       router.push("/vi/me");
 
       setTimeout(() => {
-        console.log("Current pathname after /vi/me:", window.location.pathname);
       }, 1000);
     }, 1000);
   };
 
   const testLocaleExtraction = () => {
     const locale = pathname.split("/")[1] || "vi";
-    console.log("Current pathname:", pathname);
-    console.log("Extracted locale:", locale);
-    console.log("Redirect path would be:", `/${locale}/me`);
   };
 
   return (

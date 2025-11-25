@@ -12,7 +12,6 @@ export default function AdminOrdersDebugPage() {
     setData(null);
 
     try {
-      console.log("🔍 Testing admin orders API...");
 
       const response = await fetch("/api/orders/admin/all?page=1&limit=10", {
         method: "GET",
@@ -20,19 +19,11 @@ export default function AdminOrdersDebugPage() {
         cache: "no-store",
       });
 
-      console.log("📊 Response status:", response.status);
-      console.log(
-        "📋 Response headers:",
-        Object.fromEntries(response.headers.entries())
-      );
-
       const text = await response.text();
-      console.log("📄 Raw response:", text);
 
       if (response.ok) {
         const result = text ? JSON.parse(text) : null;
         setData(result);
-        console.log("✅ Success:", result);
       } else {
         setError(`API Error: ${response.status} - ${text}`);
         console.error("❌ Error:", text);

@@ -10,9 +10,9 @@ import {
   ShoppingCart,
   Users,
   TrendingUp,
-  Bell,
   Globe,
 } from "lucide-react";
+import { NotificationBell } from "@/components/admin/NotificationBell";
 import {
   ResponsiveContainer,
   BarChart,
@@ -225,10 +225,7 @@ export default function DashboardPage() {
           <p className="text-gray-600 mt-1">Tổng quan hệ thống</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Bell className="h-4 w-4 mr-2" />
-            Thông báo
-          </Button>
+          <NotificationBell />
           <Badge variant="outline">Admin</Badge>
         </div>
       </div>

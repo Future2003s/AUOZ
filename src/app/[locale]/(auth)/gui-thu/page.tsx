@@ -155,14 +155,6 @@ const SystemEmailer: React.FC = () => {
     });
 
     // Simulate API call
-    console.log("Dữ liệu gửi đến backend:", {
-      to,
-      cc,
-      bcc,
-      subject,
-      body,
-      attachments: attachments.map((f) => f.name),
-    });
 
     try {
       const res = await fetch("http://localhost:4000/v1/api/sendMail", {

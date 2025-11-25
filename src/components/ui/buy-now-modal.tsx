@@ -56,7 +56,7 @@ export default function BuyNowModal({
   items,
 }: BuyNowModalProps) {
   const { sessionToken } = useAppContextProvider();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { data: addresses = [] } = useAddresses({
     enabled: isAuthenticated && open,
   });
@@ -67,6 +67,12 @@ export default function BuyNowModal({
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Field-specific validation errors
+  const [fieldErrors, setFieldErrors] = useState<{
+    fullName?: string;
+    phone?: string;
+    address?: string;
+  }>({});
   const [success, setSuccess] = useState<string | null>(null);
   const [orderSuccessData, setOrderSuccessData] =
     useState<OrderSuccessData | null>(null);
@@ -99,7 +105,13 @@ export default function BuyNowModal({
   }, [addresses]);
 
   useEffect(() => {
-    if (!open || !isAuthenticated || !user) return;
+    // Wait for auth to finish loading before checking
+    if (!open || authLoading) return;
+    
+    // If not authenticated, don't populate user data
+    if (!isAuthenticated || !user) {
+      return;
+    }
 
     const displayName = [user.firstName, user.lastName]
       .filter(Boolean)
@@ -117,7 +129,7 @@ export default function BuyNowModal({
     if (user.email && !email) {
       setEmail(user.email);
     }
-  }, [open, isAuthenticated, user, fullName, phone, email]);
+  }, [open, authLoading, isAuthenticated, user, fullName, phone, email]);
 
   useEffect(() => {
     if (!open || !defaultAddress) return;
@@ -195,10 +207,41 @@ export default function BuyNowModal({
       setError("Vui lòng chọn sản phẩm và số lượng hợp lệ.");
       return;
     }
-    if (!fullName.trim() || !phone.trim() || !address.trim()) {
-      setError("Vui lòng nhập họ tên, số điện thoại và địa chỉ nhận hàng.");
+    // Validate individual fields
+    const errors: { fullName?: string; phone?: string; address?: string } = {};
+    let hasError = false;
+
+    if (!fullName.trim()) {
+      errors.fullName = "Vui lòng nhập họ và tên";
+      hasError = true;
+    }
+
+    if (!phone.trim()) {
+      errors.phone = "Vui lòng nhập số điện thoại";
+      hasError = true;
+    } else if (!/^[0-9]{10,11}$/.test(phone.trim().replace(/\s/g, ""))) {
+      errors.phone = "Số điện thoại không hợp lệ (10-11 số)";
+      hasError = true;
+    }
+
+    if (!address.trim()) {
+      errors.address = "Vui lòng nhập địa chỉ nhận hàng";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setFieldErrors(errors);
+      // Scroll to first error field
+      const firstErrorField = Object.keys(errors)[0];
+      if (firstErrorField) {
+        const element = document.querySelector(`[data-field="${firstErrorField}"]`);
+        element?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
       return;
     }
+
+    // Clear field errors if validation passes
+    setFieldErrors({});
     if (grandTotal <= 0) {
       setError("Tổng tiền sau ưu đãi phải lớn hơn 0.");
       return;
@@ -282,6 +325,7 @@ export default function BuyNowModal({
           );
         }
       } else {
+        // Use isAuthenticated as primary check since we're using cookies
         const isLoggedIn = Boolean(isAuthenticated);
         const endpoint = isLoggedIn ? "/api/orders" : "/api/orders/create";
 
@@ -289,9 +333,8 @@ export default function BuyNowModal({
           "Content-Type": "application/json",
         };
 
-        if (!isLoggedIn && sessionToken) {
-          headers.Authorization = `Bearer ${sessionToken}`;
-        }
+        // With cookie-based auth, we don't need Authorization header
+        // The cookie will be sent automatically with credentials: "include"
 
         const response = await fetch(endpoint, {
           method: "POST",
@@ -349,6 +392,7 @@ export default function BuyNowModal({
               setNote("");
               setSuccess(null);
               setError(null);
+              setFieldErrors({});
               setOrderSuccessData(null);
               setCountdown(null);
               setAppliedVoucher(null);
@@ -490,25 +534,58 @@ export default function BuyNowModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-sm text-gray-700 mb-1">
-                      Họ và tên
+                      Họ và tên <span className="text-red-500">*</span>
                     </label>
                     <input
+                      data-field="fullName"
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
+                      onChange={(e) => {
+                        setFullName(e.target.value);
+                        if (fieldErrors.fullName) {
+                          setFieldErrors((prev) => ({ ...prev, fullName: undefined }));
+                        }
+                      }}
                       placeholder="Nguyễn Văn A"
-                      className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${
+                        fieldErrors.fullName
+                          ? "border-red-500 focus:ring-red-500"
+                          : "focus:ring-pink-500"
+                      }`}
                     />
+                    {fieldErrors.fullName && (
+                      <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                        <span>⚠</span>
+                        {fieldErrors.fullName}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm text-gray-700 mb-1">
-                      Số điện thoại
+                      Số điện thoại <span className="text-red-500">*</span>
                     </label>
                     <input
+                      data-field="phone"
+                      type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => {
+                        setPhone(e.target.value);
+                        if (fieldErrors.phone) {
+                          setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                        }
+                      }}
                       placeholder="09xxxxxxxx"
-                      className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${
+                        fieldErrors.phone
+                          ? "border-red-500 focus:ring-red-500"
+                          : "focus:ring-pink-500"
+                      }`}
                     />
+                    {fieldErrors.phone && (
+                      <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                        <span>⚠</span>
+                        {fieldErrors.phone}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm text-gray-700 mb-1">
@@ -524,14 +601,30 @@ export default function BuyNowModal({
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm text-gray-700 mb-1">
-                      Địa chỉ nhận hàng
+                      Địa chỉ nhận hàng <span className="text-red-500">*</span>
                     </label>
                     <input
+                      data-field="address"
                       value={address}
-                      onChange={(e) => setAddress(e.target.value)}
+                      onChange={(e) => {
+                        setAddress(e.target.value);
+                        if (fieldErrors.address) {
+                          setFieldErrors((prev) => ({ ...prev, address: undefined }));
+                        }
+                      }}
                       placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"
-                      className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${
+                        fieldErrors.address
+                          ? "border-red-500 focus:ring-red-500"
+                          : "focus:ring-pink-500"
+                      }`}
                     />
+                    {fieldErrors.address && (
+                      <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                        <span>⚠</span>
+                        {fieldErrors.address}
+                      </p>
+                    )}
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm text-gray-700 mb-1">

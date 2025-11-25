@@ -18,8 +18,6 @@ export async function GET(request: NextRequest) {
     envConfig.NEXT_PUBLIC_API_VERSION
   }/brands?${params.toString()}`;
 
-  console.log("Brands API called, backend URL:", backendUrl);
-
   try {
     const res = await fetch(backendUrl, {
       cache: "no-store",
@@ -40,7 +38,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    console.log("Brands API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,

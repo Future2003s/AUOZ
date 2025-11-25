@@ -338,7 +338,6 @@ function PaymentPage() {
         console.error("JSON parse error:", error);
         throw new Error("Lỗi khi parse response");
       }
-      console.log("Response từ server:", result);
 
       if (result && result.checkoutUrl) {
         window.location.href = result.checkoutUrl;

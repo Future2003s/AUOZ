@@ -27,12 +27,6 @@ async function fetchMeServer() {
     const url = `${proto}://${host}/api/auth/me`;
     const cookieHeader = h.get("cookie") || "";
 
-    console.log("Admin layout auth check:", {
-      url,
-      hasCookie: !!cookieHeader,
-      cookieValue: cookieHeader ? "Present" : "Missing",
-    });
-
     const res = await fetch(url, {
       cache: "no-store",
       headers: { cookie: cookieHeader },
@@ -40,7 +34,6 @@ async function fetchMeServer() {
       signal: AbortSignal.timeout(5000),
     });
 
-    console.log("Auth response status:", res.status, "ok:", res.ok);
     return res;
   } catch (error) {
     console.error("fetchMeServer error:", error);
@@ -64,10 +57,7 @@ export default async function AdminLayout({
     const res = await fetchMeServer();
     const currentPath = `/${locale}/admin`;
 
-    console.log("Admin layout - response status:", res.status, "ok:", res.ok);
-
     if (res.status === 401) {
-      console.log("Redirecting to login - unauthorized");
       redirect(
         `/${locale}/login?reason=login_required&redirect=${encodeURIComponent(
           currentPath
@@ -76,7 +66,6 @@ export default async function AdminLayout({
     }
 
     if (res.status === 403) {
-      console.log("Redirecting to login - forbidden");
       redirect(
         `/${locale}/login?reason=forbidden&redirect=${encodeURIComponent(
           currentPath
@@ -85,7 +74,6 @@ export default async function AdminLayout({
     }
 
     if (!res.ok) {
-      console.log("API error, redirecting to login", { status: res.status });
       redirect(
         `/${locale}/login?reason=api_error&status=${
           res.status
@@ -97,9 +85,7 @@ export default async function AdminLayout({
     try {
       const text = await res.text();
       me = text ? JSON.parse(text) : null;
-      console.log("Raw parsed data:", me);
       me = me?.user || me?.data || me;
-      console.log("User data:", { email: me?.email, role: me?.role });
     } catch (parseError) {
       console.error("Failed to parse user data:", parseError);
       redirect(
@@ -110,7 +96,6 @@ export default async function AdminLayout({
     }
 
     if (!me) {
-      console.log("No user data, redirecting to login");
       redirect(
         `/${locale}/login?reason=no_user&redirect=${encodeURIComponent(
           currentPath
@@ -119,7 +104,6 @@ export default async function AdminLayout({
     }
 
     if (!me.role) {
-      console.log("No role in user data, redirecting to login");
       redirect(
         `/${locale}/login?reason=no_role&redirect=${encodeURIComponent(
           currentPath
@@ -128,7 +112,6 @@ export default async function AdminLayout({
     }
 
     if (!me.email) {
-      console.log("No email in user data, redirecting to login");
       redirect(
         `/${locale}/login?reason=no_email&redirect=${encodeURIComponent(
           currentPath
@@ -138,10 +121,8 @@ export default async function AdminLayout({
 
     const role = (me?.role || "").toUpperCase();
     const allowed = role === "ADMIN" || role === "STAFF";
-    console.log("Role check:", { role, allowed, originalRole: me?.role });
 
     if (!allowed) {
-      console.log("User not authorized, redirecting to /me", { role, allowed });
       redirect(`/${locale}/me?unauthorized=1&role=${encodeURIComponent(role)}`);
     }
 

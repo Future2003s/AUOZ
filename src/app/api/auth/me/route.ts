@@ -25,14 +25,9 @@ export async function GET() {
       contentType.includes("application/json") && text ? JSON.parse(text) : {};
 
     if (!res.ok || !data?.success) {
-      console.log("Backend response not ok or no success:", {
-        status: res.status,
-        data,
-      });
       return NextResponse.json({ success: true, user: null }, { status: 200 });
     }
 
-    console.log("Backend response success:", data);
     return NextResponse.json(
       { success: true, user: data.data },
       { status: 200 }

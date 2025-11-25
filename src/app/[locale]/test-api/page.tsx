@@ -9,13 +9,11 @@ export default function TestApiPage() {
   const [loading, setLoading] = useState(false);
 
   const testDirectFetch = async () => {
-    console.log("🧪 Testing Direct Fetch");
     try {
       const response = await fetch(
         "http://localhost:8081/api/v1/products?limit=3"
       );
       const data = await response.json();
-      console.log("Direct fetch result:", data);
       return { success: response.ok, data, status: response.status };
     } catch (error) {
       console.error("Direct fetch error:", error);
@@ -24,10 +22,8 @@ export default function TestApiPage() {
   };
 
   const testProductApiRequest = async () => {
-    console.log("🧪 Testing productApiRequest");
     try {
       const data = await productApiRequest.getProducts({ limit: 3 });
-      console.log("ProductApiRequest result:", data);
       return { success: true, data };
     } catch (error) {
       console.error("ProductApiRequest error:", error);
@@ -36,14 +32,11 @@ export default function TestApiPage() {
   };
 
   const testConfig = () => {
-    console.log("🧪 Testing Config");
-    console.log("envConfig:", envConfig);
     return envConfig;
   };
 
   const runAllTests = async () => {
     setLoading(true);
-    console.log("🚀 Running all tests...");
 
     const config = testConfig();
     const directFetch = await testDirectFetch();

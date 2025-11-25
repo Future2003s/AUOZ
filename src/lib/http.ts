@@ -67,8 +67,6 @@ const request = async (
     ? `${baseUrl}${url}`
     : `${baseUrl}/${url}`;
 
-  console.log(`🌐 API Request: ${method} ${fullUrl}`);
-
   // Add timeout support
   const controller = new AbortController();
   const timeoutId = options?.timeout
@@ -157,7 +155,6 @@ const requestWithRetry = async (
         error.statusCode >= 500 &&
         attempt < maxRetries
       ) {
-        console.log(`🔄 Retry attempt ${attempt + 1}/${maxRetries} for ${url}`);
         await new Promise((resolve) =>
           setTimeout(resolve, retryDelay * (attempt + 1))
         );

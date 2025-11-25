@@ -14,11 +14,8 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    console.log(`Updating brand ${id} with data:`, body);
 
     const backendUrl = `${apiBase}/brands/${id}`;
-
-    console.log("Update brand API called, backend URL:", backendUrl);
 
     // Try both cookies() and request cookies, and accept Authorization header pass-through
     const cookieStore = await cookies();
@@ -60,7 +57,6 @@ export async function PUT(
     }
 
     const data = await res.json();
-    console.log("Update brand API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -88,11 +84,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    console.log(`Deleting brand ${id}`);
 
     const backendUrl = `${apiBase}/brands/${id}`;
-
-    console.log("Delete brand API called, backend URL:", backendUrl);
 
     const cookieStore = await cookies();
     const tokenFromCookies = cookieStore.get("sessionToken")?.value;
@@ -130,7 +123,6 @@ export async function DELETE(
     }
 
     const data = await res.json();
-    console.log("Delete brand API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,

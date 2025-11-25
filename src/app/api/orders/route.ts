@@ -5,10 +5,6 @@ import { emitOrderEvent } from "@/lib/sse-broadcaster";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log(
-      "Orders API called with params:",
-      request.nextUrl.searchParams.toString()
-    );
 
     const baseUrl =
       envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
@@ -19,13 +15,11 @@ export async function GET(request: NextRequest) {
     if (page) url.searchParams.set("page", page);
     if (size) url.searchParams.set("size", size);
     if (status) url.searchParams.set("status", status);
-    console.log("Backend URL:", url.toString());
 
     const response = await proxyJson(url.toString(), request, {
       method: "GET",
       requireAuth: true,
     });
-    console.log("Orders API response status:", response.status);
 
     return response;
   } catch (e) {

@@ -64,11 +64,12 @@ const SignUpPage = (): React.JSX.Element => {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterRequestBackendType) => {
-      const res = await fetch("http://localhost:8081/api/v1/auth/register", {
+      const res = await fetch("/api/auth/register", {
         headers: {
           "Content-Type": "application/json; charset=utf-8",
         },
         method: "POST",
+        credentials: "include",
         body: JSON.stringify(data),
       });
 
@@ -82,14 +83,12 @@ const SignUpPage = (): React.JSX.Element => {
       }
 
       if (!res.ok) {
-        console.log("LỖI GỌI API:", res.status, res.statusText);
-        console.log("Response body:", result);
-
         // Handle specific error cases based on actual backend response structure
         if (result && result.error) {
           if (
             result.error.includes("already exists") ||
-            result.error.includes("User already exists")
+            result.error.includes("User already exists") ||
+            result.error.toLowerCase().includes("email") && result.error.toLowerCase().includes("exist")
           ) {
             throw new Error("EMAIL_EXISTS");
           } else if (result.error.includes("validation")) {
@@ -101,7 +100,8 @@ const SignUpPage = (): React.JSX.Element => {
           // Fallback for message field if exists
           if (
             result.message.includes("already exists") ||
-            result.message.includes("User already exists")
+            result.message.includes("User already exists") ||
+            result.message.toLowerCase().includes("email") && result.message.toLowerCase().includes("exist")
           ) {
             throw new Error("EMAIL_EXISTS");
           } else if (result.message.includes("validation")) {
@@ -112,6 +112,10 @@ const SignUpPage = (): React.JSX.Element => {
         } else {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
+      }
+
+      if (!result || !result.success) {
+        throw new Error(result?.message || "Đăng ký thất bại");
       }
 
       return result;
@@ -129,11 +133,8 @@ const SignUpPage = (): React.JSX.Element => {
       return;
     }
 
-    console.log("Sending data to backend:", data);
-
     try {
       const result = await registerMutation.mutateAsync(data);
-      console.log("Registration successful:", result);
 
       // Reset form
       reset();
@@ -188,7 +189,6 @@ const SignUpPage = (): React.JSX.Element => {
 
   const handleGoogleSignUp = () => {
     // Implement Google OAuth here
-    console.log("Google Sign Up clicked");
   };
 
   const handleCloseSuccessModal = () => {

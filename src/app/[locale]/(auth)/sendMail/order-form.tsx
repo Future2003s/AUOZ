@@ -757,10 +757,8 @@ const OrderForm: React.FC = () => {
       try {
         const text = await result.text();
         const data = text ? JSON.parse(text) : null;
-        console.log(data);
       } catch (error) {
         console.error("JSON parse error:", error);
-        console.log("Response không phải JSON hợp lệ");
       }
       setIsSuccess(true);
       setStatusMessage("Thông tin đơn hàng đã được gửi thành công!");

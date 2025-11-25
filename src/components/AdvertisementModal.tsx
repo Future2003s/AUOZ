@@ -44,18 +44,14 @@ export function AdvertisementModal() {
     const fetchAdvertisement = async () => {
       try {
         setIsLoading(true);
-        console.log("🔍 Fetching active advertisement...");
         const response = await advertisementApi.getActive();
-        console.log("📢 Advertisement API response:", response);
         
         if (response.success && response.data) {
           const ad = response.data;
-          console.log("✅ Found advertisement:", ad);
           
           // Kiểm tra locale nếu có target audience
           if (ad.targetAudience?.locales && ad.targetAudience.locales.length > 0) {
             if (!ad.targetAudience.locales.includes(locale)) {
-              console.log("❌ Locale mismatch:", locale, "not in", ad.targetAudience.locales);
               setIsLoading(false);
               return;
             }
@@ -64,7 +60,6 @@ export function AdvertisementModal() {
           // Kiểm tra role nếu có target audience
           if (ad.targetAudience?.roles && ad.targetAudience.roles.length > 0) {
             if (!userRole || !ad.targetAudience.roles.includes(userRole)) {
-              console.log("❌ Role mismatch:", userRole, "not in", ad.targetAudience.roles);
               setIsLoading(false);
               return;
             }
@@ -74,25 +69,20 @@ export function AdvertisementModal() {
           
           // Delay hiển thị theo delayTime
           if (ad.delayTime > 0) {
-            console.log(`⏱️ Delaying display by ${ad.delayTime}ms`);
             setTimeout(() => {
-              console.log("🎯 Opening advertisement modal");
               setIsOpen(true);
             }, ad.delayTime);
           } else {
-            console.log("🎯 Opening advertisement modal immediately");
             setIsOpen(true);
           }
           
           // Tự động đóng nếu có autoCloseTime
           if (ad.autoCloseTime && ad.autoCloseTime > 0) {
             setTimeout(() => {
-              console.log("⏰ Auto-closing advertisement");
               setIsOpen(false);
             }, ad.delayTime + ad.autoCloseTime);
           }
         } else {
-          console.log("ℹ️ No active advertisement found");
         }
       } catch (error) {
         console.error("❌ Error fetching advertisement:", error);

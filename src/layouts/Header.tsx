@@ -56,7 +56,6 @@ const getNavLinks = (
     {
       label: t("nav.functions"),
       subItems: [
-        { href: `/${locale}/payment`, label: t("nav.payment") },
         // Nếu là admin: hiển thị nút admin thay thế login/register
         // Nếu đã đăng nhập nhưng không phải admin: ẩn login/register
         // Nếu chưa đăng nhập: hiển thị login/register
@@ -173,6 +172,7 @@ export default function Header() {
   const { logout, isAuthenticated, user } = useAuth();
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { totalQuantity } = useCart();
   
   // Enable realtime user updates - tự động cập nhật khi admin thay đổi
@@ -214,6 +214,15 @@ export default function Header() {
     const isUserAdmin = user?.role === "admin" || user?.role === "ADMIN";
         setIsAdmin(isUserAdmin);
   }, [user, isAuthenticated]);
+
+  // Cleanup timeout khi component unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -299,8 +308,22 @@ export default function Header() {
 
             {/* Icons & Mobile Menu Trigger */}
             <div className="flex items-center gap-1 sm:gap-1.5 lg:gap-2">
-              {sessionToken ? (
-                <div className="relative">
+              {sessionToken || isAuthenticated ? (
+                <div 
+                  className="relative group"
+                  onMouseEnter={() => {
+                    if (closeTimeoutRef.current) {
+                      clearTimeout(closeTimeoutRef.current);
+                      closeTimeoutRef.current = null;
+                    }
+                    setIsAccountOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    closeTimeoutRef.current = setTimeout(() => {
+                      setIsAccountOpen(false);
+                    }, 150); // Delay 150ms trước khi đóng
+                  }}
+                >
                   <button
                     onClick={() => setIsAccountOpen((v) => !v)}
                     aria-label="Tài khoản"
@@ -313,7 +336,21 @@ export default function Header() {
                     <ChevronDownIcon className="hidden md:block w-4 h-4" />
                   </button>
                   {isAccountOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                    <div 
+                      className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50"
+                      onMouseEnter={() => {
+                        if (closeTimeoutRef.current) {
+                          clearTimeout(closeTimeoutRef.current);
+                          closeTimeoutRef.current = null;
+                        }
+                        setIsAccountOpen(true);
+                      }}
+                      onMouseLeave={() => {
+                        closeTimeoutRef.current = setTimeout(() => {
+                          setIsAccountOpen(false);
+                        }, 150);
+                      }}
+                    >
                       {isAdmin && (
                         <Link
                           href={`/${locale}/admin/dashboard`}
@@ -338,25 +375,31 @@ export default function Header() {
                         {t("nav.profile")}
                       </Link>
                       <button
-                        className="w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:bg-rose-50 dark:hover:bg-gray-700 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200 rounded-b-lg"
+                        className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 transition-colors duration-200 rounded-b-lg"
                         onClick={async () => {
                           try {
+                            setIsAccountOpen(false);
                             await logout();
                             setSessionToken("");
-                            setIsAccountOpen(false);
                             toast.success("Đã đăng xuất", {
                               position: "top-center",
                             });
                             router.push(`/${locale}/login`);
                             router.refresh();
-                          } catch {
+                          } catch (error) {
+                            console.error("Logout error:", error);
                             toast.error("Đăng xuất thất bại", {
                               position: "top-center",
                             });
                           }
                         }}
                       >
-                        {t("nav.logout")}
+                        <span className="flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          {t("nav.logout")}
+                        </span>
                       </button>
                     </div>
                   )}

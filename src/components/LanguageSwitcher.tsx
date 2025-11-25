@@ -62,12 +62,6 @@ export default function LanguageSwitcher() {
               <button
                 key={l}
                 onClick={() => {
-                  console.log(
-                    "Language clicked:",
-                    l,
-                    "Current locale:",
-                    locale
-                  );
                   // Let I18nProvider handle navigation
                   setLocale(l as any);
                   setOpen(false);

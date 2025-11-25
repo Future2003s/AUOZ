@@ -12,8 +12,6 @@ export default function Calendar04() {
     to: new Date(2025, 5, 26),
   });
 
-  console.log(dateRange);
-
   return (
     <Calendar
       mode="range"

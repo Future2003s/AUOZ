@@ -34,7 +34,6 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    console.log(`Getting product ${id}`);
 
     const cookieStore = await cookies();
     const token = cookieStore.get("sessionToken")?.value;
@@ -45,8 +44,6 @@ export async function GET(
       envConfig.NEXT_PUBLIC_API_END_POINT ||
       `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
     const backendUrl = `${base}/products/${id}`;
-
-    console.log("Get product API called, backend URL:", backendUrl);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -84,7 +81,6 @@ export async function GET(
     }
 
     const data = await res.json();
-    console.log("Get product API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -113,29 +109,12 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    console.log(`Updating product ${id} with data:`, body);
-    console.log("Status field:", body.status);
-    console.log("Status type:", typeof body.status);
-    console.log("Body keys:", Object.keys(body));
 
     // Try both ways to get cookies
     const cookieStore = await cookies();
     const tokenFromCookies = cookieStore.get("sessionToken")?.value;
     const tokenFromRequest = request.cookies.get("sessionToken")?.value;
     const authHeader = request.headers.get("authorization");
-
-    console.log(
-      "Auth debug - Token from cookies() function:",
-      tokenFromCookies ? "Present" : "Missing"
-    );
-    console.log(
-      "Auth debug - Token from request.cookies:",
-      tokenFromRequest ? "Present" : "Missing"
-    );
-    console.log(
-      "Auth debug - Auth header:",
-      authHeader ? "Present" : "Missing"
-    );
 
     // Use token from request.cookies first, then fallback to cookies() function
     const token = tokenFromRequest || tokenFromCookies;
@@ -146,8 +125,6 @@ export async function PUT(
       `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
     const backendUrl = `${base}/products/${id}`;
 
-    console.log("Update product API called, backend URL:", backendUrl);
-
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
@@ -155,12 +132,9 @@ export async function PUT(
     // Add authentication headers
     if (token) {
       headers.Authorization = `Bearer ${token}`;
-      console.log("Using token from cookies");
     } else if (authHeader) {
       headers.Authorization = authHeader;
-      console.log("Using auth header");
     } else {
-      console.log("No auth token found!");
     }
 
     // Clean up body data before sending to backend
@@ -171,7 +145,6 @@ export async function PUT(
       const value = cleanBody[key];
       if (typeof value === "string" && value === "") {
         delete cleanBody[key];
-        console.log(`Removed empty field: ${key}`);
       }
     });
 
@@ -187,7 +160,6 @@ export async function PUT(
     ].forEach((k) => {
       if (k in cleanBody) {
         delete cleanBody[k];
-        console.log(`Stripped protected field from body: ${k}`);
       }
     });
 
@@ -210,7 +182,6 @@ export async function PUT(
           const currentStatus = extractStatusFromPayload(currentPayload);
           if (currentStatus) {
             cleanBody.status = currentStatus;
-            console.log(`Preserved backend status: ${currentStatus}`);
           }
         } else {
           console.warn(
@@ -222,9 +193,6 @@ export async function PUT(
         console.warn("Could not preserve status from backend:", statusError);
       }
     }
-
-    console.log("Cleaned body data:", cleanBody);
-    console.log("Final headers being sent:", headers);
 
     const res = await fetch(backendUrl, {
       method: "PUT",
@@ -251,7 +219,6 @@ export async function PUT(
     }
 
     const data = await res.json();
-    console.log("Update product API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -279,26 +246,12 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    console.log(`Deleting product ${id}`);
 
     // Try both ways to get cookies
     const cookieStore = await cookies();
     const tokenFromCookies = cookieStore.get("sessionToken")?.value;
     const tokenFromRequest = request.cookies.get("sessionToken")?.value;
     const authHeader = request.headers.get("authorization");
-
-    console.log(
-      "Auth debug - Token from cookies() function:",
-      tokenFromCookies ? "Present" : "Missing"
-    );
-    console.log(
-      "Auth debug - Token from request.cookies:",
-      tokenFromRequest ? "Present" : "Missing"
-    );
-    console.log(
-      "Auth debug - Auth header:",
-      authHeader ? "Present" : "Missing"
-    );
 
     // Use token from request.cookies first, then fallback to cookies() function
     const token = tokenFromRequest || tokenFromCookies;
@@ -308,8 +261,6 @@ export async function DELETE(
       `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
     const backendUrl = `${base}/products/${id}`;
 
-    console.log("Delete product API called, backend URL:", backendUrl);
-
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
@@ -317,15 +268,10 @@ export async function DELETE(
     // Add authentication headers
     if (token) {
       headers.Authorization = `Bearer ${token}`;
-      console.log("Using token from cookies");
     } else if (authHeader) {
       headers.Authorization = authHeader;
-      console.log("Using auth header");
     } else {
-      console.log("No auth token found!");
     }
-
-    console.log("Final headers being sent:", headers);
 
     const res = await fetch(backendUrl, {
       method: "DELETE",
@@ -351,7 +297,6 @@ export async function DELETE(
     }
 
     const data = await res.json();
-    console.log("Delete product API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,

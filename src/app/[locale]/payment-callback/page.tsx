@@ -50,10 +50,6 @@ function PaymentCallbackContent() {
       cancelParam,
       sig,
     };
-    console.log(
-      "PaymentCallback: Received params from PayOS:",
-      allParamsFromUrl
-    );
 
     let finalStatus = status ? String(status).toUpperCase() : null;
 
@@ -102,10 +98,6 @@ function PaymentCallbackContent() {
             orderCode,
             timestamp: Date.now(),
           })
-        );
-        console.log(
-          "PaymentCallback: Đã đặt cờ localStorage 'paymentStatusUpdated'",
-          { status: finalStatus, orderCode }
         );
       }
     }

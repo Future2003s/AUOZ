@@ -3,7 +3,6 @@ import { getAuthHeaderOrRefresh } from "@/lib/next-api-auth";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("Orders test API called");
 
     if (!process.env.NEXT_PUBLIC_API_END_POINT) {
       console.error("NEXT_PUBLIC_API_END_POINT is not defined");
@@ -22,7 +21,6 @@ export async function GET(request: NextRequest) {
     const url = new URL(
       `${process.env.NEXT_PUBLIC_API_END_POINT}/v1/api/orders`
     );
-    console.log("Testing backend URL:", url.toString());
 
     const { authHeader } = await getAuthHeaderOrRefresh(request);
     const headers: Record<string, string> = {
@@ -35,12 +33,6 @@ export async function GET(request: NextRequest) {
       headers,
       cache: "no-store",
     });
-
-    console.log("Backend test response status:", res.status);
-    console.log(
-      "Backend test response headers:",
-      Object.fromEntries(res.headers.entries())
-    );
 
     const contentType = res.headers.get("content-type") || "application/json";
     let data: any;

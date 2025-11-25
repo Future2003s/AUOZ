@@ -67,15 +67,11 @@ export async function proxyJson<ResponseBody = any>(
   try {
     const { authHeader, setCookie } = await getAuthHeaderOrRefresh(request);
     if (init.requireAuth && !authHeader) {
-      console.log("Authentication required but no auth header found");
       return new NextResponse(JSON.stringify({ message: "Unauthenticated" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
       });
     }
-
-    console.log("Making request to:", backendUrl);
-    console.log("Auth header present:", !!authHeader);
 
     let res = await fetch(backendUrl, {
       ...init,
@@ -85,12 +81,6 @@ export async function proxyJson<ResponseBody = any>(
       },
       cache: "no-store",
     });
-
-    console.log("Backend response status:", res.status);
-    console.log(
-      "Backend response headers:",
-      Object.fromEntries(res.headers.entries())
-    );
 
     // If unauthorized, try refreshing once then retry
     if (res.status === 401 && init.requireAuth) {

@@ -11,14 +11,10 @@ export function LoginTest() {
   const { login, user, isAuthenticated, isLoading, logout } = useAuth();
 
   const handleLogin = async () => {
-    console.log("Attempting login with:", { email, password });
     const result = await login(email, password);
-    console.log("Login result:", result);
 
     // Debug: Check if redirect happened
     setTimeout(() => {
-      console.log("Current URL after login:", window.location.href);
-      console.log("Current pathname:", window.location.pathname);
     }, 1000);
   };
 

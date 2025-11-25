@@ -21,14 +21,11 @@ export async function GET(
 
     const url = `${process.env.NEXT_PUBLIC_API_END_POINT}/orders/${id}/history`;
 
-    console.log("Fetching order history:", { id, url });
-
     const response = await proxyJson(url, request, {
       method: "GET",
       requireAuth: true,
     });
 
-    console.log("Order history response:", response.status);
     return response;
   } catch (e) {
     console.error("Order history error:", e);

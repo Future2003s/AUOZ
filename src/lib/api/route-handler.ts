@@ -336,7 +336,6 @@ class ApiRouteHandler {
       // Send to audit service (implement based on your audit requirements)
       // For now, just log to console in development
       if (process.env.NODE_ENV === "development") {
-        console.log("🔍 Audit Log:", auditData);
       }
     } catch (error) {
       console.warn("Audit logging failed:", error);

@@ -209,11 +209,6 @@ export default function ProductModal({
       };
 
       // Debug category validation
-      console.log("=== CATEGORY VALIDATION DEBUG ===");
-      console.log("Selected categoryId:", formData.categoryId);
-      console.log("Available categories:", categories);
-      console.log("CategoryId type:", typeof formData.categoryId);
-      console.log("CategoryId length:", formData.categoryId?.length);
 
       // Only include valid ObjectIds for category/brand (avoid test IDs)
       const isValidObjectId = (val: string) => /^[0-9a-fA-F]{24}$/.test(val);
@@ -221,7 +216,6 @@ export default function ProductModal({
       if (formData.categoryId) {
         productData.category = formData.categoryId;
         if (isValidObjectId(formData.categoryId)) {
-          console.log("✅ Category ID is valid ObjectId");
         } else {
           console.warn(
             "⚠️ Category ID format unusual, but proceeding:",
@@ -229,13 +223,11 @@ export default function ProductModal({
           );
         }
       } else {
-        console.log("⚠️ No category selected");
       }
 
       if (formData.brandId) {
         productData.brand = formData.brandId;
         if (isValidObjectId(formData.brandId)) {
-          console.log("✅ Brand ID is valid ObjectId");
         } else {
           console.warn(
             "⚠️ Brand ID format unusual, but proceeding:",
@@ -243,7 +235,6 @@ export default function ProductModal({
           );
         }
       } else {
-        console.log("⚠️ No brand selected");
       }
 
       if (formData.images && formData.images.length > 0) {
@@ -254,12 +245,6 @@ export default function ProductModal({
           order: index,
         }));
       }
-
-      console.log("Submitting product data:", productData);
-      console.log("=== PRODUCT MODAL DEBUG ===");
-      console.log("Form data state:", formData);
-      console.log("Final payload:", productData);
-      console.log("=== END MODAL DEBUG ===");
 
       if (editing) {
         // Update existing product

@@ -27,8 +27,6 @@ export async function GET(request: NextRequest) {
     `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
   const backendUrl = `${base}/products?${params.toString()}`;
 
-  console.log("Admin products API called, backend URL:", backendUrl);
-
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("sessionToken")?.value;
@@ -66,7 +64,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    console.log("Admin products API response:", data);
 
     // Normalize pagination from backend
     const rawList = Array.isArray(data?.data)

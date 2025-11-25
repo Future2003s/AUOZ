@@ -4,8 +4,6 @@ import { envConfig } from "@/config";
 export async function GET(request: NextRequest) {
   const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/categories/tree`;
 
-  console.log("Categories tree API called, backend URL:", backendUrl);
-
   try {
     const res = await fetch(backendUrl, {
       cache: "no-store",
@@ -29,7 +27,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    console.log("Categories tree API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,

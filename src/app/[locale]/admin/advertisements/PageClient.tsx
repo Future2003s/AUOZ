@@ -451,7 +451,6 @@ export default function PageClient() {
                 onChange={(url) => {
                   setFormData({ ...formData, imageUrl: url });
                   // Force re-render to ensure sync
-                  console.log("🖼️ Image URL updated:", url);
                 }}
                 label="Hình ảnh quảng cáo (tùy chọn)"
               />

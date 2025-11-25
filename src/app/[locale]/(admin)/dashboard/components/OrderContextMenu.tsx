@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import {
   Edit,
@@ -49,8 +49,15 @@ export const OrderContextMenu = ({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    // Reduced delay for better responsiveness
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 50);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [onClose]);
 
   // Close menu on escape key
@@ -67,17 +74,22 @@ export const OrderContextMenu = ({
 
   if (!position) return null;
 
-  const handleQuickStatusUpdate = async (newStatus: string) => {
+  const handleQuickStatusUpdate = useCallback(async (newStatus: string) => {
     const apiId = order.backendId || order.id;
     if (!apiId) {
       toast.error("Không xác định được ID đơn hàng");
       return;
     }
 
+    // Close menu immediately for better UX
+    onClose();
+
     try {
+      // Always use onQuickStatusUpdate if provided (it handles API call)
       if (onQuickStatusUpdate) {
-          await onQuickStatusUpdate(apiId, newStatus);
+        await onQuickStatusUpdate(apiId, newStatus);
       } else {
+        // Fallback: call API directly if onQuickStatusUpdate is not provided
         const response = await fetch(`/api/orders/${apiId}/status`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -91,11 +103,12 @@ export const OrderContextMenu = ({
             errorData?.message || `Cập nhật thất bại (${response.status})`
           );
         }
+
+        // Call onStatusChanged after successful API call
+        onStatusChanged(apiId, newStatus);
       }
 
-      onStatusChanged(apiId, newStatus);
       toast.success("Cập nhật trạng thái thành công");
-      onClose();
     } catch (error) {
       console.error("Quick status update failed:", error);
       toast.error(
@@ -104,7 +117,7 @@ export const OrderContextMenu = ({
           : "Cập nhật trạng thái thất bại"
       );
     }
-  };
+  }, [order, onQuickStatusUpdate, onStatusChanged, onClose]);
 
   const copyOrderInfo = () => {
     const orderInfo = `Mã ĐH: ${order.id}\nKhách hàng: ${order.customerName}\nTổng tiền: ${order.total}\nTrạng thái: ${order.status}`;
@@ -182,10 +195,17 @@ export const OrderContextMenu = ({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-2 min-w-48"
+      className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-2 min-w-48 animate-in fade-in-0 zoom-in-95 duration-150"
       style={{
-        left: position.x,
-        top: position.y,
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
       }}
     >
       {/* Header */}
@@ -202,45 +222,61 @@ export const OrderContextMenu = ({
 
         {/* Quick Status Updates */}
         <div className="space-y-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-green-600 hover:bg-green-50"
-            onClick={() => handleQuickStatusUpdate("processing")}
-          >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Xác nhận xử lý
-          </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-green-600 hover:bg-green-50"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleQuickStatusUpdate("processing");
+          }}
+        >
+          <CheckCircle className="w-4 h-4 mr-2" />
+          Xác nhận xử lý
+        </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-blue-600 hover:bg-blue-50"
-            onClick={() => handleQuickStatusUpdate("shipped")}
-          >
-            <Truck className="w-4 h-4 mr-2" />
-            Đang giao hàng
-          </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-blue-600 hover:bg-blue-50"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleQuickStatusUpdate("shipped");
+          }}
+        >
+          <Truck className="w-4 h-4 mr-2" />
+          Đang giao hàng
+        </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-purple-600 hover:bg-purple-50"
-            onClick={() => handleQuickStatusUpdate("delivered")}
-          >
-            <Package className="w-4 h-4 mr-2" />
-            Đã giao hàng
-          </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-purple-600 hover:bg-purple-50"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleQuickStatusUpdate("delivered");
+          }}
+        >
+          <Package className="w-4 h-4 mr-2" />
+          Đã giao hàng
+        </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-red-600 hover:bg-red-50"
-            onClick={() => handleQuickStatusUpdate("cancelled")}
-          >
-            <XCircle className="w-4 h-4 mr-2" />
-            Hủy đơn hàng
-          </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-red-600 hover:bg-red-50"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleQuickStatusUpdate("cancelled");
+          }}
+        >
+          <XCircle className="w-4 h-4 mr-2" />
+          Hủy đơn hàng
+        </Button>
         </div>
       </div>
 
@@ -254,7 +290,11 @@ export const OrderContextMenu = ({
           variant="ghost"
           size="sm"
           className="w-full justify-start"
-          onClick={() => onView(order)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onView(order);
+          }}
         >
           <Eye className="w-4 h-4 mr-2" />
           Xem chi tiết
@@ -264,7 +304,11 @@ export const OrderContextMenu = ({
           variant="ghost"
           size="sm"
           className="w-full justify-start"
-          onClick={() => onEdit(order)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onEdit(order);
+          }}
         >
           <Edit className="w-4 h-4 mr-2" />
           Cập nhật trạng thái
@@ -274,7 +318,11 @@ export const OrderContextMenu = ({
           variant="ghost"
           size="sm"
           className="w-full justify-start"
-          onClick={() => onHistory(order.id)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onHistory(order.id);
+          }}
         >
           <History className="w-4 h-4 mr-2" />
           Lịch sử chỉnh sửa
@@ -291,7 +339,11 @@ export const OrderContextMenu = ({
           variant="ghost"
           size="sm"
           className="w-full justify-start"
-          onClick={copyOrderInfo}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            copyOrderInfo();
+          }}
         >
           <Copy className="w-4 h-4 mr-2" />
           Sao chép thông tin
@@ -301,7 +353,11 @@ export const OrderContextMenu = ({
           variant="ghost"
           size="sm"
           className="w-full justify-start"
-          onClick={printOrder}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            printOrder();
+          }}
         >
           <Printer className="w-4 h-4 mr-2" />
           In đơn hàng
@@ -311,7 +367,11 @@ export const OrderContextMenu = ({
           variant="ghost"
           size="sm"
           className="w-full justify-start"
-          onClick={downloadOrderPDF}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            downloadOrderPDF();
+          }}
         >
           <Download className="w-4 h-4 mr-2" />
           Tải PDF

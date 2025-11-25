@@ -72,17 +72,12 @@ export default function AdminCategoriesPage() {
       params.set("page", String(currentPage - 1));
       params.set("limit", String(categoriesPerPage));
 
-      console.log("Fetching categories with params:", params.toString());
-
       const res = await fetch(`/api/categories/admin?${params.toString()}`, {
         cache: "no-store",
       });
 
-      console.log("Categories response status:", res.status);
-
       if (res.ok) {
         const data = await res.json();
-        console.log("Categories response data:", data);
 
         const list = Array.isArray(data?.data) ? data.data : [];
         setCategories(list);
@@ -142,8 +137,6 @@ export default function AdminCategoriesPage() {
         categoryData.metaKeywords = formData.metaKeywords.trim();
       if (formData.parentId) categoryData.parentId = formData.parentId;
 
-      console.log("Creating category:", categoryData);
-
       const response = await fetch("/api/categories/admin", {
         method: "POST",
         headers: {
@@ -154,7 +147,6 @@ export default function AdminCategoriesPage() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Create category response:", result);
 
         const newCategory = result.data;
         setCategories((prev) => [newCategory, ...prev]);
@@ -204,8 +196,6 @@ export default function AdminCategoriesPage() {
         categoryData.metaKeywords = formData.metaKeywords.trim();
       if (formData.parentId) categoryData.parentId = formData.parentId;
 
-      console.log("Updating category:", editing.id, categoryData);
-
       const response = await fetch(`/api/categories/${editing.id}`, {
         method: "PUT",
         headers: {
@@ -216,7 +206,6 @@ export default function AdminCategoriesPage() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Update category response:", result);
 
         setCategories((prev) =>
           prev.map((c) => (c.id === editing.id ? { ...c, ...categoryData } : c))

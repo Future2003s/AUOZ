@@ -79,11 +79,12 @@ async function fetchOrders(status?: OrderFilter): Promise<Order[]> {
 
 type UseOrdersOptions = {
   enabled?: boolean;
-  refetchIntervalMs?: number;
+  refetchIntervalMs?: number; // Tăng interval để giảm load (mặc định 30s thay vì 15s)
 };
 
 export function useOrders(status?: OrderFilter, options?: UseOrdersOptions) {
-  const { enabled = true, refetchIntervalMs = 15000 } = options || {};
+  // Tăng default interval lên 30s để giảm load cho server nhỏ
+  const { enabled = true, refetchIntervalMs = 30000 } = options || {};
   const normalizedStatus: OrderFilter = status || "all";
 
   return useQuery({

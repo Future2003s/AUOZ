@@ -16,8 +16,6 @@ export async function GET(request: NextRequest) {
     url.searchParams.set("page", page);
     url.searchParams.set("limit", limit);
 
-    console.log("Admin Users API URL:", url.toString());
-
     const response = await proxyJson(url.toString(), request, {
       method: "GET",
       requireAuth: true,

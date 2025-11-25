@@ -309,12 +309,6 @@ class HttpClient {
     requestId: string
   ): void {
     if (process.env.NODE_ENV === "development") {
-      console.log(`🌐 ${config.method || "GET"} ${url}`, {
-        requestId,
-        status: response.status,
-        duration: `${duration}ms`,
-        headers: Object.fromEntries(response.headers.entries()),
-      });
     }
   }
 

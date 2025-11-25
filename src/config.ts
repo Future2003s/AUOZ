@@ -26,7 +26,6 @@ const parsed = schema.safeParse({
 let envConfig: z.infer<typeof schema>;
 
 if (!parsed.success) {
-  console.log("Config validation errors:", parsed.error.errors);
   // Reasonable defaults; legacy code keeps working
   envConfig = {
     NEXT_PUBLIC_URL: "http://localhost:3001",

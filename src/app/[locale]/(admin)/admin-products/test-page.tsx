@@ -43,11 +43,8 @@ export default function AdminProductsTestPage() {
         cache: "no-store",
       });
 
-      console.log("Products response status:", res.status);
-
       if (res.ok) {
         const data = await res.json();
-        console.log("Products response data:", data);
         setProducts(data.data || []);
       } else {
         const errorData = await res.json().catch(() => ({}));
@@ -88,8 +85,6 @@ export default function AdminProductsTestPage() {
         brandId: formData.brandId || undefined,
       };
 
-      console.log("Creating product:", productData);
-
       const response = await fetch("/api/products/create", {
         method: "POST",
         headers: {
@@ -100,7 +95,6 @@ export default function AdminProductsTestPage() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Create product response:", result);
 
         const newProduct = result.data || result;
         setProducts((prev) => [newProduct, ...prev]);
@@ -136,8 +130,6 @@ export default function AdminProductsTestPage() {
         brandId: formData.brandId || undefined,
       };
 
-      console.log("Updating product:", editingProduct.id, productData);
-
       const response = await fetch(`/api/products/${editingProduct.id}`, {
         method: "PUT",
         headers: {
@@ -148,7 +140,6 @@ export default function AdminProductsTestPage() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Update product response:", result);
 
         setProducts((prev) =>
           prev.map((p) =>

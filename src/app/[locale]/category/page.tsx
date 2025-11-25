@@ -31,7 +31,6 @@ function Page() {
       });
 
       if (!res.ok) {
-        console.log("LỖI THÊM CATEGORY");
       }
 
       let result;
@@ -50,7 +49,6 @@ function Page() {
   const handllerData = async (data: any) => {
     const res = await categoryMutation.mutateAsync(data);
 
-    console.log(res);
   };
 
   return (

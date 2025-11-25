@@ -9,14 +9,6 @@ export async function GET(request: NextRequest) {
   const page = searchParams.get("page") ?? "1";
   const size = searchParams.get("size") ?? "24";
 
-  console.log("Products public API called with params:", {
-    q,
-    categoryId,
-    brandId,
-    page,
-    size,
-  });
-
   // Map to new backend endpoints: /api/v1/products, /api/v1/products/search, /api/v1/products/category/:categoryId
   let backendUrl: string;
   const base =
@@ -46,8 +38,6 @@ export async function GET(request: NextRequest) {
     backendUrl = `${base}/products?${params.toString()}`;
   }
 
-  console.log("Backend URL:", backendUrl.toString());
-
   try {
     const res = await fetch(backendUrl, {
       cache: "no-store",
@@ -55,8 +45,6 @@ export async function GET(request: NextRequest) {
         "Content-Type": "application/json",
       },
     });
-
-    console.log("Products API response status:", res.status);
 
     if (!res.ok) {
       console.error("Products API error - status:", res.status);
@@ -85,8 +73,6 @@ export async function GET(request: NextRequest) {
       raw = null;
     }
 
-    console.log("Products API raw response:", raw);
-
     // Handle new backend response format: { success: true, data: { content: [], page, size, totalElements, totalPages } }
     let list = [];
     if (raw?.success && raw?.data?.content) {
@@ -100,9 +86,7 @@ export async function GET(request: NextRequest) {
       list = raw;
     }
 
-    console.log("Products API normalized length:", list.length);
     if (list.length > 0) {
-      console.log("Sample product:", list[0]);
     }
 
     return new Response(

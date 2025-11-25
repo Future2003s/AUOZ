@@ -76,19 +76,6 @@ export const OrderEditModal = ({
         throw new Error("Không xác định được ID đơn hàng");
       }
 
-      console.log("Sending order status update:", {
-        orderId: order.id,
-        currentStatus: order.status,
-        newStatus: status,
-        backendStatus: backendStatus,
-        note: note.trim() || "No note",
-        url: `/api/orders/${apiId}/status`,
-        requestBody: {
-          status: backendStatus,
-          ...(note.trim() && { note: note.trim() }),
-        },
-      });
-
       const response = await fetch(`/api/orders/${apiId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -98,12 +85,6 @@ export const OrderEditModal = ({
           notes: note.trim() || undefined,
         }),
       });
-
-      console.log("Response status:", response.status);
-      console.log(
-        "Response headers:",
-        Object.fromEntries(response.headers.entries())
-      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

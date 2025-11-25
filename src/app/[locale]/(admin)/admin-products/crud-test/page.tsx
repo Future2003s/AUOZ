@@ -59,8 +59,6 @@ export default function CRUDTestPage() {
         brandId: formData.brandId || undefined,
       };
 
-      console.log("Creating test product:", productData);
-
       const response = await fetch("/api/products/test-crud", {
         method: "POST",
         headers: {
@@ -71,7 +69,6 @@ export default function CRUDTestPage() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Create test product response:", result);
 
         const newProduct = result.data;
         setProducts((prev) => [newProduct, ...prev]);
@@ -106,8 +103,6 @@ export default function CRUDTestPage() {
         categoryId: formData.categoryId || undefined,
         brandId: formData.brandId || undefined,
       };
-
-      console.log("Updating test product:", editingProduct.id, productData);
 
       // For test purposes, we'll just update the local state
       setProducts((prev) =>

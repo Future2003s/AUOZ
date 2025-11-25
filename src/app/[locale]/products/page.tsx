@@ -81,8 +81,6 @@ export default function ShopPage() {
               if (arrayKey) return (res.data as any)[arrayKey];
             }
           } catch {}
-          console.log("🧭 Categories API raw:", categoriesRes);
-          console.log("🧭 Brands API raw:", brandsRes);
 
           return [];
         };

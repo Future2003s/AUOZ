@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log("🟢 [Create Product API] Request body:", JSON.stringify(body, null, 2));
 
     // Get auth token from cookies
     const cookieStore = await cookies();
@@ -16,8 +15,6 @@ export async function POST(request: NextRequest) {
       `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
     const backendUrl = `${baseUrl}/products`;
     
-    console.log("🟢 [Create Product API] Backend URL:", backendUrl);
-    console.log("🟢 [Create Product API] Has token:", !!token);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -32,8 +29,6 @@ export async function POST(request: NextRequest) {
       headers,
       body: JSON.stringify(body),
     });
-
-    console.log("🟢 [Create Product API] Response status:", response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -57,7 +52,6 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log("✅ [Create Product API] Success response:", data);
     
     return new Response(JSON.stringify({
       success: true,

@@ -18,11 +18,6 @@ export async function GET(request: NextRequest) {
 
     const backendUrl = `${baseUrl}/products/featured?limit=${limit}`;
 
-    console.log("🔵 [Featured API] Frontend API route called");
-    console.log("🔵 [Featured API] Base URL:", baseUrl);
-    console.log("🔵 [Featured API] Backend URL:", backendUrl);
-    console.log("🔵 [Featured API] Limit:", limit);
-
     const response = await fetch(backendUrl, {
       method: "GET",
       headers: {
@@ -30,8 +25,6 @@ export async function GET(request: NextRequest) {
       },
       cache: "no-store",
     });
-
-    console.log("🔵 [Featured API] Response status:", response.status, response.ok);
 
     if (!response.ok) {
       console.error("❌ [Featured API] Backend error - status:", response.status);
@@ -51,27 +44,16 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log("🔵 [Featured API] Backend response data:", {
-      hasSuccess: !!data?.success,
-      hasData: !!data?.data,
-      dataIsArray: Array.isArray(data?.data),
-      dataLength: data?.data?.length || 0,
-      rawData: data,
-    });
 
     // Normalize response format
     let products = [];
     if (data?.success && data?.data) {
       products = Array.isArray(data.data) ? data.data : [];
-      console.log("✅ [Featured API] Using data.data array, length:", products.length);
     } else if (Array.isArray(data)) {
       products = data;
-      console.log("✅ [Featured API] Using data as array, length:", products.length);
     } else {
       console.warn("⚠️ [Featured API] Unexpected response format:", data);
     }
-
-    console.log("✅ [Featured API] Final products count:", products.length);
 
     return new Response(
       JSON.stringify({

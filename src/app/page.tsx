@@ -132,13 +132,9 @@ async function fetchHomepageSettings(): Promise<HomepageSettings> {
       process.env.NEXT_PUBLIC_URL ||
       `${protocol}://${host.replace(/\/$/, "")}`;
 
-    console.log("🏠 [Homepage] Fetching from:", `${baseUrl}/api/homepage`);
-
     const response = await fetch(`${baseUrl}/api/homepage`, {
       cache: "no-store", // Always fetch fresh data to see latest changes
     });
-
-    console.log("🏠 [Homepage] Response status:", response.status, response.ok);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -147,22 +143,10 @@ async function fetchHomepageSettings(): Promise<HomepageSettings> {
     }
 
     const result = await response.json();
-    console.log("🏠 [Homepage] Raw response:", JSON.stringify(result, null, 2));
     
     const backendData = result?.data || result;
-    console.log("🏠 [Homepage] Backend data:", {
-      hasData: !!backendData,
-      status: backendData?.status,
-      hasHero: !!backendData?.hero,
-      heroSlidesCount: backendData?.hero?.slides?.length || 0,
-    });
     
     const transformed = transformBackendToFrontend(backendData);
-    console.log("🏠 [Homepage] Transformed data:", {
-      hasSettings: !!transformed,
-      heroEnabled: transformed?.sections?.hero?.enabled,
-      heroSlidesCount: transformed?.sections?.hero?.data?.slides?.length || 0,
-    });
     
     return transformed;
   } catch (error) {

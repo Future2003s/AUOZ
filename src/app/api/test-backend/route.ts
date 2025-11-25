@@ -5,23 +5,11 @@ export async function GET(request: NextRequest) {
   try {
     const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/health`;
 
-    console.log("Testing backend connection to:", backendUrl);
-    console.log("Environment config:", {
-      backendUrl: envConfig.NEXT_PUBLIC_BACKEND_URL,
-      apiVersion: envConfig.NEXT_PUBLIC_API_VERSION,
-    });
-
     const response = await fetch(backendUrl, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-    });
-
-    console.log("Backend health check response:", {
-      status: response.status,
-      ok: response.ok,
-      statusText: response.statusText,
     });
 
     if (response.ok) {

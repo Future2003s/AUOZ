@@ -11,21 +11,12 @@ export function SimpleLoginTest() {
   const { login, user, isAuthenticated, isLoading } = useAuth();
 
   const handleLogin = async () => {
-    console.log("=== SIMPLE LOGIN TEST ===");
-    console.log("Email:", email);
-    console.log("Password:", password);
-    console.log("Current pathname:", window.location.pathname);
 
     try {
       const result = await login(email, password);
-      console.log("Login result:", result);
 
       // Check state after login
       setTimeout(() => {
-        console.log("=== AFTER LOGIN ===");
-        console.log("Current URL:", window.location.href);
-        console.log("Current pathname:", window.location.pathname);
-        console.log("Cookies:", document.cookie);
 
         // Parse cookies to show specific tokens
         const cookies = document.cookie.split(";").reduce((acc, cookie) => {
@@ -34,8 +25,6 @@ export function SimpleLoginTest() {
           return acc;
         }, {} as Record<string, string>);
 
-        console.log("sessionToken cookie:", cookies.sessionToken);
-        console.log("refreshToken cookie:", cookies.refreshToken);
       }, 2000);
     } catch (error) {
       console.error("Login error:", error);

@@ -82,7 +82,8 @@ export const useAuth = (): UseAuthReturn => {
     queryKey: meQueryKey,
     queryFn: fetchMe,
     enabled: typeof window !== 'undefined', // Chỉ chạy ở client
-    staleTime: 5 * 60 * 1000, // Cache 5 phút
+    staleTime: 10 * 60 * 1000, // Cache 10 phút để giảm API calls
+    gcTime: 15 * 60 * 1000, // Giữ cache 15 phút
     retry: 1,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
