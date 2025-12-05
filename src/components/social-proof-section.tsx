@@ -57,43 +57,19 @@ const partners: Partner[] = [
     id: 2,
     name: "EM HÀ NỘI",
     logoUrl:
-      "https://placehold.co/200x100/f1f5f9/94a3b8?text=EM+HÀ+NỘI&font=serif",
+      "https://scontent.fhan20-1.fna.fbcdn.net/v/t39.30808-1/407687429_7720199507996318_4807807951021670733_n.jpg?stp=c140.0.658.658a_dst-jpg_s200x200_tt6&_nc_cat=102&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=nKxPac-itR4Q7kNvwGnljWH&_nc_oc=AdkZ8UHMa7VXeG60_cMxqSP8wS8LMDbkEjoE2VxBpXKCai5XK4aveNrX8zMrxMZS32GievCsrUiYBkEdFRE5_Uw0&_nc_zt=24&_nc_ht=scontent.fhan20-1.fna&_nc_gid=R_edhNpMpUeioKsizEwzUw&oh=00_AflNLNOy4L_jEAaVGF2TKQmzpRR2Fc5CDANWkx5oY0Msow&oe=69382F25",
   },
   {
     id: 3,
-    name: "The Artistry",
+    name: "COWS MASUDA",
     logoUrl:
-      "https://placehold.co/200x100/f1f5f9/94a3b8?text=The+Artistry&font=serif",
+      "https://cowsmasuda.com/wp-content/uploads/2021/11/logo2-1024x294.png",
   },
   {
     id: 4,
-    name: "Elite Events",
+    name: "SAIGON ECO CRAF",
     logoUrl:
-      "https://placehold.co/200x100/f1f5f9/94a3b8?text=Elite+Events&font=serif",
-  },
-  {
-    id: 5,
-    name: "Vinpearl",
-    logoUrl:
-      "https://placehold.co/200x100/f1f5f9/94a3b8?text=Vinpearl&font=serif",
-  },
-  {
-    id: 6,
-    name: "Sofitel",
-    logoUrl:
-      "https://placehold.co/200x100/f1f5f9/94a3b8?text=Sofitel&font=serif",
-  },
-  {
-    id: 7,
-    name: "Golden Spoon",
-    logoUrl:
-      "https://placehold.co/200x100/f1f5f9/94a3b8?text=Golden+Spoon&font=serif",
-  },
-  {
-    id: 8,
-    name: "Prestige Gifts",
-    logoUrl:
-      "https://placehold.co/200x100/f1f5f9/94a3b8?text=Prestige+Gifts&font=serif",
+      "https://saigonecocraft.com/wp-content/uploads/2023/03/logo-ecocraft.png",
   },
 ];
 
@@ -260,7 +236,7 @@ export const SocialProofSection: React.FC = () => {
                         }deg) translateZ(${radius}px)`,
                       }}
                     >
-                      <Image
+                      <img
                         width={80}
                         height={80}
                         src={partner.logoUrl}

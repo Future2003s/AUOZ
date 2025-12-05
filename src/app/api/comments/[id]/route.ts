@@ -3,15 +3,16 @@ import { proxyJson } from "@/lib/next-api-auth";
 import { API_CONFIG } from "@/lib/api-config";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
   const backendUrl = `${API_CONFIG.API_BASE_URL}${API_CONFIG.COMMENTS.DELETE.replace(
     ":id",
-    params.id
+    id
   )}`;
 
   return proxyJson(backendUrl, request, {

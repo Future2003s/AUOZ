@@ -441,14 +441,14 @@ export default function ProductDetailPage() {
                             : "outline"
                         }
                         onClick={() =>
-                          setSelectedVariant(variant._id || variant.id)
+                          setSelectedVariant((variant._id || variant.id) as string)
                         }
                         className="h-12 justify-start px-3"
                       >
                         <div className="text-left">
                           <div className="font-medium">{variant.name}</div>
                           <div className="text-xs text-gray-500">
-                            {variant.options?.join(", ") || ""}
+                            {formatCurrency(variant.price)}
                           </div>
                         </div>
                       </Button>

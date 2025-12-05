@@ -4,7 +4,7 @@ import { API_CONFIG } from "@/lib/api-config";
 
 const MERGE_ENDPOINT = API_CONFIG.CART.MERGE;
 
-function buildSessionHeader(request: NextRequest) {
+function buildSessionHeader(request: NextRequest): Record<string, string> {
   const sessionId = request.headers.get("x-session-id");
   if (sessionId && sessionId.trim() !== "") {
     return { "X-Session-Id": sessionId };
@@ -34,13 +34,16 @@ export async function POST(request: NextRequest) {
 
   const body = await readJsonBody(request);
 
+  const sessionHeader = buildSessionHeader(request);
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json; charset=utf-8",
+    ...sessionHeader,
+  };
+
   return proxyJson(backendUrl, request, {
     method: "POST",
     requireAuth: true,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      ...buildSessionHeader(request),
-    },
+    headers,
     body: JSON.stringify(body ?? {}),
   });
 }

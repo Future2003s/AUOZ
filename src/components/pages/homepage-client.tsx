@@ -6,7 +6,10 @@ import "@/app/styleSmoothUI.css";
 import { CursorEffect } from "@/components/cursor-effect";
 import { MapsLocationCompany } from "@/components/location-company-maps";
 import { SocialProofSection } from "@/components/social-proof-section";
-import { InteractiveHeroSlider, HeroSlide } from "@/components/interactive-hero-slider";
+import {
+  InteractiveHeroSlider,
+  HeroSlide,
+} from "@/components/interactive-hero-slider";
 import { FeaturedProductsSection } from "@/components/featured-product-section";
 import { AboutSection } from "@/components/about-section";
 import { ScrollToTopButton } from "@/components/scroll-to-top-button";
@@ -14,6 +17,7 @@ import { OurCraftSection } from "@/components/our-craft-section";
 import { CollectionSection } from "@/components/collection-section";
 import { MarqueeBannerSection } from "@/components/marquee-banner-section";
 import { VideoSection } from "@/components/video-section";
+import { Snowfall } from "@/components/snowfall";
 import { HomepageSettings } from "@/types/homepage";
 import { defaultHomepageSettings } from "@/lib/homepage-default";
 
@@ -39,17 +43,18 @@ export function HomePageClient({ settings }: HomePageClientProps) {
   }, [mergedSettings.typography.fontUrl]);
 
   const heroSlides: HeroSlide[] = useMemo(() => {
-    const slides = mergedSettings.sections?.hero?.data?.slides
-      ?.filter((slide) => slide.desktopImage?.url) // Only include slides with valid image URLs
-      ?.map((slide, index) => ({
-        id: slide.desktopImage?.url || `slide-${index}`,
-        imageUrl: slide.desktopImage?.url || "",
-        title: slide.title || "",
-        subtitle: slide.subtitle || "",
-        ctaText: slide.cta?.label || "",
-        ctaLink: slide.cta?.href || "#",
-        overlayOpacity: slide.overlayOpacity,
-      })) ?? [];
+    const slides =
+      mergedSettings.sections?.hero?.data?.slides
+        ?.filter((slide) => slide.desktopImage?.url) // Only include slides with valid image URLs
+        ?.map((slide, index) => ({
+          id: slide.desktopImage?.url || `slide-${index}`,
+          imageUrl: slide.desktopImage?.url || "",
+          title: slide.title || "",
+          subtitle: slide.subtitle || "",
+          ctaText: slide.cta?.label || "",
+          ctaLink: slide.cta?.href || "#",
+          overlayOpacity: slide.overlayOpacity,
+        })) ?? [];
     return slides;
   }, [mergedSettings.sections?.hero?.data?.slides]);
 
@@ -78,6 +83,7 @@ export function HomePageClient({ settings }: HomePageClientProps) {
       style={themeStyle}
       suppressHydrationWarning
     >
+      <Snowfall />
       <CursorEffect />
       <main suppressHydrationWarning>
         {mergedSettings.sections.hero.enabled && (
@@ -90,6 +96,7 @@ export function HomePageClient({ settings }: HomePageClientProps) {
             textColor={mergedSettings.colors.text}
           />
         )}
+
         {mergedSettings.sections.about.enabled && (
           <AboutSection
             heading={mergedSettings.sections.about.data?.heading}
@@ -100,11 +107,13 @@ export function HomePageClient({ settings }: HomePageClientProps) {
             founderQuote={mergedSettings.sections.about.data?.founderQuote}
           />
         )}
-        <VideoSection />
+        {mergedSettings.sections.socialProof.enabled && <SocialProofSection />}
         {mergedSettings.sections.featuredProducts.enabled && (
           <FeaturedProductsSection />
         )}
-        {mergedSettings.sections.socialProof.enabled && <SocialProofSection />}
+
+        <VideoSection />
+
         {mergedSettings.sections.collection.enabled && <CollectionSection />}
         {mergedSettings.sections.craft.enabled && (
           <OurCraftSection
@@ -119,4 +128,3 @@ export function HomePageClient({ settings }: HomePageClientProps) {
     </div>
   );
 }
-

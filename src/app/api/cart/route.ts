@@ -16,7 +16,7 @@ function buildCandidates(templateEnv: string | undefined, fallbacks: string[]) {
   return candidates;
 }
 
-function buildSessionHeader(request: NextRequest) {
+function buildSessionHeader(request: NextRequest): Record<string, string> {
   const sessionId = request.headers.get("x-session-id");
   if (sessionId && sessionId.trim() !== "") {
     return { "X-Session-Id": sessionId };
@@ -55,6 +55,9 @@ const pickBoolean = (source: JsonRecord | null, key: string): boolean =>
 export async function GET(request: NextRequest) {
   const base = API_CONFIG.API_BASE_URL;
   const sessionHeader = buildSessionHeader(request);
+  const headers: Record<string, string> = {
+    ...sessionHeader,
+  };
   const template = process.env.API_CART_GET_URL_TEMPLATE; // e.g., /cart or /cart/me
   const candidates = buildCandidates(template, [
     API_CONFIG.CART.GET,
@@ -70,9 +73,7 @@ export async function GET(request: NextRequest) {
     const res = await proxyJson(backendUrl, request, {
       method: "GET",
       requireAuth: false,
-      headers: {
-        ...sessionHeader,
-      },
+      headers,
     });
     if (res.status !== 404 && res.status !== 405) return res;
   }
@@ -85,6 +86,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const base = API_CONFIG.API_BASE_URL;
   const sessionHeader = buildSessionHeader(request);
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json; charset=utf-8",
+    ...sessionHeader,
+  };
   const template = process.env.API_CART_ADD_URL_TEMPLATE; // e.g., /cart/items
   const candidates = buildCandidates(template, [
     API_CONFIG.CART.ADD_ITEM,
@@ -96,10 +101,7 @@ export async function POST(request: NextRequest) {
     const backendUrl = `${base}${path.startsWith("/") ? path : `/${path}`}`;
     const res = await proxyJson(backendUrl, request, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        ...sessionHeader,
-      },
+      headers,
       body: JSON.stringify(body ?? {}),
       requireAuth: false,
     });
@@ -117,6 +119,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const base = API_CONFIG.API_BASE_URL;
   const sessionHeader = buildSessionHeader(request);
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json; charset=utf-8",
+    ...sessionHeader,
+  };
   const template = process.env.API_CART_UPDATE_URL_TEMPLATE; // e.g., /cart/items/{itemId}
   const body = await readJsonBody(request);
 
@@ -153,10 +159,7 @@ export async function PUT(request: NextRequest) {
     const backendUrl = `${base}${path.startsWith("/") ? path : `/${path}`}`;
     const res = await proxyJson(backendUrl, request, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        ...sessionHeader,
-      },
+      headers,
       body: JSON.stringify(body ?? {}),
       requireAuth: false,
     });
@@ -174,6 +177,9 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const base = API_CONFIG.API_BASE_URL;
   const sessionHeader = buildSessionHeader(request);
+  const headers: Record<string, string> = {
+    ...sessionHeader,
+  };
   const template = process.env.API_CART_DELETE_URL_TEMPLATE; // e.g., /cart/items/{itemId}
 
   const body = await readJsonBody(request);
@@ -220,9 +226,7 @@ export async function DELETE(request: NextRequest) {
     const res = await proxyJson(backendUrl, request, {
       method: "DELETE",
       requireAuth: false,
-      headers: {
-        ...sessionHeader,
-      },
+      headers,
     });
     if (res.status !== 404 && res.status !== 405) return res;
   }
