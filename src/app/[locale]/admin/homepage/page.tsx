@@ -507,23 +507,125 @@ const transformBackendToFrontend = (backendData: any): HomepageSettings => {
   };
 };
 
-const fetchDraft = async (): Promise<HomepageSettings> => {
-  const response = await fetch("/api/homepage/draft", {
-    credentials: "include",
-  });
-  if (!response.ok) {
-    throw new Error("Không thể tải cấu hình trang chủ");
+// Fetch published homepage (giống như trang chủ đang hiển thị)
+const fetchPublished = async (): Promise<HomepageSettings> => {
+  try {
+    // Sử dụng absolute URL để tránh vấn đề với hash trong URL
+    const apiUrl = typeof window !== "undefined" 
+      ? `${window.location.origin}/api/homepage`
+      : "/api/homepage";
+    
+    const response = await fetch(apiUrl, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // Thêm cache busting để luôn lấy dữ liệu mới nhất
+      cache: "no-store",
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = "Không thể tải cấu hình trang chủ";
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      }
+      console.error("❌ [Homepage Admin] Fetch published error:", errorMessage, response.status);
+      throw new Error(errorMessage);
+    }
+    
+    const result = await response.json();
+    
+    // Debug log để kiểm tra response
+    console.log("✅ [Homepage Admin] Fetched published data:", result);
+    
+    const backendData = result?.data || result;
+    
+    if (!backendData) {
+      console.warn("⚠️ [Homepage Admin] No published data, trying draft...");
+      // Nếu không có published data, thử fetch draft
+      return fetchDraft();
+    }
+    
+    return transformBackendToFrontend(backendData);
+  } catch (error: any) {
+    console.error("❌ [Homepage Admin] Fetch published error:", error);
+    // Nếu fetch published fail, thử fetch draft
+    console.log("🔄 [Homepage Admin] Falling back to draft...");
+    try {
+      return await fetchDraft();
+    } catch (draftError) {
+      if (error?.message?.includes("401") || error?.message?.includes("403")) {
+        throw new Error("Bạn cần đăng nhập để truy cập trang này");
+      }
+      throw error;
+    }
   }
-  const result = await response.json();
-  const backendData = result?.data || result;
-  return transformBackendToFrontend(backendData);
+};
+
+// Fetch draft homepage (backup)
+const fetchDraft = async (): Promise<HomepageSettings> => {
+  try {
+    const apiUrl = typeof window !== "undefined" 
+      ? `${window.location.origin}/api/homepage/draft`
+      : "/api/homepage/draft";
+    
+    const response = await fetch(apiUrl, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = "Không thể tải bản nháp";
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      }
+      console.error("❌ [Homepage Admin] Fetch draft error:", errorMessage, response.status);
+      throw new Error(errorMessage);
+    }
+    
+    const result = await response.json();
+    const backendData = result?.data || result;
+    
+    if (!backendData) {
+      console.warn("⚠️ [Homepage Admin] No draft data, using defaults");
+      return defaultHomepageSettings;
+    }
+    
+    return transformBackendToFrontend(backendData);
+  } catch (error: any) {
+    console.error("❌ [Homepage Admin] Fetch draft error:", error);
+    if (error?.message?.includes("401") || error?.message?.includes("403")) {
+      throw new Error("Bạn cần đăng nhập để truy cập trang này");
+    }
+    throw error;
+  }
 };
 
 export default function HomepageBuilderPage() {
   const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ["homepage", "draft"],
-    queryFn: fetchDraft,
+  // Fetch published data (giống như trang chủ) thay vì draft
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["homepage", "published"],
+    queryFn: fetchPublished,
+    retry: 2,
+    retryDelay: 1000,
+    staleTime: 0, // Luôn fetch dữ liệu mới
+    gcTime: 0, // Không cache dữ liệu
   });
   const [formState, setFormState] = useState<HomepageSettings>(
     defaultHomepageSettings
@@ -532,9 +634,17 @@ export default function HomepageBuilderPage() {
 
   useEffect(() => {
     if (data) {
+      console.log("✅ [Homepage Admin] Setting form state with data:", data);
       setFormState(data);
     }
   }, [data]);
+
+  // Log error nếu có
+  useEffect(() => {
+    if (error) {
+      console.error("❌ [Homepage Admin] Query error:", error);
+    }
+  }, [error]);
 
   const updateTypography = (
     field: keyof HomepageSettings["typography"],
@@ -1025,10 +1135,9 @@ export default function HomepageBuilderPage() {
           ? "Đã lưu bản nháp trang chủ"
           : "Đã xuất bản trang chủ"
       );
+      // Invalidate cả published và draft queries
+      queryClient.invalidateQueries({ queryKey: ["homepage", "published"] });
       queryClient.invalidateQueries({ queryKey: ["homepage", "draft"] });
-      if (status === "published") {
-        queryClient.invalidateQueries({ queryKey: ["homepage", "published"] });
-      }
     },
     onError: (error: any) => {
       toast.error(error?.message || "Lưu cấu hình thất bại");
@@ -1040,6 +1149,26 @@ export default function HomepageBuilderPage() {
       <div className="p-6 flex items-center gap-3">
         <Loader2 className="animate-spin" />
         <span>Đang tải cấu hình trang chủ...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h3 className="text-red-800 font-semibold mb-2">Lỗi tải dữ liệu</h3>
+          <p className="text-red-600 text-sm mb-4">
+            {error instanceof Error ? error.message : "Không thể tải cấu hình trang chủ"}
+          </p>
+          <Button
+            onClick={() => queryClient.invalidateQueries({ queryKey: ["homepage", "published"] })}
+            variant="outline"
+            className="border-red-300 text-red-600 hover:bg-red-50"
+          >
+            Thử lại
+          </Button>
+        </div>
       </div>
     );
   }
