@@ -12,6 +12,7 @@ const LanguageSwitcher = dynamic(
   () => import("@/components/LanguageSwitcher"),
   { ssr: false }
 );
+import ProductsMegaMenu from "@/components/ProductsMegaMenu";
 import type { ComponentType } from "react";
 const MobileNavSheet = dynamic(() => import("./MobileNav"), {
   ssr: false,
@@ -28,30 +29,49 @@ import { useAuth } from "@/hooks/useAuth";
 import accountApiRequest from "@/apiRequests/account";
 import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
+import { categoryApiRequest, Category } from "@/apiRequests/categories";
 
 // Navigation links will be translated in component
 const getNavLinks = (
   t: (key: string) => string,
   locale: string,
   isAdmin: boolean,
-  isAuthenticated: boolean
+  isAuthenticated: boolean,
+  categories: Category[] = []
 ) => {
+  // Build product subItems from categories
+  const productSubItems: Array<{ 
+    href: string; 
+    label: string; 
+    query?: string;
+    categoryId?: string;
+    categorySlug?: string;
+  }> = [
+    { href: `/${locale}/products`, label: t("nav.all_products") },
+  ];
+
+  // Add categories as menu items (limit to top-level active categories)
+  const activeCategories = categories
+    .filter((cat) => cat.isActive && (!cat.parent || typeof cat.parent === "string"))
+    .slice(0, 8) // Limit to 8 categories to avoid menu being too long
+    .map((category) => ({
+      href: `/${locale}/products?category=${category.slug}`,
+      label: category.name,
+      query: category.name,
+      categoryId: category._id,
+      categorySlug: category.slug,
+    }));
+
+  productSubItems.push(...activeCategories);
+  
+  console.log("📋 Product menu items:", productSubItems);
+
   const links: any[] = [
     { href: `/${locale}`, label: t("nav.home") },
     {
       label: t("nav.products"),
       href: `/${locale}/shop`,
-      subItems: [
-        { href: `/${locale}/products`, label: t("nav.all_products") },
-        {
-          href: `/${locale}/products?q=m%E1%BA%ADt+ong`,
-          label: t("nav.honey"),
-        },
-        {
-          href: `/${locale}/products?q=v%E1%BA%A3i`,
-          label: t("nav.lychee_products"),
-        },
-      ],
+      subItems: productSubItems,
     },
     { href: `/${locale}/story`, label: t("nav.story") },
     {
@@ -176,6 +196,8 @@ export default function Header() {
   const [isEmployee, setIsEmployee] = useState(false);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { totalQuantity } = useCart();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   
   // Enable realtime user updates - tự động cập nhật khi admin thay đổi
   const { openSidebar } = useCartSidebar();
@@ -183,7 +205,37 @@ export default function Header() {
   const { locale } = useI18n();
   // Kiểm tra đăng nhập từ sessionToken hoặc isAuthenticated
   const isLoggedIn = Boolean(sessionToken) || isAuthenticated;
-  const navLinks = getNavLinks(t, locale, isAdmin, isLoggedIn);
+  
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        console.log("🔄 Fetching categories from API...");
+        const response = await categoryApiRequest.getCategories({
+          isActive: true,
+          sort: "order",
+          order: "asc",
+        });
+        console.log("📋 Categories response:", response);
+        if (response.success && response.data) {
+          console.log("✅ Categories loaded:", response.data.length);
+          setCategories(response.data);
+        } else {
+          console.warn("⚠️ Categories response not successful:", response);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching categories:", error);
+        // Keep empty array on error, will show default menu
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const navLinks = getNavLinks(t, locale, isAdmin, isLoggedIn, categories);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -269,22 +321,53 @@ export default function Header() {
                         {link.label}
                         <ChevronDownIcon className="transition-transform duration-300 group-hover:rotate-180 w-4 h-4" />
                       </span>
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 -translate-y-2 z-50 border border-gray-200 dark:border-gray-700" suppressHydrationWarning>
-                        <div className="py-2" suppressHydrationWarning>
-                          {link.subItems.map(
-                            (item: { href: string; label: string }) => (
-                              <Link
-                                key={item.label}
-                                href={item.href}
-                                className="block w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
-                                suppressHydrationWarning
-                              >
-                                {item.label}
-                              </Link>
-                            )
-                          )}
+                      {/* Mega Menu for Products, Regular Dropdown for others */}
+                      {link.label === t("nav.products") ? (
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 -translate-y-2 z-50 border border-gray-200 dark:border-gray-700" suppressHydrationWarning>
+                          <ProductsMegaMenu
+                            items={link.subItems.map((item: { 
+                              href: string; 
+                              label: string; 
+                              query?: string;
+                              categoryId?: string;
+                              categorySlug?: string;
+                            }) => {
+                              // Extract category slug or search query from href if not already provided
+                              const categoryMatch = item.href.match(/[?&]category=([^&]+)/);
+                              const searchMatch = item.href.match(/[?&]q=([^&]+)/);
+                              return {
+                                href: item.href,
+                                label: item.label,
+                                query: item.query || (categoryMatch 
+                                  ? decodeURIComponent(categoryMatch[1])
+                                  : searchMatch 
+                                  ? decodeURIComponent(searchMatch[1])
+                                  : undefined),
+                                categoryId: item.categoryId,
+                                categorySlug: item.categorySlug || (categoryMatch ? decodeURIComponent(categoryMatch[1]) : undefined),
+                              };
+                            })}
+                            locale={locale}
+                          />
                         </div>
-                      </div>
+                      ) : (
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 -translate-y-2 z-50 border border-gray-200 dark:border-gray-700" suppressHydrationWarning>
+                          <div className="py-2" suppressHydrationWarning>
+                            {link.subItems.map(
+                              (item: { href: string; label: string }) => (
+                                <Link
+                                  key={item.label}
+                                  href={item.href}
+                                  className="block w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+                                  suppressHydrationWarning
+                                >
+                                  {item.label}
+                                </Link>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <Link
