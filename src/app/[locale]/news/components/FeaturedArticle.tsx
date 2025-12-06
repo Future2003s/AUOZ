@@ -31,7 +31,7 @@ export const FeaturedArticle: React.FC<FeaturedArticleProps> = ({
     >
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90 z-10"></div>
       {article.coverImage ? (
-        <img
+        <Image
           src={article.coverImage}
           alt={article.title}
           className="object-cover transform group-hover:scale-105 transition-transform duration-700"

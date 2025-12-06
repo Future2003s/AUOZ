@@ -138,33 +138,48 @@ export default function StoryClient() {
             sizes="100vw"
             className="object-cover opacity-70 scale-105 animate-slow-pan"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-stone-900/40 via-transparent to-[#595353]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-stone-900/40 via-transparent to-[#595353] animate-gradient-shift" />
+          {/* Floating particles effect */}
+          <div className="absolute inset-0 overflow-hidden">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-2 h-2 bg-white/20 rounded-full animate-float"
+                style={{
+                  left: `${20 + i * 15}%`,
+                  top: `${30 + i * 10}%`,
+                  animationDelay: `${i * 0.5}s`,
+                  animationDuration: `${3 + i * 0.5}s`,
+                }}
+              />
+            ))}
+          </div>
         </div>
 
         <div className="relative z-10 text-center px-4 sm:px-6 max-w-5xl mx-auto mt-12 sm:mt-20">
           <FadeIn direction="down">
-            <div className="inline-block mb-4 sm:mb-8">
-              <h2 className={`${greatVibes.className} text-[32px] sm:text-[42px] md:text-[60px] lg:text-[80px] xl:text-[100.3px] text-white mb-2 sm:mb-4 drop-shadow-lg tracking-wide italic leading-tight`}>
+            <div className="inline-block mb-4 sm:mb-8 animate-float-subtle">
+              <h2 className={`${greatVibes.className} text-[32px] sm:text-[42px] md:text-[60px] lg:text-[80px] xl:text-[100.3px] text-white mb-2 sm:mb-4 drop-shadow-lg tracking-wide italic leading-tight animate-text-glow`}>
                 Hành Trình Trở Về
               </h2>
-              <div className="h-1 sm:h-2 w-24 sm:w-40 bg-gradient-to-r from-red-300 via-red-400 to-red-600 mx-auto rounded-full shadow-lg" />
+              <div className="h-1 sm:h-2 w-24 sm:w-40 bg-gradient-to-r from-red-300 via-red-400 to-red-600 mx-auto rounded-full shadow-lg animate-pulse-slow" />
             </div>
           </FadeIn>
 
           <FadeIn delay={200}>
-            <div className="flex flex-col items-center">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-serif italic text-amber-100 tracking-wide drop-shadow-md">
+            <div className="flex flex-col items-center animate-float-subtle-delayed">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-serif italic text-amber-100 tracking-wide drop-shadow-md animate-text-shimmer">
                 Đánh Thức
               </h1>
-              <div className="h-px w-16 sm:w-24 bg-gradient-to-r from-transparent via-amber-500 to-transparent mt-2 sm:mt-4 opacity-70"></div>
-              <div className={`${playfair.className} text-red-200/90 italic font-light text-[32px] sm:text-[42px] md:text-[56px] lg:text-[72px] xl:text-[100px] leading-[1.1] mt-3 sm:mt-6 px-2`}>
+              <div className="h-px w-16 sm:w-24 bg-gradient-to-r from-transparent via-amber-500 to-transparent mt-2 sm:mt-4 opacity-70 animate-pulse-slow"></div>
+              <div className={`${playfair.className} text-red-200/90 italic font-light text-[32px] sm:text-[42px] md:text-[56px] lg:text-[72px] xl:text-[100px] leading-[1.1] mt-3 sm:mt-6 px-2 animate-text-glow-delayed`}>
                 Hương Vị <span className="not-italic"><span className={playfair.className}>Đất</span>{" "}</span>Vải
               </div>
             </div>
           </FadeIn>
 
           <FadeIn delay={400}>
-            <p className="text-white/90 text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-light max-w-2xl mx-auto mb-8 sm:mb-12 md:mb-16 leading-relaxed text-shadow-sm px-4">
+            <p className="text-white/90 text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-light max-w-2xl mx-auto mb-8 sm:mb-12 md:mb-16 leading-relaxed text-shadow-sm px-4 animate-fade-in-out">
               Từ nỗi tự ti của một người con xa xứ, đến khát vọng mang niềm tự hào
               Vĩnh Lập vươn ra thế giới.
             </p>
@@ -392,6 +407,40 @@ export default function StoryClient() {
         </FadeIn>
       </section>
 
+      {/* VIDEO SECTION */}
+      <section className="pt-4 sm:pt-6 pb-8 sm:pb-12 md:pb-16 bg-gradient-to-br from-stone-50 via-rose-50/30 to-stone-50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <FadeIn>
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-4 sm:mb-6 -mt-2 sm:-mt-4">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-stone-900 mb-2 sm:mb-3">
+                  Câu Chuyện Trên Màn Ảnh
+                </h3>
+                <p className="text-stone-600 text-xs sm:text-sm md:text-base max-w-xl mx-auto italic">
+                  Khám phá hành trình đưa vải thiều Vĩnh Lập vươn ra thế giới qua góc nhìn của những người trong cuộc
+                </p>
+              </div>
+              
+              <div className="relative rounded-lg overflow-hidden shadow-lg bg-stone-900 border-2 border-stone-200">
+                <div className="aspect-video w-full">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/ioy9iZ8pOdg?si=-O7mtYpvCcKj-cga&cc_load_policy=1&hl=vi&cc_lang_pref=vi"
+                    title="Câu Chuyện Trên Màn Ảnh"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full"
+                  />
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* CHƯƠNG 3 */}
       <section className="py-12 sm:py-16 md:py-24 bg-[#8B1E24] text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20" />
@@ -558,6 +607,145 @@ export default function StoryClient() {
         </div>
       )}
 
+      {/* Custom Animations */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) translateX(0px);
+            opacity: 0.2;
+          }
+          50% {
+            transform: translateY(-20px) translateX(10px);
+            opacity: 0.4;
+          }
+        }
+
+        @keyframes float-subtle {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-8px);
+          }
+        }
+
+        @keyframes float-subtle-delayed {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-6px);
+          }
+        }
+
+        @keyframes text-glow {
+          0%, 100% {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3),
+                         0 0 40px rgba(239, 68, 68, 0.2);
+          }
+          50% {
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5),
+                         0 0 60px rgba(239, 68, 68, 0.4);
+          }
+        }
+
+        @keyframes text-glow-delayed {
+          0%, 100% {
+            text-shadow: 0 0 15px rgba(239, 68, 68, 0.3),
+                         0 0 30px rgba(239, 68, 68, 0.2);
+          }
+          50% {
+            text-shadow: 0 0 25px rgba(239, 68, 68, 0.5),
+                         0 0 50px rgba(239, 68, 68, 0.4);
+          }
+        }
+
+        @keyframes text-shimmer {
+          0% {
+            background-position: -200% center;
+          }
+          100% {
+            background-position: 200% center;
+          }
+        }
+
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 0.8;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.05);
+          }
+        }
+
+        @keyframes fade-in-out {
+          0%, 100% {
+            opacity: 0.9;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+
+        @keyframes gradient-shift {
+          0%, 100% {
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), transparent, rgba(89, 83, 83, 1));
+          }
+          50% {
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.5), transparent, rgba(89, 83, 83, 0.9));
+          }
+        }
+
+        .animate-float {
+          animation: float 4s ease-in-out infinite;
+        }
+
+        .animate-float-subtle {
+          animation: float-subtle 6s ease-in-out infinite;
+        }
+
+        .animate-float-subtle-delayed {
+          animation: float-subtle-delayed 7s ease-in-out infinite;
+          animation-delay: 0.5s;
+        }
+
+        .animate-text-glow {
+          animation: text-glow 3s ease-in-out infinite;
+        }
+
+        .animate-text-glow-delayed {
+          animation: text-glow-delayed 4s ease-in-out infinite;
+          animation-delay: 1s;
+        }
+
+        .animate-text-shimmer {
+          background: linear-gradient(
+            90deg,
+            rgba(251, 191, 36, 1) 0%,
+            rgba(251, 191, 36, 0.8) 50%,
+            rgba(251, 191, 36, 1) 100%
+          );
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: text-shimmer 3s linear infinite;
+        }
+
+        .animate-pulse-slow {
+          animation: pulse-slow 3s ease-in-out infinite;
+        }
+
+        .animate-fade-in-out {
+          animation: fade-in-out 4s ease-in-out infinite;
+        }
+
+        .animate-gradient-shift {
+          animation: gradient-shift 8s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }

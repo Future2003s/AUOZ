@@ -8,8 +8,9 @@ interface TableOfContentsProps {
 }
 
 export const TableOfContents: React.FC<TableOfContentsProps> = ({ blocks }) => {
-  const headings = blocks?.filter(block => 
-    block.type === 'h2' || block.type === 'h3'
+  // Type guard to ensure we only get headings with content
+  const headings = blocks?.filter((block): block is { type: "h2" | "h3"; id?: string; content: string } => 
+    (block.type === 'h2' || block.type === 'h3') && 'content' in block
   ) || [];
 
   if (headings.length === 0) return null;
@@ -21,9 +22,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({ blocks }) => {
       </h3>
       <nav className="flex flex-col space-y-3">
         {headings.map((heading, index) => {
-          const id = heading.type === 'h2' || heading.type === 'h3' 
-            ? heading.id || `heading-${index}`
-            : `heading-${index}`;
+          const id = heading.id || `heading-${index}`;
           
           return (
             <a 
