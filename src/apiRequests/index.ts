@@ -9,6 +9,7 @@ export * from "./reviews";
 export * from "./account";
 export * from "./meta";
 export * from "./advertisements";
+export * from "./tasks";
 
 // Main HTTP client
 export { http } from "../lib/http";

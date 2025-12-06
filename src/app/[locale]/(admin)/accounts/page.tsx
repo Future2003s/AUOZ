@@ -52,7 +52,7 @@ type User = {
   firstName?: string;
   lastName?: string;
   phone?: string;
-  role: "ADMIN" | "CUSTOMER" | "SELLER";
+  role: "ADMIN" | "CUSTOMER" | "SELLER" | "EMPLOYEE";
   status: "ACTIVE" | "DISABLED";
   loginAttempts?: number;
 };
@@ -74,7 +74,7 @@ export default function AccountsPage() {
     email: "",
     password: "",
     phone: "",
-    role: "customer" as "customer" | "admin" | "seller",
+    role: "customer" as "customer" | "admin" | "seller" | "employee",
   });
   const [loginAttemptsMap, setLoginAttemptsMap] = useState<
     Record<string, number>
@@ -205,7 +205,8 @@ export default function AccountsPage() {
           role: (user.role || "customer").toUpperCase() as
             | "ADMIN"
             | "CUSTOMER"
-            | "SELLER",
+            | "SELLER"
+            | "EMPLOYEE",
           status: (user.isActive === false ? "DISABLED" : "ACTIVE") as
             | "ACTIVE"
             | "DISABLED",
@@ -289,7 +290,7 @@ export default function AccountsPage() {
       email: user.email || "",
       password: "",
       phone: user.phone || "",
-      role: user.role.toLowerCase() as "customer" | "admin" | "seller",
+      role: user.role.toLowerCase() as "customer" | "admin" | "seller" | "employee",
     });
     setIsModalOpen(true);
   };
@@ -314,7 +315,7 @@ export default function AccountsPage() {
           lastName: string;
           email: string;
           phone: string;
-          role: "customer" | "admin" | "seller";
+          role: "customer" | "admin" | "seller" | "employee";
           password?: string;
         } = {
           firstName: formData.firstName,
@@ -457,7 +458,7 @@ export default function AccountsPage() {
 
   const handleUpdateRole = async (
     userId: string,
-    newRole: "customer" | "admin" | "seller"
+    newRole: "customer" | "admin" | "seller" | "employee"
   ) => {
     try {
       const res = await fetch(`/api/users/${userId}/role`, {
@@ -649,7 +650,7 @@ export default function AccountsPage() {
                             onValueChange={(value) =>
                               handleUpdateRole(
                                 u.id,
-                                value as "customer" | "admin" | "seller"
+                                value as "customer" | "admin" | "seller" | "employee"
                               )
                             }
                           >
@@ -660,6 +661,7 @@ export default function AccountsPage() {
                               <SelectItem value="customer">CUSTOMER</SelectItem>
                               <SelectItem value="admin">ADMIN</SelectItem>
                               <SelectItem value="seller">SELLER</SelectItem>
+                              <SelectItem value="employee">EMPLOYEE</SelectItem>
                             </SelectContent>
                           </Select>
                         </td>
@@ -780,6 +782,12 @@ export default function AccountsPage() {
                             className="cursor-pointer"
                           >
                             <span>SELLER</span>
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            onClick={() => handleUpdateRole(u.id, "employee")}
+                            className="cursor-pointer"
+                          >
+                            <span>EMPLOYEE</span>
                           </ContextMenuItem>
                         </ContextMenuSubContent>
                       </ContextMenuSub>
@@ -921,7 +929,7 @@ export default function AccountsPage() {
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    role: value as "customer" | "admin" | "seller",
+                    role: value as "customer" | "admin" | "seller" | "employee",
                   })
                 }
               >
@@ -932,6 +940,7 @@ export default function AccountsPage() {
                   <SelectItem value="customer">Customer</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="seller">Seller</SelectItem>
+                  <SelectItem value="employee">Employee</SelectItem>
                 </SelectContent>
               </Select>
             </div>

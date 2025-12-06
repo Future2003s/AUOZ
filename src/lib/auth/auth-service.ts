@@ -330,10 +330,10 @@ class AuthService {
   }
 
   /**
-   * Check if user is admin
+   * Check if user is admin or employee
    */
   isAdmin(): boolean {
-    return this.hasRole(['admin', 'staff']);
+    return this.hasRole(['admin', 'staff', 'employee']);
   }
 
   // Private methods

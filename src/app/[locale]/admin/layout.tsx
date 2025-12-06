@@ -16,7 +16,9 @@ import {
   Megaphone,
   Calendar,
   FileWarning,
+  FileText,
   Ticket,
+  Briefcase,
 } from "lucide-react";
 
 async function fetchMeServer() {
@@ -120,6 +122,7 @@ export default async function AdminLayout({
     }
 
     const role = (me?.role || "").toUpperCase();
+    // Only ADMIN and STAFF can access admin routes, EMPLOYEE cannot
     const allowed = role === "ADMIN" || role === "STAFF";
 
     if (!allowed) {
@@ -138,6 +141,12 @@ export default async function AdminLayout({
         label: "Đơn Hàng",
         href: `/${locale}/admin/orders`,
         icon: <ShoppingCart size={18} />,
+      },
+      {
+        id: "tasks",
+        label: "Công Việc",
+        href: `/${locale}/admin/tasks`,
+        icon: <Briefcase size={18} />,
       },
       {
         id: "products",
@@ -186,6 +195,12 @@ export default async function AdminLayout({
         label: "Trang Chủ",
         href: `/${locale}/admin/homepage`,
         icon: <Home size={18} />,
+      },
+      {
+        id: "story",
+        label: "Câu Chuyện",
+        href: `/${locale}/admin/story`,
+        icon: <FileText size={18} />,
       },
       {
         id: "advertisements",

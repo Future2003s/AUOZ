@@ -33,11 +33,18 @@ async function getAuthInfo(request: NextRequest) {
   return { authenticated: false, user: null };
 }
 
-// Check if user has admin privileges
+// Check if user has admin privileges (only ADMIN and STAFF, not EMPLOYEE)
 function hasAdminAccess(user: any): boolean {
   if (!user) return false;
   const role = (user.role || "").toUpperCase();
   return role === "ADMIN" || role === "STAFF";
+}
+
+// Check if user has employee or admin access
+function hasEmployeeAccess(user: any): boolean {
+  if (!user) return false;
+  const role = (user.role || "").toUpperCase();
+  return role === "ADMIN" || role === "EMPLOYEE";
 }
 
 const privatePath: string[] = ["/me"];
@@ -86,7 +93,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Handle admin routes with enhanced security
+  // Handle admin routes with enhanced security (only ADMIN and STAFF)
   if (pathWithoutLocale.startsWith("/admin")) {
     const { authenticated, user } = await getAuthInfo(request);
 
@@ -98,14 +105,45 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Check admin privileges
+    // Check admin privileges (EMPLOYEE cannot access admin routes)
     if (!hasAdminAccess(user)) {
+      // If user is EMPLOYEE, redirect to employee dashboard instead of /me
+      const userRole = (user?.role || "").toUpperCase();
+      if (userRole === "EMPLOYEE") {
+        url.pathname = `/${locale}/employee`;
+        url.searchParams.set("redirected", "1");
+        return NextResponse.redirect(url);
+      }
+      // For other roles, redirect to /me
       url.pathname = `/${locale}/me`;
       url.searchParams.set("unauthorized", "1");
       return NextResponse.redirect(url);
     }
 
     // Allow access to admin route
+    return NextResponse.next();
+  }
+
+  // Handle employee routes (ADMIN and EMPLOYEE can access)
+  if (pathWithoutLocale.startsWith("/employee")) {
+    const { authenticated, user } = await getAuthInfo(request);
+
+    // Redirect to login if not authenticated
+    if (!authenticated) {
+      url.pathname = `/${locale}/login`;
+      url.searchParams.set("reason", "login_required");
+      url.searchParams.set("redirect", pathName);
+      return NextResponse.redirect(url);
+    }
+
+    // Check employee privileges (ADMIN and EMPLOYEE can access)
+    if (!hasEmployeeAccess(user)) {
+      url.pathname = `/${locale}/me`;
+      url.searchParams.set("unauthorized", "1");
+      return NextResponse.redirect(url);
+    }
+
+    // Allow access to employee route
     return NextResponse.next();
   }
 

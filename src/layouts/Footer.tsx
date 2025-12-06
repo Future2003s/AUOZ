@@ -73,7 +73,7 @@ function Footer() {
                   href="mailto:lalalycheee1@gmail.com"
                   className="hover:text-white transition duration-200"
                 >
-                  lalalycheee1@gmail.com
+                  info@lalalycheee.vn
                 </Link>
               ) : (
                 <span>lalalycheee1@gmail.com</span>
@@ -205,7 +205,7 @@ function Footer() {
       {/* Bottom Bar: Copyright & Legal Links */}
       <div className="mt-12 pt-8 border-t border-blue-700 text-center text-black text-sm font-bold">
         <p className="mb-2">
-          &copy; {new Date().getFullYear()} Lalalycheee. Bảo lưu mọi quyền.
+          &copy; {new Date().getFullYear()} Lalalycheee CO.,LTD. Bảo lưu mọi quyền.
         </p>
 
         <Script

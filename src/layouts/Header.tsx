@@ -19,6 +19,7 @@ const MobileNavSheet = dynamic(() => import("./MobileNav"), {
   isOpen: boolean;
   onClose: () => void;
   isAdmin?: boolean;
+  isEmployee?: boolean;
   navLinks: ReturnType<typeof getNavLinks>;
 }>;
 import { useI18n } from "@/i18n/I18nProvider";
@@ -172,6 +173,7 @@ export default function Header() {
   const { logout, isAuthenticated, user } = useAuth();
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isEmployee, setIsEmployee] = useState(false);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { totalQuantity } = useCart();
   
@@ -204,15 +206,20 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    // Chỉ check admin status nếu đã authenticated và có user
+    // Chỉ check admin/employee status nếu đã authenticated và có user
     if (!isAuthenticated || !user) {
         setIsAdmin(false);
+        setIsEmployee(false);
         return;
       }
       
-    // Check admin status từ user data đã có (không cần gọi API)
-    const isUserAdmin = user?.role === "admin" || user?.role === "ADMIN";
+    // Check admin and employee status từ user data đã có (không cần gọi API)
+    // Only ADMIN and STAFF can access admin routes, EMPLOYEE cannot
+    const userRole = (user?.role || "").toUpperCase();
+    const isUserAdmin = userRole === "ADMIN" || userRole === "STAFF";
+    const isUserEmployee = userRole === "EMPLOYEE" || userRole === "ADMIN";
         setIsAdmin(isUserAdmin);
+        setIsEmployee(isUserEmployee);
   }, [user, isAuthenticated]);
 
   // Cleanup timeout khi component unmount
@@ -304,6 +311,19 @@ export default function Header() {
                   </svg>
                 </Link>
               ) : null}
+              {/* Nút Employee - chỉ hiển thị icon để tiết kiệm không gian */}
+              {isEmployee && !isAdmin ? (
+                <Link
+                  href={`/${locale}/employee`}
+                  className="flex items-center justify-center w-9 h-9 text-white bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                  title="Trang nhân viên"
+                  suppressHydrationWarning
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </Link>
+              ) : null}
             </nav>
 
             {/* Icons & Mobile Menu Trigger */}
@@ -366,9 +386,24 @@ export default function Header() {
                           </span>
                         </Link>
                       )}
+                      {isEmployee && !isAdmin && (
+                        <Link
+                          href={`/${locale}/employee`}
+                          className="block px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 rounded-t-lg"
+                          onClick={() => setIsAccountOpen(false)}
+                          suppressHydrationWarning
+                        >
+                          <span className="flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            Trang nhân viên
+                          </span>
+                        </Link>
+                      )}
                       <Link
                         href={`/${locale}/me`}
-                        className={`block px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:bg-rose-50 dark:hover:bg-gray-700 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200 ${isAdmin ? '' : 'rounded-t-lg'}`}
+                        className={`block px-4 py-2.5 text-sm text-slate-700 dark:text-gray-300 hover:bg-rose-50 dark:hover:bg-gray-700 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200 ${isAdmin || isEmployee ? '' : 'rounded-t-lg'}`}
                         onClick={() => setIsAccountOpen(false)}
                         suppressHydrationWarning
                       >
@@ -453,6 +488,7 @@ export default function Header() {
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
           isAdmin={isAdmin}
+          isEmployee={isEmployee}
           navLinks={navLinks}
         />
       ) : null}
