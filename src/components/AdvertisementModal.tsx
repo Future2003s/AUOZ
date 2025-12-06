@@ -39,8 +39,16 @@ export function AdvertisementModal() {
   const [advertisement, setAdvertisement] = useState<Advertisement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
+    // Kiểm tra xem modal đã được hiển thị trong session này chưa
+    const hasShownModal = sessionStorage.getItem("advertisementModalShown");
+    if (hasShownModal === "true") {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchAdvertisement = async () => {
       try {
         setIsLoading(true);
@@ -67,13 +75,19 @@ export function AdvertisementModal() {
           
           setAdvertisement(ad);
           
-          // Delay hiển thị theo delayTime
+          // Delay hiển thị theo delayTime với animation mượt mà
           if (ad.delayTime > 0) {
             setTimeout(() => {
+              setIsAnimating(true);
               setIsOpen(true);
+              // Đánh dấu đã hiển thị modal trong session này
+              sessionStorage.setItem("advertisementModalShown", "true");
             }, ad.delayTime);
           } else {
+            setIsAnimating(true);
             setIsOpen(true);
+            // Đánh dấu đã hiển thị modal trong session này
+            sessionStorage.setItem("advertisementModalShown", "true");
           }
           
           // Tự động đóng nếu có autoCloseTime
@@ -96,7 +110,34 @@ export function AdvertisementModal() {
 
   const handleClose = () => {
     setIsOpen(false);
+    // Reset animation state sau khi đóng
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 300);
+    // Đánh dấu đã hiển thị modal khi người dùng đóng
+    sessionStorage.setItem("advertisementModalShown", "true");
   };
+
+  // Thêm style cho overlay để animation mượt hơn
+  useEffect(() => {
+    if (isOpen || isAnimating) {
+      const style = document.createElement("style");
+      style.id = "advertisement-modal-overlay-style";
+      style.textContent = `
+        [data-radix-dialog-overlay] {
+          animation-duration: 300ms !important;
+          animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+      `;
+      document.head.appendChild(style);
+      return () => {
+        const existingStyle = document.getElementById("advertisement-modal-overlay-style");
+        if (existingStyle) {
+          existingStyle.remove();
+        }
+      };
+    }
+  }, [isOpen, isAnimating]);
 
   const handleClickOutside = (e: React.MouseEvent) => {
     if (advertisement?.closeOnClickOutside && e.target === e.currentTarget) {
@@ -110,7 +151,7 @@ export function AdvertisementModal() {
     }
   };
 
-  if (isLoading || !advertisement || !isOpen) {
+  if (isLoading || !advertisement || (!isOpen && !isAnimating)) {
     return null;
   }
 
@@ -163,6 +204,13 @@ export function AdvertisementModal() {
           "max-h-[90vh]",
           "m-2 sm:m-4 md:m-auto",
           "rounded-lg sm:rounded-xl",
+          // Smooth animation effects
+          "duration-300 ease-out",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+          "data-[state=closed]:zoom-out-90 data-[state=open]:zoom-in-100",
+          "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
+          "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
           getPositionClasses()
         )}
         style={getResponsiveStyles()}

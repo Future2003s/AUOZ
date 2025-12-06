@@ -7,7 +7,6 @@ import CartSidebar from "@/components/ui/cart-sidebar";
 import { useCartSidebar } from "@/context/cart-sidebar-context";
 import { AdvertisementModal } from "@/components/AdvertisementModal";
 import { FloatingCTA } from "@/components/floating-cta";
-import { NewsletterCTASection } from "@/components/newsletter-cta-section";
 import { ScrollToTopButton } from "@/components/scroll-to-top-button";
 
 function LayoutMain({ children }: { children: React.ReactNode }) {
@@ -21,12 +20,7 @@ function LayoutMain({ children }: { children: React.ReactNode }) {
     <div>
       {!isAdminPage && <Header />}
       <main>{children}</main>
-      {!isAdminPage && (
-        <>
-          <NewsletterCTASection />
-          <Footer />
-        </>
-      )}
+      {!isAdminPage && <Footer />}
 
       {/* Cart Sidebar */}
       <CartSidebar isOpen={isOpen} onClose={closeSidebar} />
