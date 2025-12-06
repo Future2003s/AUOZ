@@ -2,15 +2,15 @@ import { HomepageSettings } from "@/types/homepage";
 
 export const defaultHomepageSettings: HomepageSettings = {
   typography: {
-    fontFamily: "Playfair Display",
+    fontFamily: "Playfair Display, 'Be Vietnam Pro', sans-serif",
     baseSize: 16,
     headingScale: { h1: 3, h2: 2, h3: 1.5 },
     lineHeight: 1.6,
   },
   colors: {
-    primary: "#1D4ED8",
-    secondary: "#9333EA",
-    accent: "#F97316",
+    primary: "#E11D48", // rose-600 - màu vải thiều chín
+    secondary: "#F97316", // orange-500 - màu cam đào
+    accent: "#FB923C", // orange-400 - màu cam đào nhạt (vải chín)
     background: "#FFFFFF",
     text: "#0F172A",
     muted: "#94A3B8",

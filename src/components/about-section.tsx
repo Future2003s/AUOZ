@@ -1,8 +1,12 @@
 import AdminImageCompany from "../../public/images/directorCo.png";
 import useTranslations from "@/i18n/useTranslations";
 import { motion } from "framer-motion";
-import { Quote } from "lucide-react";
+import { Quote, ArrowRight, Target, Eye } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { ImageSkeleton } from "@/components/ui/skeleton-loaders";
 
 interface AboutSectionProps {
   heading?: string;
@@ -22,6 +26,9 @@ export const AboutSection = ({
   founderQuote,
 }: AboutSectionProps = {}) => {
   const t = useTranslations();
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
+  const [imageLoading, setImageLoading] = useState(true);
   
   // Default values
   const defaultHeading = t("site.about_title") || "Câu Chuyện LALA-LYCHEE";
@@ -75,12 +82,20 @@ Từ khát vọng đó, tôi bắt đầu hành trình đưa trái vải – tin
 
               {/* Container hình ảnh chính */}
               <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-[3/4] bg-white">
+                {imageLoading && (
+                  <div className="absolute inset-0 z-10">
+                    <ImageSkeleton className="w-full h-full" />
+                  </div>
+                )}
                 <Image
                   src={typeof displayImageUrl === 'string' ? displayImageUrl : AdminImageCompany}
                   alt="Giám Đốc LALA-LYCHEEE"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
+                    imageLoading ? "opacity-0" : "opacity-100"
+                  }`}
                   width={400}
                   height={533}
+                  onLoad={() => setImageLoading(false)}
                 />
 
                 {/* Overlay Gradient cho text trên ảnh */}
@@ -145,14 +160,68 @@ Từ khát vọng đó, tôi bắt đầu hành trình đưa trái vải – tin
                 })}
 
                 <div className="mt-10 pt-8 border-t border-slate-200">
-                  <p className="text-lg text-slate-500 font-heading italic">
+                  <p className="text-lg text-slate-500 font-heading italic mb-6">
                     Mỗi sản phẩm là một tác phẩm nghệ thuật, kết tinh từ nguồn
                     nguyên liệu tuyển chọn và tình yêu quê hương xứ sở.
                   </p>
+                  
+                  {/* CTA Button - Đọc thêm câu chuyện */}
+                  <Link
+                    href={`/${locale}/story`}
+                    className="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold px-6 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
+                    <span>Đọc thêm câu chuyện</span>
+                    <ArrowRight size={18} />
+                  </Link>
                 </div>
               </div>
             </motion.div>
           </div>
+        </div>
+
+        {/* Sứ mệnh & Tầm nhìn Section */}
+        <div className="mt-20 grid md:grid-cols-2 gap-8">
+          {/* Sứ mệnh */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-2xl p-8 border border-rose-200 shadow-lg hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-rose-600 rounded-xl">
+                <Target className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900">Sứ Mệnh</h3>
+            </div>
+            <p className="text-slate-700 leading-relaxed">
+              Mang vải thiều Vĩnh Lập – tinh hoa của đất trời Thanh Hà – vươn ra thế giới, 
+              tạo thêm công ăn việc làm bền vững cho bà con nông dân, để thế hệ trẻ 
+              Vĩnh Lập có thể tự hào nói: <strong className="text-rose-600">"Tôi sinh ra ở Vĩnh Lập."</strong>
+            </p>
+          </motion.div>
+
+          {/* Tầm nhìn */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="bg-gradient-to-br from-orange-50 to-rose-50 rounded-2xl p-8 border border-orange-200 shadow-lg hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-orange-500 rounded-xl">
+                <Eye className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900">Tầm Nhìn</h3>
+            </div>
+            <p className="text-slate-700 leading-relaxed">
+              Trở thành thương hiệu nông sản Việt Nam hàng đầu, được công nhận 
+              trên thị trường quốc tế, góp phần nâng tầm giá trị nông sản Việt 
+              và mang lại cuộc sống tốt đẹp hơn cho người nông dân quê hương.
+            </p>
+          </motion.div>
         </div>
       </div>
     </section>

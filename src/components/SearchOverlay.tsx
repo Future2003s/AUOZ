@@ -24,9 +24,9 @@ export function SearchOverlay({ isOpen, onClose, onSearch }: SearchOverlayProps)
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [isVisible, setIsVisible] = useState(false);
   const [popularSearches] = useState<string[]>([
-    "Trà vải",
+    "Vải thiều Vĩnh Lập",
+    "Mật ong hoa vải",
     "Quà tặng",
-    "Khuyến mãi",
     "Sản phẩm nổi bật",
   ]);
   
@@ -271,7 +271,7 @@ export function SearchOverlay({ isOpen, onClose, onSearch }: SearchOverlayProps)
                   <Button
                     variant="link"
                     onClick={() => handleSearch(query)}
-                    className="text-blue-600 text-sm"
+                    className="text-rose-600 text-sm"
                   >
                     Xem tất cả
                   </Button>
@@ -298,7 +298,7 @@ export function SearchOverlay({ isOpen, onClose, onSearch }: SearchOverlayProps)
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                        <h4 className="font-semibold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-1">
                           {product.name}
                         </h4>
                         {product.brandName && (
@@ -306,7 +306,7 @@ export function SearchOverlay({ isOpen, onClose, onSearch }: SearchOverlayProps)
                             {product.brandName}
                           </p>
                         )}
-                        <p className="text-base font-bold text-blue-600 mt-1">
+                        <p className="text-base font-bold text-rose-600 mt-1">
                           {formatCurrency(Number(product.price))}
                         </p>
                       </div>

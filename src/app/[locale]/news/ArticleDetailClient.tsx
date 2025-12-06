@@ -32,7 +32,7 @@ export default function ArticleDetailClient({
           <ArrowLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform" />
           <span>Quay lại danh sách tin tức</span>
         </Link>
-        <div className="flex items-center text-gray-500 hover:text-blue-600 text-sm">
+        <div className="flex items-center text-gray-500 hover:text-rose-600 text-sm">
           <Link href={`/${locale}`} className="flex items-center hover:text-red-600">
             <Home size={14} className="mr-1"/> Trang chủ
           </Link>

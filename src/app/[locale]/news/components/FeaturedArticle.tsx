@@ -37,7 +37,7 @@ export const FeaturedArticle: React.FC<FeaturedArticleProps> = ({
           className="object-cover transform group-hover:scale-105 transition-transform duration-700"
         />
       ) : (
-        <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
+        <div className="w-full h-full bg-gradient-to-br from-rose-600 to-orange-600 flex items-center justify-center">
           <span className="text-8xl">📰</span>
         </div>
       )}

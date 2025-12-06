@@ -7,6 +7,7 @@ import Image from "next/image";
 import IconAnToan from "../../public/images/hg.png";
 import certISO from "../../public/images/iso 22000.2018.png";
 import IconInstagram from "../../public/images/instagram.png";
+import TgBctLogo from "../../public/images/tg_bct_logo.png";
 function Footer() {
   const [isMounted, setIsMounted] = useState(false);
   const params = useParams();
@@ -149,7 +150,7 @@ function Footer() {
             Quản Lý Bởi Thanh Hà - Thuế cơ sở 14 Thành Phố Hải Phòng
           </p>
 
-          <div className="flex items-center gap-5 mt-[-2rem]">
+          <div className="flex flex-wrap items-center gap-5 mt-[-2rem]">
             {/* DMCA Badge */}
             <div className="mt-2 flex md:justify-start justify-center">
               <Link
@@ -183,6 +184,19 @@ function Footer() {
                   className="h-20 w-auto"
                 />
               </Link>
+            </div>
+            {/* TG BCT Logo */}
+            <div className=" flex md:justify-start justify-center">
+              <Image
+                src={TgBctLogo}
+                alt="Bộ Công Thương"
+                width={200}
+                height={100}
+                quality={100}
+                priority
+                className="h-20 sm:h-24 w-aimage.pnguto object-contain"
+                style={{ imageRendering: 'crisp-edges' }}
+              />
             </div>
           </div>
         </div>

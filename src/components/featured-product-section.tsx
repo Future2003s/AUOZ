@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import useTranslations from "@/i18n/useTranslations";
 import { MockModal } from "./mock-model";
+import { ProductCardSkeleton } from "@/components/ui/skeleton-loaders";
 
 export const FeaturedProductsSection: React.FC = () => {
   const t = useTranslations();
@@ -15,6 +16,9 @@ export const FeaturedProductsSection: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
+  
+  const categories = ["Tất cả", "Vải Tươi", "Quà Tặng", "Mật Ong"];
 
   // Fetch featured products from API
   useEffect(() => {
@@ -118,7 +122,7 @@ export const FeaturedProductsSection: React.FC = () => {
     <>
       <section
         id="products"
-        className="py-24 bg-gradient-to-b from-white to-rose-50/30 relative overflow-hidden"
+        className="py-24 bg-gradient-to-br from-orange-50 via-rose-50/50 to-orange-50 relative overflow-hidden"
       >
         {/* Inject Font Styles (Nếu chưa có ở global) */}
         <style
@@ -132,13 +136,22 @@ export const FeaturedProductsSection: React.FC = () => {
           }}
         />
 
+        {/* Pattern Background */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23E11D48' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundSize: '60px 60px'
+          }}></div>
+        </div>
+
         {/* Decor Background */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-rose-200 to-transparent" />
-        <div className="absolute -left-20 top-40 w-64 h-64 bg-rose-100/50 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
+        <div className="absolute -left-20 top-40 w-64 h-64 bg-rose-200/40 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -right-20 bottom-40 w-80 h-80 bg-orange-200/40 rounded-full blur-3xl pointer-events-none" />
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
           {/* Header Section */}
-          <div className="text-center mb-16 max-w-3xl mx-auto">
+          <div className="text-center mb-12 max-w-3xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -160,21 +173,31 @@ export const FeaturedProductsSection: React.FC = () => {
             </motion.div>
           </div>
 
+          {/* Filter Tabs */}
+          <div className="flex justify-center mb-12">
+            <div className="inline-flex bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-lg border border-rose-100">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 ${
+                    selectedCategory === category
+                      ? "bg-rose-600 text-white shadow-md"
+                      : "text-slate-600 hover:text-rose-600 hover:bg-rose-50"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Product Grid */}
           {loading ? (
             <div className="flex justify-center">
               <div className="max-w-6xl w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-                {[...Array(4)].map((_, index) => (
-                  <div
-                    key={index}
-                    className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 animate-pulse"
-                  >
-                    <div className="aspect-[4/5] bg-stone-200" />
-                    <div className="p-6 space-y-3">
-                      <div className="h-4 bg-stone-200 rounded w-3/4 mx-auto" />
-                      <div className="h-4 bg-stone-200 rounded w-1/2 mx-auto" />
-                    </div>
-                  </div>
+                {[...Array(8)].map((_, index) => (
+                  <ProductCardSkeleton key={index} />
                 ))}
               </div>
             </div>
@@ -195,13 +218,35 @@ export const FeaturedProductsSection: React.FC = () => {
           ) : (
             <div className="flex justify-center">
               <div className="max-w-6xl w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-                {featuredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onQuickView={setQuickViewProduct}
-                  />
-                ))}
+                {featuredProducts
+                  .filter((product) => {
+                    if (selectedCategory === "Tất cả") return true;
+                    const categoryLower = product.category.toLowerCase();
+                    if (selectedCategory === "Vải Tươi") {
+                      return categoryLower.includes("vải") || categoryLower.includes("tươi") || categoryLower.includes("fresh");
+                    }
+                    if (selectedCategory === "Quà Tặng") {
+                      return categoryLower.includes("quà") || categoryLower.includes("gift") || categoryLower.includes("set");
+                    }
+                    if (selectedCategory === "Mật Ong") {
+                      return categoryLower.includes("mật") || categoryLower.includes("honey") || categoryLower.includes("ong");
+                    }
+                    return true;
+                  })
+                  .map((product, index) => {
+                    // Determine badge based on product data or index
+                    const isNew = index < 2; // First 2 products are "new"
+                    const isBestSeller = index % 3 === 0; // Every 3rd product is "best seller"
+                    
+                    return (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onQuickView={setQuickViewProduct}
+                        badge={isNew ? "Mới" : isBestSeller ? "Bán chạy" : undefined}
+                      />
+                    );
+                  })}
               </div>
             </div>
           )}

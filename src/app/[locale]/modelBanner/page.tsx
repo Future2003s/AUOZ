@@ -129,7 +129,7 @@ const NewsletterModal = ({
                   repeatType: "reverse",
                 }}
                 src="https://images.unsplash.com/photo-1591639673393-b46a83c72b1d?q=80&w=800&auto=format&fit=crop"
-                alt="Lychee Tea"
+                alt="Vải thiều LALA-LYCHEEE"
                 className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-rose-900 via-rose-900/40 to-transparent md:bg-gradient-to-r" />
@@ -292,10 +292,10 @@ const SearchOverlayModal = ({
                 <div className="flex flex-wrap gap-3">
                   {[
                     "Vải thiều sấy",
-                    "Trà vải",
+                    "Vải thiều tươi",
                     "Hộp quà biếu",
-                    "Mật ong",
-                    "Rượu vải",
+                    "Mật ong hoa vải",
+                    "Vải thiều Vĩnh Lập",
                   ].map((tag, i) => (
                     <motion.button
                       key={tag}

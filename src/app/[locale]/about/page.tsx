@@ -43,14 +43,14 @@ const HeroSection = () => (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Content */}
         <div className="scroll-animate opacity-0">
-          <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-medium rounded-full mb-8">
-            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+          <div className="inline-flex items-center px-4 py-2 bg-rose-50 text-rose-700 text-sm font-medium rounded-full mb-8">
+            <span className="w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
             Công ty hàng đầu về nông sản bền vững
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
             Định hình tương lai
-            <span className="block text-blue-600">nông nghiệp Việt Nam</span>
+            <span className="block text-rose-600">nông nghiệp Việt Nam</span>
           </h1>
 
           <p className="text-xl text-slate-600 mb-8 leading-relaxed max-w-xl">
@@ -59,7 +59,7 @@ const HeroSection = () => (
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg">
+            <button className="px-8 py-4 bg-rose-600 text-white font-semibold rounded-lg hover:bg-rose-700 transition-colors shadow-lg">
               Khám phá sản phẩm
             </button>
             <button className="px-8 py-4 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-colors">
@@ -71,7 +71,7 @@ const HeroSection = () => (
         {/* Visual */}
         <div className="scroll-animate opacity-0 lg:order-last">
           <div className="relative">
-            <div className="bg-gradient-to-br from-blue-100 to-green-100 rounded-2xl p-8 shadow-xl">
+            <div className="bg-gradient-to-br from-rose-100 to-orange-100 rounded-2xl p-8 shadow-xl">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white rounded-lg p-6 shadow-sm">
                   <div className="text-3xl mb-2">🌱</div>
@@ -148,7 +148,7 @@ const CompanyOverviewSection = () => {
 
         <div className="relative">
           {/* Timeline line */}
-          <div className="absolute left-1/2 transform -translate-x-px h-full w-0.5 bg-gradient-to-b from-blue-200 via-blue-400 to-blue-600 hidden lg:block"></div>
+          <div className="absolute left-1/2 transform -translate-x-px h-full w-0.5 bg-gradient-to-b from-rose-200 via-rose-400 to-rose-600 hidden lg:block"></div>
 
           <div className="space-y-16">
             {milestones.map((milestone, index) => (
@@ -163,17 +163,17 @@ const CompanyOverviewSection = () => {
                 <div className="lg:w-5/12">
                   <div className="bg-white rounded-2xl p-8 shadow-xl border border-slate-200 hover:shadow-2xl transition-shadow duration-300">
                     <div className="flex items-center mb-4">
-                      <div className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold">
+                      <div className="bg-rose-600 text-white px-4 py-2 rounded-full text-sm font-bold">
                         {milestone.year}
                       </div>
-                      <div className="ml-4 text-blue-600 font-semibold text-sm">
+                      <div className="ml-4 text-rose-600 font-semibold text-sm">
                         {milestone.stats}
                       </div>
                     </div>
                     <h3 className="text-2xl font-bold text-slate-900 mb-2">
                       {milestone.title}
                     </h3>
-                    <h4 className="text-lg text-blue-600 font-semibold mb-4">
+                    <h4 className="text-lg text-rose-600 font-semibold mb-4">
                       {milestone.subtitle}
                     </h4>
                     <p className="text-slate-600 leading-relaxed">
@@ -184,7 +184,7 @@ const CompanyOverviewSection = () => {
 
                 {/* Timeline dot */}
                 <div className="hidden lg:flex lg:w-2/12 justify-center">
-                  <div className="w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
+                  <div className="w-4 h-4 bg-rose-600 rounded-full border-4 border-white shadow-lg"></div>
                 </div>
 
                 {/* Spacer */}
@@ -357,7 +357,7 @@ const DesignSection = () => (
 
           <div className="space-y-6">
             <div className="flex items-start space-x-4">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-3 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-rose-500 rounded-full mt-3 flex-shrink-0"></div>
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">
                   Cảm Hứng Tự Nhiên
@@ -370,7 +370,7 @@ const DesignSection = () => (
             </div>
 
             <div className="flex items-start space-x-4">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-3 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-rose-500 rounded-full mt-3 flex-shrink-0"></div>
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">
                   Tối Giản & Tinh Tế
@@ -383,7 +383,7 @@ const DesignSection = () => (
             </div>
 
             <div className="flex items-start space-x-4">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-3 flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-rose-500 rounded-full mt-3 flex-shrink-0"></div>
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">
                   Công Năng & Bền Vững
@@ -540,21 +540,21 @@ const CallToActionSection = () => (
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-2">24/7</div>
+            <div className="text-3xl font-bold text-rose-400 mb-2">24/7</div>
             <div className="text-slate-300">Hỗ trợ khách hàng</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-2">48h</div>
+            <div className="text-3xl font-bold text-rose-400 mb-2">48h</div>
             <div className="text-slate-300">Thời gian phản hồi</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-2">99.9%</div>
+            <div className="text-3xl font-bold text-rose-400 mb-2">99.9%</div>
             <div className="text-slate-300">Độ tin cậy dịch vụ</div>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center gap-6">
-          <button className="px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-xl">
+          <button className="px-8 py-4 bg-rose-600 text-white font-semibold rounded-lg hover:bg-rose-700 transition-colors shadow-xl">
             Khám Phá Sản Phẩm
           </button>
           <button className="px-8 py-4 bg-transparent border-2 border-slate-400 text-white font-semibold rounded-lg hover:bg-white hover:text-slate-900 transition-colors">

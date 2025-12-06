@@ -31,7 +31,7 @@ const testimonials: Testimonial[] = [
   {
     id: 2,
     quote:
-      "Tôi đã dùng trà vải của LALA-LYCHEE để tiếp đãi đối tác và họ rất thích. Một sản phẩm chất lượng, thể hiện được sự tinh tế của người tặng.",
+      "Tôi đã dùng mật ong hoa vải của LALA-LYCHEE để tiếp đãi đối tác và họ rất thích. Một sản phẩm chất lượng, thể hiện được sự tinh tế của người tặng.",
     author: "Minh Tuấn",
     role: "Giám đốc Doanh nghiệp",
     avatarUrl: "https://placehold.co/100x100/fecdd3/44403c?text=MT&font=lora",

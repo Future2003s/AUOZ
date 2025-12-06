@@ -12,12 +12,14 @@ import {
 } from "@/components/interactive-hero-slider";
 import { FeaturedProductsSection } from "@/components/featured-product-section";
 import { AboutSection } from "@/components/about-section";
-import { ScrollToTopButton } from "@/components/scroll-to-top-button";
 import { OurCraftSection } from "@/components/our-craft-section";
 import { CollectionSection } from "@/components/collection-section";
 import { MarqueeBannerSection } from "@/components/marquee-banner-section";
 import { VideoSection } from "@/components/video-section";
 import { Snowfall } from "@/components/snowfall";
+import { ValuePropositionSection } from "@/components/value-proposition-section";
+import { CertificationsPartnersSection } from "@/components/certifications-partners-section";
+import { NewsPreviewSection } from "@/components/news-preview-section";
 import { HomepageSettings } from "@/types/homepage";
 import { defaultHomepageSettings } from "@/lib/homepage-default";
 
@@ -107,12 +109,23 @@ export function HomePageClient({ settings }: HomePageClientProps) {
             founderQuote={mergedSettings.sections.about.data?.founderQuote}
           />
         )}
+
+        {/* Value Proposition Section */}
+        <ValuePropositionSection />
+
         {mergedSettings.sections.socialProof.enabled && <SocialProofSection />}
+
+        {/* Certifications & Partners Section */}
+        <CertificationsPartnersSection />
+
         {mergedSettings.sections.featuredProducts.enabled && (
           <FeaturedProductsSection />
         )}
 
         <VideoSection />
+
+        {/* News Preview Section */}
+        <NewsPreviewSection />
 
         {mergedSettings.sections.collection.enabled && <CollectionSection />}
         {mergedSettings.sections.craft.enabled && (
@@ -124,7 +137,6 @@ export function HomePageClient({ settings }: HomePageClientProps) {
         )}
         {mergedSettings.sections.map.enabled && <MapsLocationCompany />}
       </main>
-      <ScrollToTopButton />
     </div>
   );
 }
