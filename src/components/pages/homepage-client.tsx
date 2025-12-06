@@ -16,7 +16,6 @@ import { OurCraftSection } from "@/components/our-craft-section";
 import { CollectionSection } from "@/components/collection-section";
 import { MarqueeBannerSection } from "@/components/marquee-banner-section";
 import { VideoSection } from "@/components/video-section";
-import { Snowfall } from "@/components/snowfall";
 import { ValuePropositionSection } from "@/components/value-proposition-section";
 import { CertificationsPartnersSection } from "@/components/certifications-partners-section";
 import { NewsPreviewSection } from "@/components/news-preview-section";
@@ -85,7 +84,6 @@ export function HomePageClient({ settings }: HomePageClientProps) {
       style={themeStyle}
       suppressHydrationWarning
     >
-      <Snowfall />
       <CursorEffect />
       <main suppressHydrationWarning>
         {mergedSettings.sections.hero.enabled && (
