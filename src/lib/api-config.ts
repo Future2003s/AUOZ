@@ -139,6 +139,16 @@ export const API_CONFIG = {
     EXPORT: "/translations/export",
     IMPORT: "/translations/import",
   },
+  
+  // Translation V2 endpoints
+  TRANSLATIONS_V2: {
+    BY_KEY: "/translations-v2/key/:key",
+    BY_KEYS: "/translations-v2/bulk",
+    BY_BASE_KEY: "/translations-v2/base/:baseKey",
+    ALL: "/translations-v2/all",
+    ADMIN: "/translations-v2/admin",
+    ADMIN_BULK_IMPORT: "/translations-v2/admin/bulk-import",
+  },
 
   // Additional endpoints for e-commerce
   COUPONS: {

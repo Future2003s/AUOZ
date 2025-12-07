@@ -22,7 +22,7 @@ interface TranslationSearchProps {
 }
 
 const categories = [
-  { value: "", label: "Tất cả danh mục" },
+  { value: "all", label: "Tất cả danh mục" },
   { value: "product", label: "Sản phẩm" },
   { value: "category", label: "Danh mục" },
   { value: "brand", label: "Thương hiệu" },
@@ -114,8 +114,8 @@ export function TranslationSearch({
           <div className="space-y-2">
             <label className="text-sm font-medium">Danh mục</label>
             <Select
-              value={selectedCategory}
-              onValueChange={handleCategoryChange}
+              value={selectedCategory || "all"}
+              onValueChange={(value) => handleCategoryChange(value === "all" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn danh mục" />

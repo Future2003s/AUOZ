@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, Suspense } from "react";
 import { productApiRequest, Product } from "@/apiRequests/products";
 import { metaApi } from "@/apiRequests/meta";
 import Link from "next/link";
@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import ProductCard from "@/components/ProductCard";
+import type { Category, Brand } from "@/types/meta";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
@@ -37,8 +39,8 @@ type SortOption =
 export default function ShopPage() {
   const { locale } = useI18n();
   const [items, setItems] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [brands, setBrands] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [q, setQ] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
@@ -66,27 +68,31 @@ export default function ShopPage() {
           metaApi.brands(),
         ]);
 
-        const normalizeArray = (res: any) => {
+        const normalizeArray = (res: unknown): Category[] | Brand[] => {
           try {
             if (!res) return [];
             if (Array.isArray(res)) return res;
-            if (Array.isArray(res?.data)) return res.data;
-            if (Array.isArray(res?.items)) return res.items;
-            if (Array.isArray(res?.data?.items)) return res.data.items;
-            if (Array.isArray(res?.result)) return res.result;
-            if (res?.data && typeof res.data === "object") {
-              const arrayKey = Object.keys(res.data).find((k) =>
-                Array.isArray((res.data as any)[k])
+            
+            // Type guard for object with data property
+            const resObj = res as Record<string, any>;
+            
+            if (Array.isArray(resObj?.data)) return resObj.data;
+            if (Array.isArray(resObj?.items)) return resObj.items;
+            if (Array.isArray(resObj?.data?.items)) return resObj.data.items;
+            if (Array.isArray(resObj?.result)) return resObj.result;
+            if (resObj?.data && typeof resObj.data === "object") {
+              const arrayKey = Object.keys(resObj.data).find((k) =>
+                Array.isArray(resObj.data[k])
               );
-              if (arrayKey) return (res.data as any)[arrayKey];
+              if (arrayKey) return resObj.data[arrayKey];
             }
           } catch {}
 
           return [];
         };
 
-        setCategories(normalizeArray(categoriesRes));
-        setBrands(normalizeArray(brandsRes));
+        setCategories(normalizeArray(categoriesRes) as Category[]);
+        setBrands(normalizeArray(brandsRes) as Brand[]);
       } catch (error) {
         console.error("Failed to load meta data:", error);
         setCategories([]);
@@ -96,14 +102,14 @@ export default function ShopPage() {
     loadMeta();
   }, []);
 
-  // Load products
+  // Load products - Fetch ALL products from all pages
   useEffect(() => {
     let cancelled = false;
-    
+
     const load = async () => {
       setLoading(true);
       try {
-        const params: any = {
+        const params: Record<string, string> = {
           status: "active", // Add default status filter
           isVisible: "true", // Add default visibility filter
         };
@@ -113,46 +119,114 @@ export default function ShopPage() {
         if (selectedBrand && selectedBrand !== "all")
           params.brand = selectedBrand;
 
-        // Request a single page from our public API proxy
-        const PAGE_LIMIT = 24;
-        const paramsPublic = new URLSearchParams();
-        if (params.search) paramsPublic.set("q", params.search);
-        if (params.category) paramsPublic.set("categoryId", params.category);
-        if (params.brand) paramsPublic.set("brandId", params.brand);
-        paramsPublic.set("page", "1");
-        paramsPublic.set("size", String(PAGE_LIMIT));
+        const PAGE_LIMIT = 100; // Tăng limit để lấy nhiều sản phẩm hơn mỗi trang
+        let allProducts: Product[] = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalElements = 0;
+        let hasMore = true;
 
-        const res = await fetch(
-          `/api/products/public?${paramsPublic.toString()}`,
-          {
-            cache: "no-store",
+        console.log("🔄 Bắt đầu fetch tất cả sản phẩm...");
+
+        // Fetch tất cả các trang cho đến khi lấy hết sản phẩm
+        while (hasMore && !cancelled) {
+          const paramsPublic = new URLSearchParams();
+          if (params.search) paramsPublic.set("q", params.search);
+          if (params.category) paramsPublic.set("categoryId", params.category);
+          if (params.brand) paramsPublic.set("brandId", params.brand);
+          paramsPublic.set("page", String(currentPage));
+          paramsPublic.set("size", String(PAGE_LIMIT));
+
+          if (process.env.NODE_ENV === "development") {
+            console.log(`📄 Đang fetch trang ${currentPage}...`);
           }
-        );
 
-        if (cancelled) return;
+          const res = await fetch(
+            `/api/products/public?${paramsPublic.toString()}`,
+            {
+              next: { revalidate: 120 }, // Cache 2 phút cho products list
+            }
+          );
 
-        if (!res.ok) {
-          throw new Error(`Public products API failed: ${res.status}`);
+          if (cancelled) return;
+
+          if (!res.ok) {
+            throw new Error(`Public products API failed: ${res.status}`);
+          }
+
+          const data = await res.json();
+          const list: Product[] = Array.isArray(data?.data) ? data.data : [];
+
+          // Lấy thông tin pagination từ trang đầu tiên
+          if (currentPage === 1 && data?.pagination) {
+            totalPages = data.pagination.totalPages || data.pagination.pages || 1;
+            totalElements = data.pagination.totalElements || data.pagination.total || 0;
+            if (process.env.NODE_ENV === "development") {
+              console.log(`📊 Tổng số sản phẩm: ${totalElements}, Tổng số trang: ${totalPages}`);
+            }
+          }
+
+          // Thêm sản phẩm vào danh sách (tránh duplicate bằng ID)
+          // Safety check: chỉ lấy products có _id hợp lệ
+          const validProducts = list.filter((p) => p?._id);
+          const existingIds = new Set(allProducts.map((p) => p._id).filter(Boolean));
+          const newProducts = validProducts.filter((p) => p._id && !existingIds.has(p._id));
+          allProducts = [...allProducts, ...newProducts];
+
+          if (process.env.NODE_ENV === "development") {
+            console.log(`✅ Trang ${currentPage}: ${newProducts.length} sản phẩm mới, Tổng: ${allProducts.length}`);
+          }
+
+          // Kiểm tra xem đã lấy hết chưa
+          if (data?.pagination) {
+            // Nếu đã lấy đủ số lượng hoặc đã đến trang cuối
+            if (
+              allProducts.length >= totalElements ||
+              currentPage >= totalPages ||
+              list.length === 0
+            ) {
+              hasMore = false;
+              if (process.env.NODE_ENV === "development") {
+                console.log(`✅ Đã lấy hết tất cả sản phẩm: ${allProducts.length}/${totalElements}`);
+              }
+            }
+          } else {
+            // Không có pagination info - dừng nếu không còn sản phẩm nào
+            if (list.length === 0 || list.length < PAGE_LIMIT) {
+              hasMore = false;
+            }
+          }
+
+          currentPage++;
+
+          // Safety check: giới hạn tối đa 50 trang để tránh vòng lặp vô hạn
+          if (currentPage > 50) {
+            if (process.env.NODE_ENV === "development") {
+              console.warn("⚠️ Đã đạt giới hạn 50 trang, dừng fetch");
+            }
+            hasMore = false;
+          }
         }
 
-        const data = await res.json();
-        const list: Product[] = Array.isArray(data?.data) ? data.data : [];
-
         if (cancelled) return;
-        setItems(list);
+
+        if (process.env.NODE_ENV === "development") {
+          console.log(`🎉 Hoàn thành! Tổng cộng ${allProducts.length} sản phẩm`);
+        }
+        setItems(allProducts);
       } catch (error) {
         if (cancelled) return;
-        console.error("Failed to load products:", error);
+        console.error("❌ Failed to load products:", error);
         setItems([]);
       } finally {
         if (!cancelled) {
-        setLoading(false);
+          setLoading(false);
         }
       }
     };
-    
+
     load();
-    
+
     return () => {
       cancelled = true;
     };
@@ -262,7 +336,7 @@ export default function ShopPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả danh mục</SelectItem>
-                        {categories.map((cat: any) => {
+                        {categories.map((cat) => {
                           const id = (
                             cat.id ??
                             cat._id ??
@@ -299,7 +373,7 @@ export default function ShopPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả thương hiệu</SelectItem>
-                        {brands.map((brand: any) => {
+                        {brands.map((brand) => {
                           const id = (
                             brand.id ??
                             brand._id ??
@@ -400,65 +474,24 @@ export default function ShopPage() {
                 }`}
               >
                 {sortedItems.map((product) => (
-                  <Link
+                  <Suspense
                     key={product._id}
-                    href={`/${locale}/products/${product._id}`}
+                    fallback={
+                      <Card className="animate-pulse">
+                        <div className="aspect-square bg-gray-200" />
+                        <CardContent className="p-4">
+                          <div className="h-4 bg-gray-200 rounded mb-2" />
+                          <div className="h-6 bg-gray-200 rounded" />
+                        </CardContent>
+                      </Card>
+                    }
                   >
-                    <Card className="group overflow-hidden transition-all duration-300 border-0 shadow-md hover:shadow-xl hover:-translate-y-1">
-                      <div
-                        className={`${
-                          viewMode === "grid" ? "aspect-square" : "h-48"
-                        } bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative`}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={
-                            product.images?.[0]?.url ||
-                            "https://placehold.co/600x600"
-                          }
-                          alt={product.images?.[0]?.alt || product.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
-
-                        {/* Stock Status Badge */}
-                        {product.quantity !== undefined && (
-                          <Badge
-                            variant={
-                              product.quantity > 0 ? "default" : "destructive"
-                            }
-                            className="absolute top-3 right-3"
-                          >
-                            {product.quantity > 0 ? "Còn hàng" : "Hết hàng"}
-                          </Badge>
-                        )}
-                      </div>
-
-                      <CardContent className="p-4">
-                        {(product.brandName || product.categoryName) && (
-                          <Badge variant="outline" className="mb-2 text-xs">
-                            {product.brandName || product.categoryName}
-                          </Badge>
-                        )}
-
-                        <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                          {product.name}
-                        </h3>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-2xl font-bold text-blue-600">
-                            {formatCurrency(Number(product.price))}
-                          </span>
-
-                          {product.quantity !== undefined && (
-                            <span className="text-sm text-muted-foreground">
-                              SL: {product.quantity}
-                            </span>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                    <ProductCard
+                      product={product}
+                      locale={locale}
+                      viewMode={viewMode}
+                    />
+                  </Suspense>
                 ))}
               </div>
             ) : (

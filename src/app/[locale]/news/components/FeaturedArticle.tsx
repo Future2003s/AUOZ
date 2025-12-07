@@ -6,7 +6,8 @@ import Image from "next/image";
 
 interface FeaturedArticleProps {
   article: {
-    _id: string;
+    _id?: string;
+    id?: string;
     title: string;
     excerpt?: string;
     coverImage?: string;
@@ -34,6 +35,8 @@ export const FeaturedArticle: React.FC<FeaturedArticleProps> = ({
         <Image
           src={article.coverImage}
           alt={article.title}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
           className="object-cover transform group-hover:scale-105 transition-transform duration-700"
         />
       ) : (

@@ -10,13 +10,80 @@ interface ContentRendererProps {
 }
 
 export const ContentRenderer: React.FC<ContentRendererProps> = ({ blocks, content }) => {
+  const [processedContent, setProcessedContent] = React.useState<string>(content || "");
+  
+  // Process content on client-side to ensure images are properly rendered
+  React.useEffect(() => {
+    if (!blocks && content && typeof window !== "undefined") {
+      console.log("Processing content for rendering:", content);
+      console.log("Content has images:", content.includes("<img"));
+      
+      // Create a temporary div to parse HTML
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = content;
+      
+      // Process all images in the content
+      const images = tempDiv.querySelectorAll("img");
+      console.log("Found images:", images.length);
+      
+      images.forEach((img, index) => {
+        console.log(`Processing image ${index}:`, img.src);
+        // Ensure images have proper styling
+        img.style.maxWidth = "100%";
+        img.style.height = "auto";
+        img.className = "rounded-lg my-4 w-full";
+        // Add loading lazy for better performance
+        if (!img.hasAttribute("loading")) {
+          img.setAttribute("loading", "lazy");
+        }
+        // Ensure alt text exists
+        if (!img.alt) {
+          img.alt = "Article image";
+        }
+      });
+      
+      const processed = tempDiv.innerHTML;
+      console.log("Processed content:", processed);
+      setProcessedContent(processed);
+    } else if (content) {
+      setProcessedContent(content);
+    }
+  }, [content, blocks]);
+  
   // If no blocks but has content, render HTML
   if (!blocks && content) {
     return (
-      <div 
-        className="prose prose-lg max-w-none text-gray-700 leading-loose"
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
+      <>
+        <style jsx>{`
+          .article-content img {
+            max-width: 100% !important;
+            height: auto !important;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            display: block;
+          }
+          .article-content p {
+            margin-bottom: 1rem;
+            text-align: justify;
+          }
+          .article-content h1,
+          .article-content h2,
+          .article-content h3,
+          .article-content h4 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+          }
+        `}</style>
+        <div 
+          className="article-content prose prose-lg max-w-none text-gray-700 leading-loose"
+          dangerouslySetInnerHTML={{ __html: processedContent }}
+          style={{
+            // Ensure images are responsive
+            wordBreak: "break-word",
+          }}
+        />
+      </>
     );
   }
 

@@ -22,6 +22,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import ProductCommentsSection from "@/components/product-comments";
+import { StructuredData } from "@/components/StructuredData";
+import { envConfig } from "@/config";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
@@ -29,9 +31,10 @@ const formatCurrency = (amount: number) =>
   );
 
 export default function ProductDetailPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams<{ id: string; locale?: string }>();
   const router = useRouter();
   const id = params?.id as string;
+  const locale = params?.locale || "vi";
   const { sessionToken } = useAppContextProvider();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { addItem } = useCart();
@@ -48,32 +51,43 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (!id) return;
+    let cancelled = false;
+    
     const load = async () => {
       setLoading(true);
       setError(null);
       try {
         // Route via Next public API to avoid CORS and handle env mapping/normalization
         const res = await fetch(`/api/products/public/${id}`, {
-          cache: "no-store",
+          next: { revalidate: 60 }, // Cache 1 phút, revalidate khi cần
         });
         if (!res.ok) {
           const t = await res.text();
           throw new Error(t || `HTTP ${res.status}`);
         }
         const data = await res.json();
+        if (cancelled) return;
+        
         if (data?.data) {
           setItem(data.data as Product);
         } else {
           setError("Không thể tải thông tin sản phẩm");
         }
       } catch (err: unknown) {
+        if (cancelled) return;
         console.error("Error loading product:", err);
         setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi tải sản phẩm");
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
     load();
+    
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   // Helper function to get image URL
@@ -96,7 +110,7 @@ export default function ProductDetailPage() {
   };
 
   // Helper function to get all image URLs
-  const getAllImageUrls = () => {
+  const getAllImageUrls = useMemo(() => {
     if (!item?.images || item.images.length === 0) {
       return [];
     }
@@ -104,16 +118,57 @@ export default function ProductDetailPage() {
     return item.images
       .map((img) => {
         const entry = img as Product["images"][number] | string;
-        if (typeof entry === "string") return entry;
-        return entry.url || "";
+        if (typeof entry === "string") {
+          return entry.trim();
+        }
+        return entry?.url?.trim() || "";
       })
-      .filter((url) => url.length > 0);
-  };
+      .filter((url) => url.length > 0 && url !== "undefined" && url !== "null");
+  }, [item?.images]);
 
   const price = useMemo(() => {
     if (!item) return 0;
     return Number(item.price);
   }, [item]);
+
+  // Prepare structured data for product
+  const productStructuredData = useMemo(() => {
+    if (!item) return null;
+    const baseUrl = envConfig.NEXT_PUBLIC_URL || "";
+    const mainImage = getAllImageUrls[0] || "/images/logo.png";
+    const imageUrl = mainImage.startsWith("http")
+      ? mainImage
+      : `${envConfig.NEXT_PUBLIC_BACKEND_URL || ""}${mainImage}`;
+
+    return {
+      name: item.name,
+      description: item.description || item.name,
+      image: imageUrl,
+      brand: {
+        "@type": "Brand",
+        name: "LALA-LYCHEEE",
+      },
+      offers: {
+        "@type": "Offer",
+        price: item.price,
+        priceCurrency: "VND",
+        availability:
+          item.quantity && item.quantity > 0
+            ? "https://schema.org/InStock"
+            : "https://schema.org/OutOfStock",
+        url: `${baseUrl}/${locale}/products/${id}`,
+      },
+      ...(item.rating
+        ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: item.rating,
+              reviewCount: item.numReviews || 0,
+            },
+          }
+        : {}),
+    };
+  }, [item, id, locale]);
 
   if (loading) {
     return (
@@ -146,6 +201,9 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pt-25">
+      {productStructuredData && (
+        <StructuredData type="Product" data={productStructuredData} />
+      )}
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb Navigation - Amazon Style */}
         <div className="mb-6">
@@ -182,9 +240,9 @@ export default function ProductDetailPage() {
             {/* Desktop layout: vertical thumbnails on the left, main image on the right */}
             <div className="hidden lg:flex gap-4">
               {/* Vertical Thumbnails */}
-              {getAllImageUrls().length > 0 && (
+              {getAllImageUrls.length > 0 && (
                 <div className="w-20 flex flex-col gap-2 overflow-y-auto max-h-[560px] pr-1">
-                  {getAllImageUrls().map((url, i) => (
+                  {getAllImageUrls.map((url, i) => (
                     <button
                       key={i}
                       onClick={() => setSelectedImageIndex(i)}
@@ -227,9 +285,9 @@ export default function ProductDetailPage() {
                 </Button>
 
                 {/* Image Counter */}
-                {getAllImageUrls().length > 0 && (
+                {getAllImageUrls.length > 0 && (
                   <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-medium">
-                    {selectedImageIndex + 1} of {getAllImageUrls().length}
+                    {selectedImageIndex + 1} of {getAllImageUrls.length}
                   </div>
                 )}
               </div>
@@ -253,9 +311,9 @@ export default function ProductDetailPage() {
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
-                {getAllImageUrls().length > 0 && (
+                {getAllImageUrls.length > 0 && (
                   <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-medium">
-                    {selectedImageIndex + 1} of {getAllImageUrls().length}
+                    {selectedImageIndex + 1} of {getAllImageUrls.length}
                   </div>
                 )}
               </div>
@@ -266,18 +324,18 @@ export default function ProductDetailPage() {
                 </button>
               </div>
 
-              {getAllImageUrls().length > 0 && (
+              {getAllImageUrls.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium text-gray-700">
                       Product Images
                     </h3>
                     <span className="text-xs text-gray-500">
-                      {getAllImageUrls().length} images
+                      {getAllImageUrls.length} images
                     </span>
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-2">
-                    {getAllImageUrls().map((url, i) => (
+                    {getAllImageUrls.map((url, i) => (
                       <div
                         key={i}
                         onClick={() => setSelectedImageIndex(i)}
@@ -299,7 +357,7 @@ export default function ProductDetailPage() {
                     ))}
                   </div>
                   <div className="flex justify-center gap-1">
-                    {getAllImageUrls().map((_, i) => (
+                    {getAllImageUrls.map((_, i) => (
                       <div
                         key={i}
                         className={`w-2 h-2 rounded-full transition-colors cursor-pointer ${

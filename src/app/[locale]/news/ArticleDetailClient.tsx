@@ -7,6 +7,8 @@ import { ArticleCard } from "./components/ArticleCard";
 import { TableOfContents } from "./components/TableOfContents";
 import { ContentRenderer } from "./components/ContentRenderer";
 import { NewsArticle } from "@/types/news";
+import { StructuredData } from "@/components/StructuredData";
+import { envConfig } from "@/config";
 
 interface ArticleDetailClientProps {
   article: NewsArticle;
@@ -20,9 +22,39 @@ export default function ArticleDetailClient({
   locale 
 }: ArticleDetailClientProps) {
   const categoryName = article.category || "Tin tức";
+  const baseUrl = envConfig.NEXT_PUBLIC_URL || "https://lala-lycheee.com";
+  
+  const articleStructuredData = {
+    headline: article.title,
+    description: article.excerpt || article.title,
+    image: article.coverImage || `${baseUrl}/images/logo.png`,
+    datePublished: article.publishedAt
+      ? new Date(article.publishedAt).toISOString()
+      : new Date().toISOString(),
+    dateModified: article.publishedAt
+      ? new Date(article.publishedAt).toISOString()
+      : new Date().toISOString(),
+    author: {
+      "@type": "Person",
+      name: article.authorName || "LALA-LYCHEEE",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "LALA-LYCHEEE",
+      logo: {
+        "@type": "ImageObject",
+        url: `${baseUrl}/images/logo.png`,
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${baseUrl}/${locale}/news/${article.slug}`,
+    },
+  };
 
   return (
     <div className="animate-fade-in pb-12 bg-white min-h-screen">
+      <StructuredData type="Article" data={articleStructuredData} />
       {/* Back Button & Breadcrumb */}
       <div className="container mx-auto px-4 pt-24 pb-4">
         <Link 
@@ -150,7 +182,7 @@ export default function ArticleDetailClient({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {relatedArticles.slice(0, 4).map((news) => (
                     <ArticleCard 
-                      key={news._id} 
+                      key={news._id || news.id || news.slug} 
                       article={news} 
                       locale={locale}
                       compact={false} 
@@ -177,7 +209,7 @@ export default function ArticleDetailClient({
               <div className="space-y-5">
                 {relatedArticles.slice(0, 3).map((news) => (
                   <ArticleCard 
-                    key={news._id} 
+                    key={news._id || news.id || news.slug} 
                     article={news} 
                     locale={locale}
                     compact={true} 

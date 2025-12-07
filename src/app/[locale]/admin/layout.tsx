@@ -1,7 +1,8 @@
 import { ReactNode } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import AdminShell, { AdminNavItem } from "@/layouts/admin-shell";
+import { AdminNavItem } from "@/layouts/admin-shell";
+import AdminDashboardClient from "@/components/admin/AdminDashboardClient";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -19,6 +20,7 @@ import {
   FileText,
   Ticket,
   Briefcase,
+  Newspaper,
 } from "lucide-react";
 
 async function fetchMeServer() {
@@ -40,10 +42,13 @@ async function fetchMeServer() {
   } catch (error) {
     console.error("fetchMeServer error:", error);
     // Return a mock response với status 401 để trigger redirect
-    return new Response(JSON.stringify({ success: false, error: "Network error" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ success: false, error: "Network error" }),
+      {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }
 
@@ -203,6 +208,12 @@ export default async function AdminLayout({
         icon: <FileText size={18} />,
       },
       {
+        id: "news",
+        label: "Tin Tức",
+        href: `/${locale}/admin/news`,
+        icon: <Newspaper size={18} />,
+      },
+      {
         id: "advertisements",
         label: "Quảng Cáo",
         href: `/${locale}/admin/advertisements`,
@@ -229,34 +240,36 @@ export default async function AdminLayout({
     ];
 
     return (
-      <AdminShell
-        navItems={navItems}
-        brand={{ name: "LALA-LYCHEE", short: "L" }}
-        notifCount={0}
+      <AdminDashboardClient
         userName={me?.fullName || me?.firstName || me?.name || "Admin"}
+        locale={locale}
       >
         {children}
-      </AdminShell>
+      </AdminDashboardClient>
     );
   } catch (error) {
     console.error("Admin layout error:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    
+
     // Không redirect nếu error là NEXT_REDIRECT (tránh redirect loop)
     if (errorMessage.includes("NEXT_REDIRECT")) {
-      console.error("NEXT_REDIRECT error detected, not redirecting to avoid loop");
+      console.error(
+        "NEXT_REDIRECT error detected, not redirecting to avoid loop"
+      );
       // Return error page instead
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">Lỗi xác thực</h1>
+            <h1 className="text-2xl font-bold text-red-600 mb-4">
+              Lỗi xác thực
+            </h1>
             <p className="text-gray-600">Vui lòng đăng nhập lại để tiếp tục.</p>
           </div>
         </div>
       );
     }
-    
+
     // Use locale from params if available, otherwise default to 'vi'
     const fallbackLocale = params
       ? await params.then((p) => p.locale).catch(() => "vi")

@@ -142,23 +142,34 @@ export function TranslationList({
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="space-y-2">
+                  <div className="space-y-2 min-w-[300px]">
                     {Object.entries(translation.translations).map(
                       ([lang, text]) => (
-                        <div key={lang} className="flex items-center gap-2">
-                          <span className="text-lg">
+                        <div 
+                          key={lang} 
+                          className="flex items-start gap-2 p-2 rounded hover:bg-muted/50 transition-colors group"
+                        >
+                          <span className="text-lg flex-shrink-0">
                             {getLanguageFlag(lang)}
                           </span>
-                          <span className="text-sm text-muted-foreground">
-                            {text.length > 50
-                              ? `${text.substring(0, 50)}...`
-                              : text}
-                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground mb-1 uppercase">
+                              {lang}
+                            </div>
+                            <div className="text-sm text-foreground break-words">
+                              {text || (
+                                <span className="text-muted-foreground italic">
+                                  Chưa có bản dịch
+                                </span>
+                              )}
+                            </div>
+                          </div>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => copyToClipboard(text)}
-                            className="h-6 w-6 p-0"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                            title="Sao chép"
                           >
                             <Copy className="h-3 w-3" />
                           </Button>

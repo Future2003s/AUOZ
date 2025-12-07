@@ -39,31 +39,43 @@ export const newsApi = {
       { baseUrl: "" }
     );
   },
-  create: async (payload: Partial<NewsArticle>, token: string) => {
+  create: async (payload: Partial<NewsArticle>, token?: string) => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
     return http.post("/api/news", payload, {
       baseUrl: "",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
+    } as any);
   },
   update: async (
     id: string,
     payload: Partial<NewsArticle>,
-    token: string
+    token?: string
   ) => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
     return http.put(`/api/news/admin/${id}`, payload, {
       baseUrl: "",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
+    } as any);
   },
-  delete: async (id: string, token: string) => {
+  delete: async (id: string, token?: string) => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
     return http.delete(`/api/news/admin/${id}`, {
       baseUrl: "",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
+    } as any);
   },
   adminList: async (
     params: { status?: NewsStatus | "all"; locale?: string; search?: string } = {},
-    token: string
+    token?: string // Optional: token will be sent via cookie if not provided
   ) => {
     const searchParams = new URLSearchParams();
     if (params.status && params.status !== "all") {
@@ -72,13 +84,32 @@ export const newsApi = {
     if (params.locale) searchParams.append("locale", params.locale);
     if (params.search) searchParams.append("search", params.search);
     const query = searchParams.toString();
+    
+    // Token is sent via httpOnly cookie, so we don't need to pass it in header
+    // But if token is provided, we'll use it for backward compatibility
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    
     return http.get(
       `/api/news/admin/list${query ? `?${query}` : ""}`,
       {
         baseUrl: "",
-        headers: { Authorization: `Bearer ${token}` },
-      }
+        headers: Object.keys(headers).length > 0 ? headers : undefined,
+        // credentials: 'include' is needed to send cookies
+      } as any
     );
+  },
+  getById: async (id: string, token?: string): Promise<NewsResponse> => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    return http.get(`/api/news/admin/${id}`, {
+      baseUrl: "",
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
+    } as any);
   },
 };
 

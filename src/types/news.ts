@@ -8,7 +8,8 @@ export type NewsContentBlock =
   | { type: "img"; src: string; caption?: string };
 
 export interface NewsArticle {
-  _id: string;
+  _id?: string;
+  id?: string;
   title: string;
   slug: string;
   excerpt: string;

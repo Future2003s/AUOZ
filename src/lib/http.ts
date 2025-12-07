@@ -82,6 +82,7 @@ const request = async (
       body,
       method,
       signal: controller.signal,
+      credentials: "include", // Always include cookies for authentication
     });
 
     // Clear timeout

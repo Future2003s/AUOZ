@@ -6,7 +6,8 @@ import Image from "next/image";
 
 interface ArticleCardProps {
   article: {
-    _id: string;
+    _id?: string;
+    id?: string;
     title: string;
     excerpt?: string;
     coverImage?: string;

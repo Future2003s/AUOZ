@@ -13,6 +13,7 @@ interface ImageUploadProps {
   onChange: (url: string) => void;
   label?: string;
   folder?: string;
+  endpoint?: string;
 }
 
 export function ImageUpload({
@@ -20,18 +21,22 @@ export function ImageUpload({
   onChange,
   label = "Hình ảnh",
   folder = "advertisements", // hiện tại chỉ dùng để mở rộng sau, backend đang dựa vào endpoint
+  endpoint = "/api/advertisements/images", // Default endpoint, can be overridden
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [preview, setPreview] = useState<string | null>(value || null);
+  const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync preview with value prop
   useEffect(() => {
     if (value) {
       setPreview(value);
+      setImageError(false);
     } else if (!uploading) {
       setPreview(null);
+      setImageError(false);
     }
   }, [value, uploading]);
 
@@ -72,7 +77,7 @@ export function ImageUpload({
         setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 100);
 
-      const response = await fetch("/api/advertisements/images", {
+      const response = await fetch(endpoint, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -81,30 +86,43 @@ export function ImageUpload({
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (error) {
+        console.error("JSON parse error:", error);
+        throw new Error("Phản hồi không hợp lệ từ server");
+      }
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || data.message || "Upload failed");
+      if (!response.ok) {
+        throw new Error(data?.error || data?.message || `Upload failed: ${response.statusText}`);
       }
 
       // Extract image URL from various possible response formats
       const imageUrl = 
-        data.data?.url || 
-        data.data?.secure_url || 
-        data.url || 
-        data.imageUrl ||
-        data.data?.imageUrl;
+        data?.data?.url || 
+        data?.data?.secure_url || 
+        data?.data?.imageUrl ||
+        data?.url || 
+        data?.imageUrl ||
+        data?.data?.data?.url;
 
       if (imageUrl) {
-        // Update both preview and form state
-        setPreview(imageUrl);
-        onChange(imageUrl);
+        // Clear the data URL preview and set the server URL
+        setImageError(false);
+        // Small delay to ensure state updates properly
+        setTimeout(() => {
+          setPreview(imageUrl);
+          onChange(imageUrl);
+        }, 100);
         toast.success("Upload ảnh thành công!", {
           icon: <CheckCircle2 className="w-5 h-5 text-green-500" />,
         });
+        console.log("Image uploaded successfully:", imageUrl);
       } else {
-        console.error("Upload response:", data);
-        throw new Error("Không nhận được URL ảnh từ server");
+        console.error("Upload response structure:", data);
+        console.error("Available keys:", Object.keys(data || {}));
+        throw new Error("Không nhận được URL ảnh từ server. Vui lòng kiểm tra console để xem chi tiết.");
       }
     } catch (error: any) {
       console.error("Upload error:", error);
@@ -138,14 +156,34 @@ export function ImageUpload({
       
       {preview ? (
         <div className="relative group">
-          <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-gray-200 shadow-md">
-            <Image
-              src={preview}
-              alt="Preview"
-              fill
-              className="object-cover"
-              unoptimized
-            />
+          <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-gray-200 shadow-md bg-gray-100">
+            {!imageError ? (
+              // Use regular img tag for better compatibility with external URLs
+              <img
+                src={preview}
+                alt="Preview"
+                className="w-full h-full object-cover"
+                style={{ display: imageError ? "none" : "block" }}
+                onError={(e) => {
+                  console.error("Image load error:", preview);
+                  console.error("Image URL:", preview);
+                  setImageError(true);
+                }}
+                onLoad={() => {
+                  setImageError(false);
+                  console.log("Image loaded successfully:", preview);
+                }}
+                crossOrigin="anonymous"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50">
+                <ImageIcon className="w-12 h-12 mb-2" />
+                <p className="text-xs">Không thể tải ảnh</p>
+                <p className="text-xs text-gray-400 mt-1 break-all px-2 text-center">
+                  {preview.length > 50 ? `${preview.substring(0, 50)}...` : preview}
+                </p>
+              </div>
+            )}
             {uploading && (
               <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 z-10">
                 <Loader2 className="h-8 w-8 animate-spin text-white" />

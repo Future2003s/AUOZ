@@ -13,15 +13,41 @@ import { CartSidebarProvider } from "@/context/cart-sidebar-context";
 import { ThemeProvider } from "@/context/theme-context";
 import { QueryProvider } from "@/providers/query-provider";
 import { I18nProvider } from "../i18n/I18nProvider";
+import { envConfig } from "@/config";
 
 const fontSans: NextFont = Quicksand({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
 });
 
+const baseUrl = envConfig.NEXT_PUBLIC_URL || "https://lala-lycheee.com";
+const siteName = "LALA-LYCHEEE";
+const defaultDescription = "CÔNG TY TNHH LALA-LYCHEEE - Chuyên sản xuất và phân phối các sản phẩm từ vải thiều và mật ong chất lượng cao";
+
 export const metadata: Metadata = {
-  title: "LALA-LYCHEEE",
-  description: "CÔNG TY TNHH LALA-LYCHEEE",
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: siteName,
+    template: `%s | ${siteName}`,
+  },
+  description: defaultDescription,
+  keywords: [
+    "vải thiều",
+    "mật ong",
+    "LALA-LYCHEEE",
+    "sản phẩm tự nhiên",
+    "lychee",
+    "honey",
+    "organic",
+  ],
+  authors: [{ name: "LALA-LYCHEEE" }],
+  creator: "LALA-LYCHEEE",
+  publisher: "LALA-LYCHEEE",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   themeColor: "#e11d48",
   icons: {
     icon: [
@@ -29,6 +55,45 @@ export const metadata: Metadata = {
       { url: "/images/logo.png", type: "image/png", sizes: "512x512" },
     ],
     apple: [{ url: "/images/logo.png" }],
+  },
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    url: baseUrl,
+    siteName: siteName,
+    title: siteName,
+    description: defaultDescription,
+    images: [
+      {
+        url: "/images/logo.png",
+        width: 1200,
+        height: 630,
+        alt: siteName,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteName,
+    description: defaultDescription,
+    images: ["/images/logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    // Add your verification codes here when available
+    // google: "your-google-verification-code",
+    // yandex: "your-yandex-verification-code",
+    // yahoo: "your-yahoo-verification-code",
   },
 };
 

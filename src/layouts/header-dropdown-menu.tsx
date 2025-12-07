@@ -26,11 +26,6 @@ function HeaderDropDownMenu() {
           <DropdownMenuItem>Mật Ong</DropdownMenuItem>
           <DropdownMenuSeparator />
 
-          <DropdownMenuLabel>
-            <Link href={"/about"}>Giới Thiệu</Link>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-
           <DropdownMenuLabel className="cursor-pointer">
             <Link href={"/support"}>Hỗ Trợ</Link>
           </DropdownMenuLabel>

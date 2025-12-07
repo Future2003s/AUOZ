@@ -114,12 +114,6 @@ function Footer() {
               Sản phẩm
             </Link>
             <Link
-              href={`/${locale}/about`}
-              className="text-blue-200 hover:text-white transition duration-200 rounded-xl hover:translate-x-1 inline-block"
-            >
-              Về chúng tôi
-            </Link>
-            <Link
               href={`/${locale}/contact`}
               className="text-blue-200 hover:text-white transition duration-200 rounded-xl hover:translate-x-1 inline-block"
             >

@@ -7,6 +7,15 @@ const baseUrl =
 
 type ParamsContext = { params: Promise<{ id: string }> };
 
+export async function GET(request: NextRequest, { params }: ParamsContext) {
+  const { id } = await params;
+  const qs = request.nextUrl.searchParams.toString();
+  return proxyJson(`${baseUrl}/news/admin/${id}${qs ? `?${qs}` : ""}`, request, {
+    method: "GET",
+    requireAuth: true,
+  });
+}
+
 export async function PUT(request: NextRequest, { params }: ParamsContext) {
   const { id } = await params;
   const body = await request.text();
