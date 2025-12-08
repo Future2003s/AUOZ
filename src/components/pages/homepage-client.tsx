@@ -84,7 +84,7 @@ export function HomePageClient({ settings }: HomePageClientProps) {
       style={themeStyle}
       suppressHydrationWarning
     >
-      <CursorEffect />
+      {/* <CursorEffect /> */}
       <main suppressHydrationWarning>
         {mergedSettings.sections.hero.enabled && (
           <InteractiveHeroSlider slides={heroSlides} />
