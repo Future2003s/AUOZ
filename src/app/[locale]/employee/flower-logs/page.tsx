@@ -520,23 +520,18 @@ export default function FlowerLogsPage() {
     { category: 'Nơ', type: FLOWER_CATEGORIES['Nơ'][0], quantity: 1 }
   ]);
 
-  const apiBase = envConfig.NEXT_PUBLIC_API_END_POINT || 'http://localhost:8081/api/v1';
-
-  // Fetch flower logs from backend
+  // Fetch flower logs from backend via Next.js API route
   const fetchFlowerLogs = async () => {
     try {
       setLoading(true);
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('sessionToken='))
-        ?.split('=')[1];
-
-      const response = await fetch(`${apiBase}/flower-logs?page=1&size=100`, {
+      
+      // Use Next.js API route instead of direct backend call to avoid CORS/cookie issues
+      const response = await fetch(`/api/belllc/flower-logs?page=1&size=100`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
         },
+        credentials: 'include', // Important: include cookies for authentication
       });
 
       const data = await response.json();
@@ -566,10 +561,6 @@ export default function FlowerLogsPage() {
     if (!flowerFormCutter || !flowerFormDate || flowerFormItems.length === 0) return;
 
     setIsSubmitting(true);
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('sessionToken='))
-      ?.split('=')[1];
 
     const timeString = getCurrentDateTimeString();
     const historyEntry = editingFlowerLog 
@@ -577,9 +568,10 @@ export default function FlowerLogsPage() {
       : [`Tạo mới: ${timeString}`];
 
     try {
+      // Use Next.js API route instead of direct backend call
       const url = editingFlowerLog 
-        ? `${apiBase}/flower-logs/${editingFlowerLog.id}`
-        : `${apiBase}/flower-logs`;
+        ? `/api/belllc/flower-logs/${editingFlowerLog.id}`
+        : `/api/belllc/flower-logs`;
       
       const method = editingFlowerLog ? 'PUT' : 'POST';
 
@@ -587,8 +579,8 @@ export default function FlowerLogsPage() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
         },
+        credentials: 'include', // Important: include cookies for authentication
         body: JSON.stringify({
           cutter: flowerFormCutter,
           date: flowerFormDate,
@@ -638,18 +630,14 @@ export default function FlowerLogsPage() {
   const deleteItem = async (id: string) => {
     if (!confirm('Bạn có chắc muốn xóa phiếu này?')) return;
 
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('sessionToken='))
-      ?.split('=')[1];
-
     try {
-      const response = await fetch(`${apiBase}/flower-logs/${id}`, {
+      // Use Next.js API route instead of direct backend call
+      const response = await fetch(`/api/belllc/flower-logs/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
+        },
+        credentials: 'include', // Important: include cookies for authentication
       });
 
       const data = await response.json();

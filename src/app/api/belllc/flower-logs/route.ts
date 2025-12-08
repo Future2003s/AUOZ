@@ -4,6 +4,7 @@ import {
   belllcBuildFullUrl,
   belllcHeaders,
 } from "@/lib/belllc-api-config";
+import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,9 +20,19 @@ export async function GET(request: NextRequest) {
       { search, from, to, page, size }
     );
 
+    // Get session token from cookies for authentication
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get("sessionToken")?.value;
+    
+    const headers = {
+      ...belllcHeaders(),
+      ...(sessionToken && { Authorization: `Bearer ${sessionToken}` }),
+      Cookie: request.headers.get("Cookie") || "",
+    };
+
     const res = await fetch(url, {
       method: "GET",
-      headers: belllcHeaders(),
+      headers,
       cache: "no-store",
     });
 
@@ -80,6 +91,10 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
     const url = belllcBuildFullUrl(BELLLC_API_CONFIG.FLOWER_LOGS.BASE);
 
+    // Get session token from cookies for authentication
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get("sessionToken")?.value;
+
     // Log for debugging (only in development)
     if (process.env.NODE_ENV === "development") {
       console.log("[POST /api/belllc/flower-logs] URL:", url);
@@ -89,11 +104,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const headers = {
+      ...belllcHeaders(),
+      ...(sessionToken && { Authorization: `Bearer ${sessionToken}` }),
+      Cookie: request.headers.get("Cookie") || "",
+    };
+
     let res: Response;
     try {
       res = await fetch(url, {
         method: "POST",
-        headers: belllcHeaders(),
+        headers,
         body: JSON.stringify(data),
       });
     } catch (fetchError) {

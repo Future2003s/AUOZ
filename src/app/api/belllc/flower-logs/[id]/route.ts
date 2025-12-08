@@ -4,12 +4,24 @@ import {
   belllcBuildFullUrl,
   belllcHeaders,
 } from "@/lib/belllc-api-config";
+import { cookies } from "next/headers";
 
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const url = belllcBuildFullUrl(BELLLC_API_CONFIG.FLOWER_LOGS.BY_ID, { id });
-    const res = await fetch(url, { method: "GET", headers: belllcHeaders(), cache: "no-store" });
+    
+    // Get session token from cookies for authentication
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get("sessionToken")?.value;
+    
+    const headers = {
+      ...belllcHeaders(),
+      ...(sessionToken && { Authorization: `Bearer ${sessionToken}` }),
+      Cookie: request.headers.get("Cookie") || "",
+    };
+    
+    const res = await fetch(url, { method: "GET", headers, cache: "no-store" });
     const ct = res.headers.get("content-type") || "application/json";
     const body = ct.includes("application/json") ? await res.json().catch(() => ({})) : await res.text();
     return new NextResponse(typeof body === "string" ? body : JSON.stringify(body), { status: res.status, headers: { "Content-Type": ct } });
@@ -24,11 +36,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const data = await request.json();
     const url = belllcBuildFullUrl(BELLLC_API_CONFIG.FLOWER_LOGS.BY_ID, { id });
     
+    // Get session token from cookies for authentication
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get("sessionToken")?.value;
+    
+    const headers = {
+      ...belllcHeaders(),
+      ...(sessionToken && { Authorization: `Bearer ${sessionToken}` }),
+      Cookie: request.headers.get("Cookie") || "",
+    };
+    
     let res: Response;
     try {
       res = await fetch(url, { 
         method: "PUT", 
-        headers: belllcHeaders(), 
+        headers, 
         body: JSON.stringify(data) 
       });
     } catch (fetchError) {
@@ -80,16 +102,26 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const url = belllcBuildFullUrl(BELLLC_API_CONFIG.FLOWER_LOGS.BY_ID, { id });
+    
+    // Get session token from cookies for authentication
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get("sessionToken")?.value;
+    
+    const headers = {
+      ...belllcHeaders(),
+      ...(sessionToken && { Authorization: `Bearer ${sessionToken}` }),
+      Cookie: request.headers.get("Cookie") || "",
+    };
     
     let res: Response;
     try {
       res = await fetch(url, { 
         method: "DELETE", 
-        headers: belllcHeaders() 
+        headers
       });
     } catch (fetchError) {
       console.error("[DELETE /api/belllc/flower-logs/:id] Fetch error:", fetchError);

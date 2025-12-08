@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Quicksand } from "next/font/google";
 import "./globals.css";
 import { NextFont } from "next/dist/compiled/@next/font";
@@ -48,7 +48,6 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  themeColor: "#e11d48",
   icons: {
     icon: [
       { url: "/images/logo.png", type: "image/png", sizes: "192x192" },
@@ -95,6 +94,10 @@ export const metadata: Metadata = {
     // yandex: "your-yandex-verification-code",
     // yahoo: "your-yahoo-verification-code",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#e11d48",
 };
 
 export default async function RootLayout({
