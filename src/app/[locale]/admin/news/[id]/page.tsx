@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, usePathname, useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,7 +12,6 @@ import {
   Calendar,
   Globe,
   ChevronLeft,
-  MoreHorizontal,
   Bold,
   Italic,
   List,
@@ -110,6 +108,7 @@ const SettingsPanel = ({
   customCategory: string;
   setCustomCategory: (category: string) => void;
 }) => {
+  const [newTag, setNewTag] = useState("");
   if (!isOpen) return null;
 
   const addTag = (tag: string) => {
@@ -121,8 +120,6 @@ const SettingsPanel = ({
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
-
-  const [newTag, setNewTag] = useState("");
 
   return (
     <div className="w-80 border-l border-gray-200 bg-white h-[calc(100vh-64px)] overflow-y-auto fixed right-0 top-16 z-10 shadow-lg transition-transform duration-300">
@@ -463,9 +460,10 @@ const ImageUploadDialog = ({
       } else {
         toast.error(data.error || "Upload ảnh thất bại");
       }
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Không thể upload ảnh";
       console.error("Upload error:", error);
-      toast.error(error.message || "Không thể upload ảnh");
+      toast.error(message);
     } finally {
       setUploading(false);
     }
@@ -1296,9 +1294,10 @@ export default function NewsEditPage() {
         toast.error("Không tìm thấy tin tức");
         router.push(`/${locale}/admin/news`);
       }
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Không thể tải tin tức";
       console.error("Error fetching news:", error);
-      toast.error(error.message || "Không thể tải tin tức");
+      toast.error(message);
       router.push(`/${locale}/admin/news`);
     } finally {
       setLoading(false);
@@ -1454,8 +1453,9 @@ export default function NewsEditPage() {
       } else {
         toast.error(response.message || "Lưu thất bại");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Không thể lưu tin tức");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Không thể lưu tin tức";
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -1490,165 +1490,100 @@ export default function NewsEditPage() {
   return (
     <div className="min-h-screen bg-[#F0F2F5] font-sans text-gray-900 flex flex-col" style={{ paddingTop: 0 }}>
       {/* Header */}
-      <header 
-        className="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between fixed top-0 w-full z-[100] shadow-sm" 
-        style={{ 
-          position: 'fixed', 
-          top: 0, 
-          left: 0, 
-          right: 0,
-          zIndex: 100
-        }}
+      <header
+        className="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between fixed top-0 w-full z-[100] shadow-sm"
       >
-        {/* Left: Branding & Title */}
-        <div className="flex items-center gap-4 flex-1 min-w-0 overflow-hidden relative z-10">
+        {/* Left: Back + title + status */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <button
             onClick={() => router.push(`/${locale}/admin/news`)}
             className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+            aria-label="Quay lại danh sách"
           >
             <ArrowLeft size={20} />
           </button>
 
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-              <Type size={18} />
-            </div>
-            <div className="flex flex-col gap-1 relative z-20" style={{ position: 'relative', zIndex: 20 }}>
-              <label className="text-xs text-gray-500 font-medium">Tiêu đề bài viết</label>
-              <Input
-                value={title}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  setTitle(e.target.value);
-                }}
-                onFocus={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-                disabled={loading || isSaving}
-                readOnly={false}
-                className="block w-full max-w-md text-lg font-medium text-gray-800 border border-gray-200 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 bg-white hover:border-gray-300 transition-colors"
-                placeholder="Nhập tiêu đề bài viết..."
-                style={{ 
-                  pointerEvents: (loading || isSaving) ? 'none' : 'auto',
-                  cursor: (loading || isSaving) ? 'not-allowed' : 'text',
-                  position: 'relative',
-                  zIndex: 20,
-                  minWidth: '300px'
-                }}
-                autoFocus={false}
-              />
-              {status === "published" && (
-                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex items-center gap-1">
-                  <CheckCircle size={12} />
-                  Đã đăng
-                </span>
-              )}
-              {status === "draft" && (
-                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">
-                  Bản nháp
-                </span>
-              )}
-            </div>
-            <div className="hidden lg:flex items-center gap-2 text-xs text-gray-500">
-              <span className="hover:underline cursor-pointer">File</span>
-              <span className="hover:underline cursor-pointer">Edit</span>
-              <span className="hover:underline cursor-pointer">View</span>
-              <span className="hover:underline cursor-pointer">Help</span>
-              <span className="mx-1 text-gray-300">|</span>
-              {isSaving ? (
-                <span className="text-gray-500">Đang lưu...</span>
-              ) : (
-                <span className="flex items-center gap-1 text-gray-400">
-                  <CheckCircle size={10} /> {lastSaved}
-                </span>
-              )}
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={loading || isSaving}
+              className="w-full text-lg font-medium text-gray-800 border border-gray-200 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 bg-white hover:border-gray-300 transition-colors"
+              placeholder="Nhập tiêu đề bài viết..."
+            />
+            <div className="flex items-center gap-2">
+              <Badge
+                className={`text-xs ${
+                  status === "published"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {status === "published" ? "Đã đăng" : "Nháp"}
+              </Badge>
+              <span className="text-xs text-gray-400">
+                {isSaving ? "Đang lưu..." : lastSaved || "Chưa lưu"}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Right: Actions - Các nút lưu luôn hiển thị */}
-        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-          {/* View Published Article Button */}
-          {status === "published" && slug && (
-            <>
-              <button
-                onClick={() => {
-                  window.open(`/${locale}/news/${slug}`, "_blank");
-                }}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors"
-                title="Xem bài viết trên website"
-              >
-                <Eye size={16} />
-                Xem bài viết
-              </button>
-              <div className="h-6 w-px bg-gray-200 mx-1"></div>
-            </>
-          )}
-
-          <button
-            className="p-2 text-gray-500 hover:bg-gray-100 rounded-full"
-            title="Lịch sử phiên bản"
+        {/* Right: Preview + actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => window.open(`/${locale}/news/${slug || ""}`, "_blank")}
+            className="flex items-center gap-2"
           >
-            <History size={20} />
-          </button>
+            <Eye size={16} />
+            Xem bài viết
+          </Button>
 
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className={`p-2 rounded-full transition-colors ${
-              showSettings
-                ? "bg-blue-50 text-blue-600"
-                : "text-gray-500 hover:bg-gray-100"
-            }`}
-            title="Cài đặt bài viết"
-          >
-            <PanelRight size={20} />
-          </button>
+          <div className="h-6 w-px bg-gray-200 mx-1" />
 
-          <div className="h-6 w-px bg-gray-200 mx-1"></div>
-
-          {/* Simple Save Button - Lưu với trạng thái hiện tại */}
-          <button
-            onClick={() => {
-              handleSave();
-            }}
-            disabled={isSaving}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg shadow-sm transition-all hover:shadow active:scale-95 disabled:opacity-50"
-            title="Lưu với trạng thái hiện tại"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Đang lưu...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                Lưu
-              </>
-            )}
-          </button>
-
-          {/* Save as Draft Button */}
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => {
               setStatus("draft");
               handleSave();
             }}
             disabled={isSaving}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg shadow-sm transition-all hover:shadow active:scale-95 disabled:opacity-50"
-            title="Lưu dưới dạng bản nháp"
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin mr-1" />
                 Đang lưu...
               </>
             ) : (
               "Lưu nháp"
             )}
-          </button>
+          </Button>
 
-          {/* Publish Button */}
-          <button
+          <Button
+            size="sm"
+            onClick={() => {
+              handleSave();
+            }}
+            disabled={isSaving}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-1" />
+                Lưu
+              </>
+            )}
+          </Button>
+
+          <Button
+            size="sm"
             onClick={() => {
               setStatus("published");
               if (!publishedAt) {
@@ -1657,26 +1592,25 @@ export default function NewsEditPage() {
               handleSave();
             }}
             disabled={isSaving}
-            className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-[#1A73E8] hover:bg-[#1557B0] rounded-lg shadow-sm transition-all hover:shadow active:scale-95 disabled:opacity-50"
-            title={status === "published" ? "Cập nhật bài viết đã xuất bản" : "Xuất bản bài viết"}
+            className="bg-[#1A73E8] hover:bg-[#1557B0] text-white"
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin mr-1" />
                 Đang lưu...
               </>
             ) : status === "published" ? (
               <>
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="w-4 h-4 mr-1" />
                 Cập nhật
               </>
             ) : (
               <>
-                <UploadCloud className="w-4 h-4" />
+                <UploadCloud className="w-4 h-4 mr-1" />
                 Xuất bản
               </>
             )}
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -1741,81 +1675,6 @@ export default function NewsEditPage() {
         />
       </div>
 
-      {/* Floating Action Bar - Các nút lưu luôn hiển thị */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
-        {/* Simple Save Button */}
-        <button
-          onClick={() => {
-            handleSave();
-          }}
-          disabled={isSaving}
-          className="flex items-center gap-2 px-5 py-3 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg shadow-lg transition-all hover:shadow-xl active:scale-95 disabled:opacity-50 min-w-[140px] justify-center"
-          title="Lưu với trạng thái hiện tại"
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Đang lưu...
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4" />
-              Lưu
-            </>
-          )}
-        </button>
-
-        {/* Save as Draft Button */}
-        <button
-          onClick={() => {
-            setStatus("draft");
-            handleSave();
-          }}
-          disabled={isSaving}
-          className="flex items-center gap-2 px-5 py-3 text-sm font-medium text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 rounded-lg shadow-lg transition-all hover:shadow-xl active:scale-95 disabled:opacity-50 min-w-[140px] justify-center"
-          title="Lưu dưới dạng bản nháp"
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Đang lưu...
-            </>
-          ) : (
-            "Lưu nháp"
-          )}
-        </button>
-
-        {/* Publish Button */}
-        <button
-          onClick={() => {
-            setStatus("published");
-            if (!publishedAt) {
-              setPublishedAt(new Date());
-            }
-            handleSave();
-          }}
-          disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-[#1A73E8] hover:bg-[#1557B0] rounded-lg shadow-lg transition-all hover:shadow-xl active:scale-95 disabled:opacity-50 min-w-[140px] justify-center"
-          title={status === "published" ? "Cập nhật bài viết đã xuất bản" : "Xuất bản bài viết"}
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Đang lưu...
-            </>
-          ) : status === "published" ? (
-            <>
-              <CheckCircle className="w-4 h-4" />
-              Cập nhật
-            </>
-          ) : (
-            <>
-              <UploadCloud className="w-4 h-4" />
-              Xuất bản
-            </>
-          )}
-        </button>
-      </div>
     </div>
   );
 }

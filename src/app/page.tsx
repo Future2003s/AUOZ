@@ -93,13 +93,34 @@ function transformBackendToFrontend(backendData: any): HomepageSettings {
           cards: [],
         },
       } : defaultHomepageSettings.sections.collection,
-      craft: backendData.craft ? {
-        enabled: backendData.craft.enabled !== false,
-        order: 6,
-        data: {
-          steps: [],
-        },
-      } : defaultHomepageSettings.sections.craft,
+      craft: backendData.craft
+        ? {
+            enabled: backendData.craft.enabled !== false,
+            order: 6,
+            data: {
+              heading:
+                backendData.craft.title ||
+                defaultHomepageSettings.sections.craft.data.heading,
+              subheading:
+                backendData.craft.description ||
+                defaultHomepageSettings.sections.craft.data.subheading,
+              steps:
+                backendData.craft.steps && backendData.craft.steps.length > 0
+                  ? backendData.craft.steps
+                      .slice()
+                      .sort(
+                        (a: any, b: any) =>
+                          (a.order ?? 0) - (b.order ?? 0)
+                      )
+                      .map((step: any) => ({
+                        title: step.title || "",
+                        description: step.description || "",
+                        imageUrl: step.imageUrl || "",
+                      }))
+                  : defaultHomepageSettings.sections.craft.data.steps,
+            },
+          }
+        : defaultHomepageSettings.sections.craft,
       map: backendData.map ? {
         enabled: backendData.map.enabled !== false,
         order: 7,

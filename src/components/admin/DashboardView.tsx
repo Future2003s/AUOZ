@@ -122,45 +122,93 @@ export default function DashboardView() {
           }
           summaryData = null;
         }
-        
+
         const summary = summaryData?.data || summaryData?.result || summaryData || {};
 
-          const stats: SummaryStat[] = [
-            {
-              label: "Tổng doanh thu",
-              value: formatCurrency(summary?.monthRevenue || summary?.totalRevenue || 0),
-              change: summary?.revenueChange
-                ? `${summary.revenueChange > 0 ? "+" : ""}${summary.revenueChange.toFixed(1)}%`
-                : "+12.5%",
-              isPositive: (summary?.revenueChange || 12.5) > 0,
-              icon: ShoppingBag,
-            },
-            {
-              label: "Đơn hàng mới",
-              value: String(summary?.totalOrders || summary?.newOrders || 0),
-              change: summary?.ordersChange
-                ? `${summary.ordersChange > 0 ? "+" : ""}${summary.ordersChange.toFixed(1)}%`
-                : "+8.2%",
-              isPositive: (summary?.ordersChange || 8.2) > 0,
-              icon: Ticket,
-            },
-            {
-              label: "Khách hàng",
-              value: formatNumber(summary?.totalCustomers || 0),
-              change: summary?.customersChange
-                ? `${summary.customersChange > 0 ? "+" : ""}${summary.customersChange.toFixed(1)}%`
-                : "-1.4%",
-              isPositive: (summary?.customersChange || -1.4) > 0,
-              icon: Users,
-            },
-            {
-              label: "Voucher đã dùng",
-              value: formatNumber(summary?.vouchersUsed || 0),
-              change: "+24%",
-              isPositive: true,
-              icon: Ticket,
-            },
-          ];
+        // Normalize fields to match backend data keys
+        const revenueRaw =
+          summary?.totalRevenue ??
+          summary?.monthRevenue ??
+          summary?.revenue ??
+          summary?.revenueTotal ??
+          0;
+        const revenueChangeRaw =
+          summary?.revenueChange ??
+          summary?.revenueGrowth ??
+          summary?.revenueChangePercent ??
+          0;
+
+        const ordersRaw =
+          summary?.totalOrders ??
+          summary?.newOrders ??
+          summary?.orders ??
+          summary?.ordersTotal ??
+          0;
+        const ordersChangeRaw =
+          summary?.ordersChange ??
+          summary?.ordersGrowth ??
+          summary?.ordersChangePercent ??
+          0;
+
+        const customersRaw =
+          summary?.totalCustomers ??
+          summary?.newCustomers ??
+          summary?.customers ??
+          summary?.customersTotal ??
+          0;
+        const customersChangeRaw =
+          summary?.customersChange ??
+          summary?.customersGrowth ??
+          summary?.customersChangePercent ??
+          0;
+
+        const vouchersRaw =
+          summary?.vouchersUsed ??
+          summary?.usedVouchers ??
+          summary?.totalVouchersUsed ??
+          summary?.voucherUsage ??
+          0;
+        const vouchersChangeRaw =
+          summary?.vouchersChange ??
+          summary?.voucherUsageChange ??
+          summary?.voucherChangePercent ??
+          0;
+
+        const revenueChange = Number(revenueChangeRaw) || 0;
+        const ordersChange = Number(ordersChangeRaw) || 0;
+        const customersChange = Number(customersChangeRaw) || 0;
+        const vouchersChange = Number(vouchersChangeRaw) || 0;
+
+        const stats: SummaryStat[] = [
+          {
+            label: "Tổng doanh thu",
+            value: formatCurrency(Number(revenueRaw) || 0),
+            change: `${revenueChange > 0 ? "+" : ""}${revenueChange.toFixed(1)}%`,
+            isPositive: revenueChange >= 0,
+            icon: ShoppingBag,
+          },
+          {
+            label: "Đơn hàng mới",
+            value: String(Number(ordersRaw) || 0),
+            change: `${ordersChange > 0 ? "+" : ""}${ordersChange.toFixed(1)}%`,
+            isPositive: ordersChange >= 0,
+            icon: Ticket,
+          },
+          {
+            label: "Khách hàng",
+            value: formatNumber(Number(customersRaw) || 0),
+            change: `${customersChange > 0 ? "+" : ""}${customersChange.toFixed(1)}%`,
+            isPositive: customersChange >= 0,
+            icon: Users,
+          },
+          {
+            label: "Voucher đã dùng",
+            value: formatNumber(Number(vouchersRaw) || 0),
+            change: `${vouchersChange > 0 ? "+" : ""}${vouchersChange.toFixed(1)}%`,
+            isPositive: vouchersChange >= 0,
+            icon: Ticket,
+          },
+        ];
 
         setSummaryStats(stats);
       } else {

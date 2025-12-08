@@ -45,14 +45,7 @@ export const OurCraftSection: React.FC<OurCraftSectionProps> = ({
   subheading = "Hành trình từ trái vải tươi ngon đến sản phẩm tinh hoa trên tay bạn.",
   steps,
 }) => {
-  const stepsToUse = (steps && steps.length > 0 ? steps : defaultSteps).map(
-    (s) => ({
-      ...s,
-      imageUrl:
-        s.imageUrl ||
-        "https://images.unsplash.com/photo-1552010099-5dc86fcfaa38?w=500&auto=format&fit=crop&q=60",
-    })
-  );
+  const stepsToUse = steps && steps.length > 0 ? steps : defaultSteps;
 
   const [activeIndex, setActiveIndex] = useState(0);
   return (
@@ -78,7 +71,10 @@ export const OurCraftSection: React.FC<OurCraftSectionProps> = ({
               {stepsToUse.map((step, index) => (
                 <img
                   key={index}
-                  src={step.imageUrl!}
+                  src={
+                    step.imageUrl ||
+                    "https://images.unsplash.com/photo-1552010099-5dc86fcfaa38?w=500&auto=format&fit=crop&q=60"
+                  }
                   alt={step.title}
                   onError={handleImageError}
                   className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${
