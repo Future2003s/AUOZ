@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { newsApi } from "@/apiRequests/news";
 import { NewsArticle, NewsStatus } from "@/types/news";
@@ -76,6 +76,12 @@ const SettingsPanel = ({
   setPublishedAt,
   isFeatured,
   setIsFeatured,
+  availableCategories,
+  setAvailableCategories,
+  showCustomCategory,
+  setShowCustomCategory,
+  customCategory,
+  setCustomCategory,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -97,6 +103,12 @@ const SettingsPanel = ({
   setPublishedAt: (date: Date | undefined) => void;
   isFeatured: boolean;
   setIsFeatured: (featured: boolean) => void;
+  availableCategories: string[];
+  setAvailableCategories: (categories: string[]) => void;
+  showCustomCategory: boolean;
+  setShowCustomCategory: (show: boolean) => void;
+  customCategory: string;
+  setCustomCategory: (category: string) => void;
 }) => {
   if (!isOpen) return null;
 
@@ -292,12 +304,68 @@ const SettingsPanel = ({
               <Label className="text-xs text-gray-600 block mb-1">
                 Danh mục
               </Label>
-              <Input
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="Nhập danh mục..."
-                className="text-sm"
-              />
+              <div className="space-y-2">
+                <Select
+                  value={category || "none"}
+                  onValueChange={(value) => {
+                    if (value === "custom") {
+                      setShowCustomCategory(true);
+                      setCustomCategory("");
+                    } else if (value === "none") {
+                      setCategory("");
+                      setShowCustomCategory(false);
+                    } else {
+                      setCategory(value);
+                      setShowCustomCategory(false);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="Chọn hoặc nhập danh mục mới" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Không có danh mục</SelectItem>
+                    {availableCategories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom">+ Nhập danh mục mới</SelectItem>
+                  </SelectContent>
+                </Select>
+                {showCustomCategory && (
+                  <Input
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    onBlur={() => {
+                      if (customCategory.trim()) {
+                        setCategory(customCategory.trim());
+                        // Add to available categories if not exists
+                        if (!availableCategories.includes(customCategory.trim())) {
+                          setAvailableCategories([...availableCategories, customCategory.trim()].sort());
+                        }
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (customCategory.trim()) {
+                          setCategory(customCategory.trim());
+                          // Add to available categories if not exists
+                          if (!availableCategories.includes(customCategory.trim())) {
+                            setAvailableCategories([...availableCategories, customCategory.trim()].sort());
+                          }
+                          setShowCustomCategory(false);
+                          setCustomCategory("");
+                        }
+                      }
+                    }}
+                    placeholder="Nhập danh mục mới..."
+                    className="text-sm"
+                    autoFocus
+                  />
+                )}
+              </div>
             </div>
             <div>
               <Label className="text-xs text-gray-600 block mb-2">Thẻ (Tags)</Label>
@@ -515,21 +583,192 @@ const ImageUploadDialog = ({
 };
 
 // Editor Toolbar
-const EditorToolbar = ({ editorRef }: { editorRef: React.RefObject<HTMLDivElement | null> }) => {
+const EditorToolbar = ({ 
+  editorRef,
+  onContentChange,
+  onFormatChange
+}: { 
+  editorRef: React.RefObject<HTMLDivElement | null>;
+  onContentChange?: () => void;
+  onFormatChange?: () => void;
+}) => {
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [currentFormat, setCurrentFormat] = useState("Normal");
 
   const execCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
-    if (editorRef.current) {
+    if (!editorRef.current) {
+      console.warn("Editor ref not available");
+      return false;
+    }
+    
+    try {
+      // Ensure editor is focused and has selection
       editorRef.current.focus();
+      
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        // Create a range at the end of editor
+        const range = document.createRange();
+        range.selectNodeContents(editorRef.current);
+        range.collapse(false);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+      
+      const success = document.execCommand(command, false, value);
+      
+      if (!success) {
+        console.warn(`Command ${command} with value ${value} failed`);
+      }
+      
+      // Trigger input event to update content state
+      const inputEvent = new Event("input", { bubbles: true });
+      editorRef.current.dispatchEvent(inputEvent);
+      
+      return success;
+    } catch (error) {
+      console.error(`Error executing command ${command}:`, error);
+      return false;
     }
   };
 
   const formatHeading = (level: string) => {
-    if (level === "Normal") {
-      execCommand("formatBlock", "p");
-    } else {
-      execCommand("formatBlock", level.toLowerCase());
+    if (!editorRef.current) {
+      console.error("Editor ref not available");
+      toast.error("Editor chưa sẵn sàng");
+      return;
+    }
+    
+    try {
+      // Ensure editor is focused
+      editorRef.current.focus();
+      
+      // Get or create selection
+      const selection = window.getSelection();
+      let range: Range;
+      
+      if (!selection || selection.rangeCount === 0) {
+        // Create range at cursor position
+        range = document.createRange();
+        if (editorRef.current.firstChild) {
+          range.setStart(editorRef.current, 0);
+          range.setEnd(editorRef.current, 0);
+        } else {
+          range.selectNodeContents(editorRef.current);
+          range.collapse(false);
+        }
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      } else {
+        range = selection.getRangeAt(0);
+      }
+      
+      // Determine block tag
+      const blockTag = level === "Normal" ? "p" : level.toLowerCase();
+      
+      // Find the block element containing the selection
+      let blockElement: Element | null = null;
+      let node: Node | null = range.commonAncestorContainer;
+      
+      // Traverse up to find the block element
+      while (node && node !== editorRef.current) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const element = node as Element;
+          const tagName = element.tagName.toLowerCase();
+          // Check if it's a block element
+          if (['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'li'].includes(tagName)) {
+            blockElement = element;
+            break;
+          }
+        }
+        node = node.parentNode;
+      }
+      
+      // If no block element found, wrap selection in new block element
+      if (!blockElement) {
+        // Get the selected content (clone to avoid removing it)
+        const clonedContent = range.cloneContents();
+        const textContent = range.toString() || " ";
+        
+        // Create new element
+        const newElement = document.createElement(blockTag);
+        if (clonedContent.childNodes.length > 0) {
+          newElement.appendChild(clonedContent);
+        } else {
+          newElement.textContent = textContent || " ";
+        }
+        
+        // Delete original content and insert new element
+        range.deleteContents();
+        range.insertNode(newElement);
+        
+        // Set cursor in new element
+        const newRange = document.createRange();
+        newRange.selectNodeContents(newElement);
+        newRange.collapse(false);
+        if (selection) {
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+        }
+      } else {
+        // Replace existing block element
+        const newElement = document.createElement(blockTag);
+        
+        // Preserve all content including nested elements
+        newElement.innerHTML = blockElement.innerHTML || blockElement.textContent || " ";
+        
+        // Replace the element
+        blockElement.replaceWith(newElement);
+        
+        // Set cursor in new element (at the end)
+        const newRange = document.createRange();
+        newRange.selectNodeContents(newElement);
+        newRange.collapse(false);
+        if (selection) {
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+        }
+      }
+      
+      // Update current format
+      setCurrentFormat(level === "Normal" ? "Normal" : level.toLowerCase());
+      
+      // Trigger format change event immediately to prevent DocumentEditor from overwriting
+      if (editorRef.current) {
+        const formatChangeEvent = new CustomEvent("formatchange", { bubbles: true });
+        editorRef.current.dispatchEvent(formatChangeEvent);
+      }
+      
+      // Notify that format has changed (to prevent DocumentEditor from overwriting)
+      if (onFormatChange) {
+        onFormatChange();
+      }
+      
+      // Force update content state immediately using requestAnimationFrame to ensure DOM is fully updated
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (editorRef.current) {
+            // Get the updated HTML after DOM changes
+            const updatedContent = editorRef.current.innerHTML;
+            
+            // Update content state
+            if (onContentChange) {
+              onContentChange();
+            }
+            
+            // Trigger input event to ensure all listeners are notified
+            const inputEvent = new Event("input", { bubbles: true });
+            editorRef.current.dispatchEvent(inputEvent);
+          }
+        }, 0);
+      });
+      
+      editorRef.current.focus();
+      
+      console.log(`Format changed to: ${level}`);
+    } catch (error) {
+      console.error("Error formatting heading:", error);
+      toast.error("Không thể thay đổi định dạng. Vui lòng thử lại.");
     }
   };
 
@@ -593,8 +832,139 @@ const EditorToolbar = ({ editorRef }: { editorRef: React.RefObject<HTMLDivElemen
   };
 
   const insertList = () => {
-    execCommand("insertUnorderedList");
+    if (!editorRef.current) {
+      console.error("Editor ref not available");
+      toast.error("Editor chưa sẵn sàng");
+      return;
+    }
+    
+    try {
+      // Ensure editor is focused
+      editorRef.current.focus();
+      
+      // Get or create selection
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        // Create range at cursor position
+        const range = document.createRange();
+        if (editorRef.current.firstChild) {
+          range.setStart(editorRef.current, 0);
+          range.setEnd(editorRef.current, 0);
+        } else {
+          range.selectNodeContents(editorRef.current);
+          range.collapse(false);
+        }
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+      
+      // Try execCommand first
+      const success = document.execCommand("insertUnorderedList", false);
+      
+      if (!success && selection && selection.rangeCount > 0) {
+        // Fallback: manually create list
+        const range = selection.getRangeAt(0);
+        const container = range.commonAncestorContainer;
+        const parent = container.nodeType === Node.TEXT_NODE 
+          ? container.parentElement 
+          : container as Element;
+        
+        const list = document.createElement("ul");
+        list.style.marginLeft = "20px";
+        list.style.paddingLeft = "20px";
+        list.style.marginTop = "8px";
+        list.style.marginBottom = "8px";
+        
+        const listItem = document.createElement("li");
+        listItem.textContent = " ";
+        list.appendChild(listItem);
+        
+        // If we're in an empty paragraph, replace it
+        if (parent?.tagName === "P" && (!parent.textContent || parent.textContent.trim() === "")) {
+          parent.replaceWith(list);
+        } else {
+          // Insert list at current position
+          range.insertNode(list);
+        }
+        
+        // Set cursor in list item
+        const newRange = document.createRange();
+        newRange.setStart(listItem, 0);
+        newRange.setEnd(listItem, 0);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+      
+      // Trigger input event to update content state
+      const inputEvent = new Event("input", { bubbles: true });
+      editorRef.current.dispatchEvent(inputEvent);
+      editorRef.current.focus();
+      
+      console.log("List inserted successfully");
+    } catch (error) {
+      console.error("Error inserting list:", error);
+      toast.error("Không thể chèn danh sách. Vui lòng thử lại.");
+    }
   };
+
+  // Update current format when selection changes
+  useEffect(() => {
+    const updateFormat = () => {
+      if (!editorRef.current) return;
+      
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        
+        // Check if selection is within editor
+        if (!editorRef.current.contains(range.commonAncestorContainer)) {
+          return;
+        }
+        
+        const container = range.commonAncestorContainer;
+        let parent: Element | null = null;
+        
+        if (container.nodeType === Node.TEXT_NODE) {
+          parent = container.parentElement;
+        } else if (container.nodeType === Node.ELEMENT_NODE) {
+          parent = container as Element;
+        }
+        
+        // Traverse up to find block element
+        while (parent && parent !== editorRef.current) {
+          const tagName = parent.tagName.toLowerCase();
+          if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'].includes(tagName)) {
+            if (tagName === "h1" || tagName === "h2" || tagName === "h3") {
+              setCurrentFormat(tagName);
+            } else if (tagName === "p") {
+              setCurrentFormat("Normal");
+            }
+            return;
+          }
+          parent = parent.parentElement;
+        }
+        
+        // Default to Normal if no block element found
+        setCurrentFormat("Normal");
+      }
+    };
+    
+    // selectionchange is a global event on document
+    document.addEventListener("selectionchange", updateFormat);
+    
+    if (editorRef.current) {
+      editorRef.current.addEventListener("click", updateFormat);
+      editorRef.current.addEventListener("keyup", updateFormat);
+      
+      return () => {
+        document.removeEventListener("selectionchange", updateFormat);
+        if (editorRef.current) {
+          editorRef.current.removeEventListener("click", updateFormat);
+          editorRef.current.removeEventListener("keyup", updateFormat);
+        }
+      };
+    }
+  }, [editorRef]);
 
   return (
     <div className="sticky top-[65px] z-10 flex justify-center py-3 pointer-events-none">
@@ -602,8 +972,12 @@ const EditorToolbar = ({ editorRef }: { editorRef: React.RefObject<HTMLDivElemen
         <div className="flex items-center gap-0.5 border-r border-gray-200 pr-2 mr-2">
           <select
             className="text-sm font-medium bg-transparent border-none focus:ring-0 text-gray-700 cursor-pointer w-24"
-            onChange={(e) => formatHeading(e.target.value)}
-            defaultValue="Normal"
+            value={currentFormat}
+            onChange={(e) => {
+              const level = e.target.value;
+              setCurrentFormat(level);
+              formatHeading(level);
+            }}
           >
             <option value="Normal">Normal</option>
             <option value="h1">Heading 1</option>
@@ -715,6 +1089,7 @@ const DocumentEditor = ({
 }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [lastContent, setLastContent] = useState<string>("");
+  const [isFormatting, setIsFormatting] = useState(false);
 
   // Initialize editor with content
   useEffect(() => {
@@ -725,20 +1100,60 @@ const DocumentEditor = ({
     }
   }, [isInitialized, editorRef]);
 
+  // Listen for format changes to prevent overwriting
+  useEffect(() => {
+    if (!editorRef.current) return;
+    
+    const handleFormatChange = () => {
+      setIsFormatting(true);
+      // Update lastContent to match current DOM to prevent overwrite
+      if (editorRef.current) {
+        const currentContent = editorRef.current.innerHTML;
+        setLastContent(currentContent);
+        // Also update the content state
+        setContent(currentContent);
+      }
+      // Reset flag after a short delay
+      setTimeout(() => setIsFormatting(false), 100);
+    };
+
+    editorRef.current.addEventListener("formatchange", handleFormatChange);
+    
+    return () => {
+      if (editorRef.current) {
+        editorRef.current.removeEventListener("formatchange", handleFormatChange);
+      }
+    };
+  }, [editorRef, setContent]);
+
   // Update content when it changes from outside (e.g., loaded from API)
   useEffect(() => {
+    // Don't update if we're currently formatting (to prevent overwriting format changes)
+    if (isFormatting) {
+      return;
+    }
+    
     if (editorRef.current && isInitialized && content !== lastContent) {
       // Only update if content actually changed and user isn't actively editing
       const currentContent = editorRef.current.innerHTML;
-      if (currentContent !== content) {
-        editorRef.current.innerHTML = content || "<p></p>";
-        setLastContent(content);
+      // Only update if the content is significantly different (more than just whitespace)
+      // This prevents overriding user's direct DOM edits (like format changes)
+      const normalizedCurrent = currentContent.trim().replace(/\s+/g, ' ');
+      const normalizedNew = content.trim().replace(/\s+/g, ' ');
+      
+      if (normalizedCurrent !== normalizedNew) {
+        // Check if editor is focused - if so, don't override (user is actively editing)
+        const isFocused = document.activeElement === editorRef.current;
+        if (!isFocused) {
+          editorRef.current.innerHTML = content || "<p></p>";
+          setLastContent(content);
+        }
       }
     }
-  }, [content, isInitialized, lastContent, editorRef]);
+  }, [content, isInitialized, lastContent, editorRef, isFormatting]);
 
   const handleInput = () => {
-    if (editorRef.current) {
+    if (editorRef.current && !isFormatting) {
       const newContent = editorRef.current.innerHTML;
       setContent(newContent);
       setLastContent(newContent);
@@ -779,11 +1194,9 @@ const DocumentEditor = ({
 export default function NewsEditPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
-  const pathname = usePathname();
-  const locale = pathname?.split("/")[1] || "vi";
-  const pathSegments = pathname?.split("/").filter(Boolean) || [];
-  const lastSegment = pathSegments[pathSegments.length - 1];
-  const id = lastSegment && lastSegment !== "new" ? lastSegment : null;
+  const params = useParams<{ id: string; locale: string }>();
+  const id = params?.id as string | undefined;
+  const locale = (params?.locale as string) || "vi";
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<NewsStatus>("draft");
   const [showSettings, setShowSettings] = useState(true);
@@ -798,7 +1211,34 @@ export default function NewsEditPage() {
   const [isFeatured, setIsFeatured] = useState(false);
   const [lastSaved, setLastSaved] = useState("Chưa lưu");
   const [loading, setLoading] = useState(true);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState("");
   const editorRef = useRef<HTMLDivElement>(null);
+
+  // Fetch available categories from all articles
+  const fetchCategories = React.useCallback(async () => {
+    if (!isAuthenticated || !user || authLoading) {
+      return;
+    }
+    
+    try {
+      const response = await newsApi.adminList({ locale, status: "all" });
+      if (response && response.success && Array.isArray(response.data)) {
+        const categorySet = new Set<string>();
+        response.data.forEach((article: NewsArticle) => {
+          if (article.category && article.category.trim()) {
+            categorySet.add(article.category.trim());
+          }
+        });
+        const categories = Array.from(categorySet).sort();
+        setAvailableCategories(categories);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      // Không hiển thị error vì đây là optional feature
+    }
+  }, [isAuthenticated, user, authLoading, locale]);
 
   const fetchNews = React.useCallback(async () => {
     // Wait for auth to finish loading
@@ -810,7 +1250,11 @@ export default function NewsEditPage() {
       if (!isAuthenticated || !user) {
         toast.error("Vui lòng đăng nhập để chỉnh sửa tin tức");
         router.push(`/${locale}/admin/news`);
+      } else if (!id) {
+        toast.error("ID bài viết không hợp lệ");
+        router.push(`/${locale}/admin/news`);
       }
+      setLoading(false);
       return;
     }
     
@@ -868,6 +1312,9 @@ export default function NewsEditPage() {
     }
     
     if (isAuthenticated && user) {
+      // Fetch categories first
+      fetchCategories();
+      
       if (id) {
         fetchNews();
       } else {
@@ -1241,7 +1688,18 @@ export default function NewsEditPage() {
             showSettings ? "mr-80" : "mr-0"
           }`}
         >
-          <EditorToolbar editorRef={editorRef} />
+          <EditorToolbar 
+            editorRef={editorRef}
+            onContentChange={() => {
+              if (editorRef.current) {
+                const newContent = editorRef.current.innerHTML;
+                setContent(newContent);
+              }
+            }}
+            onFormatChange={() => {
+              // This will be handled by the formatchange event listener
+            }}
+          />
           <div className="px-4 pb-20">
             <DocumentEditor
               content={content}
@@ -1269,6 +1727,12 @@ export default function NewsEditPage() {
           setCategory={setCategory}
           tags={tags}
           setTags={setTags}
+          availableCategories={availableCategories}
+          setAvailableCategories={setAvailableCategories}
+          showCustomCategory={showCustomCategory}
+          setShowCustomCategory={setShowCustomCategory}
+          customCategory={customCategory}
+          setCustomCategory={setCustomCategory}
           locale={locale}
           publishedAt={publishedAt}
           setPublishedAt={setPublishedAt}

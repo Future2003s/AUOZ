@@ -179,6 +179,15 @@
     scroll-behavior: smooth;
   }
 
+  /* Force Desktop View - Set minimum viewport width */
+  .force-desktop-view {
+    min-width: 1024px;
+  }
+  
+  .force-desktop-view body {
+    min-width: 1024px;
+  }
+
   /* Better touch targets on mobile */
   @media (hover: none) and (pointer: coarse) {
     button,

@@ -1,6 +1,6 @@
 "use client";
-import React from "react";
-import { Home, ChevronRight, User, Share2, Bookmark, ArrowLeft } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Home, ChevronRight, User, Share2, Bookmark, ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArticleCard } from "./components/ArticleCard";
@@ -9,6 +9,7 @@ import { ContentRenderer } from "./components/ContentRenderer";
 import { NewsArticle } from "@/types/news";
 import { StructuredData } from "@/components/StructuredData";
 import { envConfig } from "@/config";
+import { toast } from "sonner";
 
 interface ArticleDetailClientProps {
   article: NewsArticle;
@@ -23,6 +24,129 @@ export default function ArticleDetailClient({
 }: ArticleDetailClientProps) {
   const categoryName = article.category || "Tin tức";
   const baseUrl = envConfig.NEXT_PUBLIC_URL || "https://lala-lycheee.com";
+  const articleUrl = `${baseUrl}/${locale}/news/${article.slug}`;
+  
+  // State để track xem article đã được lưu chưa
+  const [isSaved, setIsSaved] = useState(false);
+  
+  // Kiểm tra xem article đã được lưu chưa khi component mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedArticles = JSON.parse(
+        localStorage.getItem("savedArticles") || "[]"
+      );
+      const articleId = article._id || article.id || article.slug;
+      // Kiểm tra cả format cũ (array of IDs) và format mới (array of objects)
+      const isArticleSaved = Array.isArray(savedArticles) && savedArticles.some(
+        (item: any) => {
+          if (typeof item === "string") {
+            // Format cũ: array of IDs
+            return item === articleId;
+          } else if (typeof item === "object" && item.id) {
+            // Format mới: array of objects
+            return item.id === articleId;
+          }
+          return false;
+        }
+      );
+      setIsSaved(isArticleSaved);
+    }
+  }, [article]);
+  
+  // Function để chia sẻ bài viết
+  const handleShare = async () => {
+    const shareData = {
+      title: article.title,
+      text: article.excerpt || article.title,
+      url: articleUrl,
+    };
+    
+    try {
+      // Sử dụng Web Share API nếu có (mobile)
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        toast.success("Đã chia sẻ bài viết!");
+      } else {
+        // Fallback: Copy link vào clipboard
+        await navigator.clipboard.writeText(articleUrl);
+        toast.success("Đã sao chép link bài viết!");
+      }
+    } catch (error: any) {
+      // User cancelled share hoặc có lỗi
+      if (error.name !== "AbortError") {
+        // Fallback: Copy link vào clipboard
+        try {
+          await navigator.clipboard.writeText(articleUrl);
+          toast.success("Đã sao chép link bài viết!");
+        } catch (clipboardError) {
+          toast.error("Không thể chia sẻ bài viết");
+        }
+      }
+    }
+  };
+  
+  // Function để lưu/bỏ lưu bài viết
+  const handleBookmark = () => {
+    if (typeof window === "undefined") return;
+    
+    const savedArticles = JSON.parse(
+      localStorage.getItem("savedArticles") || "[]"
+    );
+    const articleId = article._id || article.id || article.slug;
+    
+    // Normalize savedArticles: convert old format (array of IDs) to new format (array of objects)
+    const normalizedArticles = savedArticles.map((item: any) => {
+      if (typeof item === "string") {
+        // Old format: convert to new format
+        return {
+          id: item,
+          title: "",
+          slug: "",
+          savedAt: new Date().toISOString(),
+        };
+      }
+      return item;
+    });
+    
+    if (isSaved) {
+      // Bỏ lưu: Remove article from saved list
+      const updated = normalizedArticles.filter(
+        (item: any) => item.id !== articleId
+      );
+      localStorage.setItem("savedArticles", JSON.stringify(updated));
+      setIsSaved(false);
+      toast.success("Đã bỏ lưu bài viết");
+    } else {
+      // Lưu: Add article với đầy đủ thông tin
+      const articleData = {
+        id: articleId,
+        _id: article._id,
+        title: article.title,
+        slug: article.slug,
+        excerpt: article.excerpt,
+        coverImage: article.coverImage,
+        category: article.category,
+        authorName: article.authorName,
+        publishedAt: article.publishedAt,
+        locale: article.locale,
+        savedAt: new Date().toISOString(), // Thời gian lưu
+      };
+      
+      // Kiểm tra xem đã tồn tại chưa (tránh duplicate)
+      const exists = normalizedArticles.some(
+        (item: any) => item.id === articleId
+      );
+      
+      if (!exists) {
+        normalizedArticles.push(articleData);
+        localStorage.setItem("savedArticles", JSON.stringify(normalizedArticles));
+        setIsSaved(true);
+        toast.success("Đã lưu bài viết");
+      } else {
+        toast.info("Bài viết đã được lưu trước đó");
+      }
+    }
+  };
   
   const articleStructuredData = {
     headline: article.title,
@@ -81,18 +205,23 @@ export default function ArticleDetailClient({
         <div className="hidden lg:block lg:col-span-1">
           <div className="sticky top-32 flex flex-col space-y-4 items-center">
             <button 
+              onClick={handleShare}
               className="p-3 rounded-full bg-gray-100 text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors" 
               title="Chia sẻ"
             >
               <Share2 size={20}/>
             </button>
             <button 
-              className="p-3 rounded-full bg-gray-100 text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors" 
-              title="Lưu"
+              onClick={handleBookmark}
+              className={`p-3 rounded-full transition-colors ${
+                isSaved 
+                  ? "bg-red-600 text-white hover:bg-red-700" 
+                  : "bg-gray-100 text-gray-500 hover:text-red-600 hover:bg-red-50"
+              }`}
+              title={isSaved ? "Đã lưu" : "Lưu bài viết"}
             >
-              <Bookmark size={20}/>
+              {isSaved ? <Check size={20}/> : <Bookmark size={20}/>}
             </button>
-            <span className="text-xs text-gray-400 font-medium mt-2">120 shares</span>
           </div>
         </div>
 
@@ -218,22 +347,6 @@ export default function ArticleDetailClient({
               </div>
             </div>
           )}
-
-          {/* Newsletter Subscription */}
-          <div className="bg-gradient-to-br from-red-600 to-red-700 p-6 rounded-xl text-white shadow-lg">
-            <h3 className="font-bold text-xl mb-2">Đăng ký bản tin</h3>
-            <p className="text-red-100 text-sm mb-4">
-              Nhận tin tức về vải thiều, nông nghiệp và các ưu đãi đặc biệt từ LALA-LYCHEEE.
-            </p>
-            <input 
-              type="email" 
-              placeholder="Email của bạn" 
-              className="w-full px-4 py-2.5 rounded-lg border-none mb-3 text-gray-900 focus:ring-2 focus:ring-white focus:outline-none bg-white/90 placeholder-gray-500" 
-            />
-            <button className="w-full bg-gray-900 text-white font-medium py-2.5 rounded-lg hover:bg-black transition-colors shadow-md">
-              Đăng ký ngay
-            </button>
-          </div>
         </div>
       </div>
 

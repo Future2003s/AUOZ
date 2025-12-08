@@ -6,7 +6,15 @@ const baseUrl =
   envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
 
 export async function GET(request: NextRequest) {
-  const qs = request.nextUrl.searchParams.toString();
+  const searchParams = request.nextUrl.searchParams;
+  
+  // Đảm bảo chỉ lấy published articles cho public API
+  // Trừ khi có query param status được chỉ định rõ ràng (cho admin)
+  if (!searchParams.has("status")) {
+    searchParams.set("status", "published");
+  }
+  
+  const qs = searchParams.toString();
   const url = `${baseUrl}/news${qs ? `?${qs}` : ""}`;
   return proxyJson(url, request, {
     method: "GET",

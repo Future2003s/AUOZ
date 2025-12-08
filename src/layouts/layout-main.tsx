@@ -21,6 +21,7 @@ function LayoutMain({ children }: { children: React.ReactNode }) {
     ? /\/admin|\/dashboard|\/employee/.test(pathname)
     : false;
 
+
   return (
     <div>
       {/* Organization Structured Data - Global */}

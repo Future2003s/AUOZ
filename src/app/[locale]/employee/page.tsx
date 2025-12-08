@@ -17,6 +17,7 @@ import {
   Settings,
   ArrowRight,
   ClipboardList,
+  Scissors,
 } from "lucide-react";
 
 interface TaskCard {
@@ -87,6 +88,15 @@ const taskCards: TaskCard[] = [
     href: "/employee/documents",
     color: "text-orange-600 dark:text-orange-400",
     bgColor: "bg-orange-100 dark:bg-orange-900/30",
+  },
+  {
+    id: "flower-logs",
+    title: "Sổ Cắt Hoa",
+    description: "Quản lý và theo dõi phiếu cắt hoa, nơ",
+    icon: Scissors,
+    href: "/employee/flower-logs",
+    color: "text-rose-600 dark:text-rose-400",
+    bgColor: "bg-rose-100 dark:bg-rose-900/30",
   },
 ];
 

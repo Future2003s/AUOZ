@@ -708,7 +708,10 @@ export default function ProductDetailPage() {
                   Để sau
                 </Button>
                 <Button
-                  onClick={() => router.push("/login")}
+                  onClick={() => {
+                    const currentPath = `/${locale}/products/${id}`;
+                    router.push(`/${locale}/login?reason=login_required&redirect=${encodeURIComponent(currentPath)}`);
+                  }}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
                   Đăng nhập

@@ -38,6 +38,9 @@ function LoginForm() {
   const { login, loginExtended } = useAuth();
   const t = useTranslations();
 
+  // Get redirect URL from query params
+  const redirectUrl = searchParams.get("redirect");
+
   const {
     register,
     formState: { errors },
@@ -67,7 +70,9 @@ function LoginForm() {
           // Hiển thị Loader thành công trong 0.5 giây
           setShowSuccessLoader(true);
           setTimeout(() => {
-            router.replace(`/${locale}/me`);
+            // Redirect to the intended URL if provided, otherwise go to /me
+            const targetUrl = redirectUrl || `/${locale}/me`;
+            router.replace(targetUrl);
           }, 500);
           return;
         }
@@ -79,7 +84,9 @@ function LoginForm() {
           // Hiển thị Loader thành công trong 0.5 giây
           setShowSuccessLoader(true);
           setTimeout(() => {
-            router.replace(`/${locale}/me`);
+            // Redirect to the intended URL if provided, otherwise go to /me
+            const targetUrl = redirectUrl || `/${locale}/me`;
+            router.replace(targetUrl);
           }, 500);
           return;
         }

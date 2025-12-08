@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import { isValidLocale } from "@/i18n/config";
 import { NewsArticle } from "@/types/news";
 import ArticleDetailClient from "../ArticleDetailClient";
-import { MOCK_ARTICLES } from "../mockArticles";
 import { envConfig } from "@/config";
 
 const baseUrl = envConfig.NEXT_PUBLIC_URL || "https://lala-lycheee.com";
@@ -13,8 +12,8 @@ async function fetchArticle(locale: string, slug: string): Promise<NewsArticle |
   const h = await headers();
   const host = h.get("host");
   if (!host) {
-    // Fallback to mock data
-    return MOCK_ARTICLES.find(a => a.slug === slug) ?? null;
+    console.error("[News API] No host header found");
+    return null;
   }
   const proto = h.get("x-forwarded-proto") ?? "http";
   const url = `${proto}://${host}/api/news/${slug}?locale=${locale}`;
@@ -22,17 +21,52 @@ async function fetchArticle(locale: string, slug: string): Promise<NewsArticle |
     const res = await fetch(url, { 
       next: { revalidate: 600 } // Cache 10 phút cho article detail
     });
+    
     if (!res.ok) {
-      // Fallback to mock data
-      return MOCK_ARTICLES.find(a => a.slug === slug) ?? null;
+      if (res.status === 404) {
+        console.warn(`[News API] Article not found: ${slug}`);
+      } else {
+        console.error(`[News API] Failed to fetch article "${slug}": ${res.status} ${res.statusText}`);
+      }
+      return null;
     }
+    
     const payload = await res.json();
-    const apiArticle = payload?.data;
-    if (apiArticle) return apiArticle;
-    return MOCK_ARTICLES.find(a => a.slug === slug) ?? null;
+    
+    // Xử lý nhiều format response khác nhau
+    // Format 1: { success: true, data: NewsArticle, hash?: string }
+    // Format 2: { data: NewsArticle }
+    // Format 3: NewsArticle trực tiếp
+    let apiArticle: NewsArticle | null = null;
+    
+    if (payload?.data && typeof payload.data === 'object' && payload.data.slug) {
+      apiArticle = payload.data as NewsArticle;
+    } else if (payload && typeof payload === 'object' && payload.slug) {
+      // Nếu payload chính là article object
+      apiArticle = payload as NewsArticle;
+    }
+    
+    // Log hash nếu có (để debug)
+    if (payload?.hash) {
+      console.log(`[News API] Response hash for "${slug}":`, payload.hash);
+    }
+    
+    // Validate article có đủ thông tin cần thiết
+    if (apiArticle && apiArticle.slug && apiArticle.title) {
+      // Chỉ trả về published articles cho public route
+      if (apiArticle.status !== "published") {
+        console.warn(`[News API] Article "${slug}" is not published (status: ${apiArticle.status})`);
+        return null;
+      }
+      console.log(`[News API] Successfully fetched article: ${slug}`);
+      return apiArticle;
+    }
+    
+    console.warn(`[News API] Invalid article data format for slug "${slug}":`, payload);
+    return null;
   } catch (error) {
-    console.error("Error fetching article, using mock data:", error);
-    return MOCK_ARTICLES.find(a => a.slug === slug) ?? null;
+    console.error(`[News API] Error fetching article "${slug}":`, error);
+    return null;
   }
 }
 
@@ -45,25 +79,36 @@ async function fetchRelatedArticles(
   const host = h.get("host");
   let articles: NewsArticle[] = [];
   
-  if (host) {
-    const proto = h.get("x-forwarded-proto") ?? "http";
-    const url = `${proto}://${host}/api/news?locale=${locale}`;
-    try {
-      const res = await fetch(url, { 
-      next: { revalidate: 600 } // Cache 10 phút cho article detail
-    });
-      if (res.ok) {
-        const payload = await res.json();
-        articles = payload?.data ?? [];
-      }
-    } catch (error) {
-      console.error("Error fetching related articles:", error);
-    }
+  if (!host) {
+    console.error("[News API] No host header found for related articles");
+    return [];
   }
   
-  // If no articles from API, use mock data
-  if (articles.length === 0) {
-    articles = MOCK_ARTICLES;
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const url = `${proto}://${host}/api/news?locale=${locale}`;
+  try {
+    const res = await fetch(url, { 
+      next: { revalidate: 600 } // Cache 10 phút cho article detail
+    });
+    if (res.ok) {
+      const payload = await res.json();
+      
+      // Xử lý nhiều format response
+      if (Array.isArray(payload?.data)) {
+        articles = payload.data;
+      } else if (Array.isArray(payload)) {
+        articles = payload;
+      }
+      
+      // Log hash nếu có
+      if (payload?.hash) {
+        console.log("[News API] Related articles hash:", payload.hash);
+      }
+    } else {
+      console.warn(`[News API] Failed to fetch related articles: ${res.status}`);
+    }
+  } catch (error) {
+    console.error("[News API] Error fetching related articles:", error);
   }
   
   return articles
@@ -143,8 +188,18 @@ export default async function ArticleDetailPage({
 
   const article = await fetchArticle(locale, slug);
   if (!article) {
+    console.warn(`[News Page] Article not found for slug: ${slug}, locale: ${locale}`);
     notFound();
   }
+
+  // Log để debug
+  console.log(`[News Page] Article found:`, {
+    slug: article.slug,
+    title: article.title,
+    hasContentBlocks: !!article.contentBlocks && article.contentBlocks.length > 0,
+    hasContent: !!article.content,
+    contentBlocksLength: article.contentBlocks?.length || 0,
+  });
 
   const relatedArticles = await fetchRelatedArticles(
     locale,

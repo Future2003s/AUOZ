@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { envConfig } from "@/config";
+import EmployeeLayoutClient from "./EmployeeLayoutClient";
 
 async function fetchMeServer() {
   try {
@@ -50,7 +51,12 @@ export default async function EmployeeLayout({ children, params }: EmployeeLayou
 
   // Check if user is authenticated (user data exists)
   if (!me || !me.role) {
-    redirect(`/${locale}/login`);
+    const currentPath = `/${locale}/employee`;
+    redirect(
+      `/${locale}/login?reason=login_required&redirect=${encodeURIComponent(
+        currentPath
+      )}`
+    );
   }
 
   // Check if user is ADMIN or EMPLOYEE (ADMIN and EMPLOYEE can access employee routes)
@@ -62,11 +68,9 @@ export default async function EmployeeLayout({ children, params }: EmployeeLayou
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="container mx-auto px-4 py-6">
-        {children}
-      </div>
-    </div>
+    <EmployeeLayoutClient>
+      {children}
+    </EmployeeLayoutClient>
   );
 }
 

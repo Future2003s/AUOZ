@@ -30,6 +30,7 @@ import accountApiRequest from "@/apiRequests/account";
 import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { categoryApiRequest, Category } from "@/apiRequests/categories";
+import { Monitor } from "lucide-react";
 
 // Navigation links will be translated in component
 const getNavLinks = (
@@ -713,10 +714,36 @@ export default function Header() {
                   </span>
                 )}
               </Link>
-              {/* Quick Language Toggle for Mobile */}
-              <div className="md:hidden">
-                <QuickLanguageToggle />
-              </div>
+              {/* PC View Toggle Button - Mobile Only */}
+              <button
+                onClick={() => {
+                  // Toggle desktop view trong session hiện tại
+                  const html = document.documentElement;
+                  const body = document.body;
+                  const isForced = html.classList.contains('force-desktop-view');
+                  
+                  if (isForced) {
+                    html.classList.remove('force-desktop-view');
+                    body.classList.remove('force-desktop-view');
+                    const viewport = document.querySelector('meta[name="viewport"]');
+                    if (viewport) {
+                      viewport.setAttribute('content', 'width=device-width, initial-scale=1');
+                    }
+                  } else {
+                    html.classList.add('force-desktop-view');
+                    body.classList.add('force-desktop-view');
+                    const viewport = document.querySelector('meta[name="viewport"]');
+                    if (viewport) {
+                      viewport.setAttribute('content', 'width=1024');
+                    }
+                  }
+                }}
+                className="p-2 text-slate-700 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors duration-200 lg:hidden"
+                aria-label="Chuyển sang chế độ PC"
+                title="Chuyển sang chế độ PC"
+              >
+                <Monitor className="w-5 h-5" />
+              </button>
               <ThemeToggle />
               <div className="hidden md:block">
                 <LanguageSwitcher />

@@ -12,9 +12,30 @@ interface ContentRendererProps {
 export const ContentRenderer: React.FC<ContentRendererProps> = ({ blocks, content }) => {
   const [processedContent, setProcessedContent] = React.useState<string>(content || "");
   
+  // Kiểm tra content có thực sự có nội dung không (không chỉ là khoảng trắng)
+  const hasValidContent = content && content.trim().length > 0;
+  const hasValidBlocks = blocks && blocks.length > 0;
+  
+  // Log để debug
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      console.log("[ContentRenderer] Props:", {
+        hasBlocks: !!blocks,
+        blocksLength: blocks?.length || 0,
+        hasContent: !!content,
+        contentLength: content?.length || 0,
+        contentPreview: content?.substring(0, 100) || "empty",
+        hasValidBlocks,
+        hasValidContent,
+      });
+    }
+  }, [blocks, content, hasValidBlocks, hasValidContent]);
+  
   // Process content on client-side to ensure images are properly rendered
   React.useEffect(() => {
-    if (!blocks && content && typeof window !== "undefined") {
+    
+    // Nếu không có blocks nhưng có content, xử lý HTML content
+    if (!hasValidBlocks && hasValidContent && typeof window !== "undefined") {
       console.log("Processing content for rendering:", content);
       console.log("Content has images:", content.includes("<img"));
       
@@ -45,13 +66,13 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({ blocks, conten
       const processed = tempDiv.innerHTML;
       console.log("Processed content:", processed);
       setProcessedContent(processed);
-    } else if (content) {
+    } else if (hasValidContent) {
       setProcessedContent(content);
     }
-  }, [content, blocks]);
+  }, [content, blocks, hasValidBlocks, hasValidContent]);
   
-  // If no blocks but has content, render HTML
-  if (!blocks && content) {
+  // Nếu không có blocks (hoặc mảng rỗng) nhưng có content, render HTML
+  if (!hasValidBlocks && hasValidContent) {
     return (
       <>
         <style jsx>{`
@@ -77,7 +98,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({ blocks, conten
         `}</style>
         <div 
           className="article-content prose prose-lg max-w-none text-gray-700 leading-loose"
-          dangerouslySetInnerHTML={{ __html: processedContent }}
+          dangerouslySetInnerHTML={{ __html: processedContent || content || "" }}
           style={{
             // Ensure images are responsive
             wordBreak: "break-word",
@@ -87,13 +108,20 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({ blocks, conten
     );
   }
 
-  if (!blocks || blocks.length === 0) {
-    return <p className="text-gray-500">Đang cập nhật nội dung...</p>;
+  // Nếu không có blocks và không có content hợp lệ, hiển thị thông báo
+  if (!hasValidBlocks && !hasValidContent) {
+    console.warn("[ContentRenderer] No content or blocks found");
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500 text-lg mb-2">Nội dung bài viết đang được cập nhật</p>
+        <p className="text-gray-400 text-sm">Vui lòng quay lại sau.</p>
+      </div>
+    );
   }
 
   return (
     <div className="prose prose-lg max-w-none text-gray-700 leading-loose">
-      {blocks.map((block, index) => {
+      {blocks?.map((block, index) => {
         switch (block.type) {
           case 'h2':
             const h2Id = block.id || `heading-${index}`;

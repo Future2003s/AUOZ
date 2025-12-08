@@ -1,20 +1,11 @@
 "use client";
 import React, { useState } from "react";
-import { ChevronRight, TrendingUp } from "lucide-react";
+import { ChevronRight, TrendingUp, Bookmark } from "lucide-react";
 import Link from "next/link";
 import { ArticleCard } from "./components/ArticleCard";
 import { FeaturedArticle } from "./components/FeaturedArticle";
 import { NewsArticle } from "@/types/news";
-
-const CATEGORIES = [
-  { id: 'all', name: 'Tất cả' },
-  { id: 'agriculture', name: 'Nông nghiệp & Canh tác' },
-  { id: 'products', name: 'Sản phẩm & Chất lượng' },
-  { id: 'market', name: 'Thị trường & Xuất khẩu' },
-  { id: 'technology', name: 'Công nghệ & Bảo quản' },
-  { id: 'community', name: 'Cộng đồng & Vĩnh Lập' },
-  { id: 'health', name: 'Sức khỏe & Dinh dưỡng' },
-];
+import { useAuth } from "@/hooks/useAuth";
 
 interface NewsClientProps {
   articles: NewsArticle[];
@@ -22,15 +13,51 @@ interface NewsClientProps {
 }
 
 export default function NewsClient({ articles, locale }: NewsClientProps) {
+  const { isAuthenticated } = useAuth();
   const [currentCategory, setCurrentCategory] = useState('all');
 
-  // Filter logic
-  const displayedNews = currentCategory === 'all' 
-    ? articles 
-    : articles.filter(n => n.category?.toLowerCase() === currentCategory.toLowerCase());
+  // Tự động lấy categories từ articles thực tế
+  const categories = React.useMemo(() => {
+    const categorySet = new Set<string>();
+    articles.forEach(article => {
+      if (article.category && article.category.trim()) {
+        categorySet.add(article.category.trim());
+      }
+    });
+    
+    // Sắp xếp categories và tạo array với "Tất cả" ở đầu
+    const categoryArray = Array.from(categorySet).sort();
+    return [
+      { id: 'all', name: 'Tất cả' },
+      ...categoryArray.map(cat => ({
+        id: cat.toLowerCase().replace(/\s+/g, '-'),
+        name: cat
+      }))
+    ];
+  }, [articles]);
 
-  const featuredNews = displayedNews.find(n => n.isFeatured) || displayedNews[0];
-  const otherNews = displayedNews.filter(n => n._id !== featuredNews?._id);
+  // Filter logic - so sánh với category name thực tế từ article
+  const displayedNews = React.useMemo(() => {
+    if (currentCategory === 'all') {
+      return articles;
+    }
+    // Tìm category name từ id
+    const selectedCategory = categories.find(c => c.id === currentCategory);
+    if (!selectedCategory) return articles;
+    
+    // So sánh với category name thực tế (case-insensitive và trim)
+    return articles.filter(n => {
+      const articleCategory = n.category?.trim() || '';
+      return articleCategory.toLowerCase() === selectedCategory.name.toLowerCase();
+    });
+  }, [articles, currentCategory, categories]);
+
+  const featuredNews = displayedNews.length > 0 
+    ? (displayedNews.find(n => n.isFeatured) || displayedNews[0])
+    : null;
+  const otherNews = featuredNews 
+    ? displayedNews.filter(n => n._id !== featuredNews._id)
+    : displayedNews;
 
   const handleSetCategory = (id: string) => {
     setCurrentCategory(id);
@@ -43,26 +70,47 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
         <div className="container mx-auto px-4 py-8 animate-fade-in">
           
           {/* Category Navigation */}
-          <div className="mb-8 flex flex-wrap gap-2 border-b border-gray-200 pb-4">
-            {CATEGORIES.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => handleSetCategory(category.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  currentCategory === category.id
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+          <div className="mb-8 flex flex-wrap items-center gap-2 border-b border-gray-200 pb-4">
+            {categories.length > 1 && (
+              <>
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleSetCategory(category.id)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      currentCategory === category.id
+                        ? 'bg-red-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </>
+            )}
+            {isAuthenticated && (
+              <Link
+                href={`/${locale}/news/saved`}
+                className="ml-auto px-4 py-2 rounded-lg font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center gap-2"
               >
-                {category.name}
-              </button>
-            ))}
+                <Bookmark size={18} />
+                Bài viết đã lưu
+              </Link>
+            )}
           </div>
 
           {/* Hero Section - Featured Article */}
-          {currentCategory === 'all' && featuredNews && (
+          {currentCategory === 'all' && featuredNews && articles.length > 0 && (
             <div className="mb-12">
               <FeaturedArticle article={featuredNews} locale={locale} />
+            </div>
+          )}
+          
+          {/* Empty State */}
+          {articles.length === 0 && (
+            <div className="text-center py-20 text-gray-500 bg-gray-50 rounded-xl">
+              <p className="text-lg font-medium mb-2">Chưa có bài viết nào</p>
+              <p className="text-sm">Vui lòng quay lại sau.</p>
             </div>
           )}
 
@@ -76,7 +124,7 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
                   <span className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
                   {currentCategory === 'all' 
                     ? 'Tin tức LALA-LYCHEEE' 
-                    : CATEGORIES.find(c => c.id === currentCategory)?.name || 'Tin tức'}
+                    : categories.find(c => c.id === currentCategory)?.name || 'Tin tức'}
                 </h2>
                 <Link 
                   href={`/${locale}/news`}

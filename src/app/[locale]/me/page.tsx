@@ -186,7 +186,8 @@ export default function ProfilePage() {
         toast.error("Vui lòng đăng nhập để xem trang cá nhân");
           // Extract locale from pathname
           const locale = pathname.split('/')[1] || 'vi';
-          router.push(`/${locale}/login`);
+          const currentPath = pathname || `/${locale}/me`;
+          router.push(`/${locale}/login?reason=login_required&redirect=${encodeURIComponent(currentPath)}`);
         }
       } else {
         hasShownToastRef.current = true;
@@ -215,7 +216,8 @@ export default function ProfilePage() {
           toast.error("Vui lòng đăng nhập để xem trang cá nhân");
             }
             const locale = pathname.split('/')[1] || 'vi';
-            router.push(`/${locale}/login`);
+            const currentPath = pathname || `/${locale}/me`;
+            router.push(`/${locale}/login?reason=login_required&redirect=${encodeURIComponent(currentPath)}`);
         }
       }, 1000);
       return () => clearTimeout(timer);
