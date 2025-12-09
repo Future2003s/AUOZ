@@ -59,7 +59,8 @@ const FLOWER_CATEGORIES: Record<string, string[]> = {
 const normalizeItems = (items: FlowerLogItem[]): FlowerLogItem[] =>
   (items || []).map((item) => ({
     ...item,
-    quantity: Math.max(1, Number(item.quantity) || 0),
+    // Giữ số không âm, backend đã validate min=0
+    quantity: Math.max(0, Number(item.quantity) || 0),
   }));
 
 // Helpers để format / parse số lượng hiển thị có dấu chấm
@@ -71,7 +72,8 @@ const formatQuantity = (value: number) => {
 const parseQuantityInput = (value: string) => {
   const digitsOnly = value.replace(/\D/g, "");
   if (!digitsOnly) return 0;
-  return Math.max(1, parseInt(digitsOnly, 10));
+  const parsed = parseInt(digitsOnly, 10);
+  return Number.isNaN(parsed) ? 0 : parsed;
 };
 
 // ==========================================
@@ -536,7 +538,7 @@ export default function FlowerLogsPage() {
   const [flowerFormDate, setFlowerFormDate] = useState(new Date().toISOString().split('T')[0]);
   const [flowerFormCutter, setFlowerFormCutter] = useState('');
   const [flowerFormItems, setFlowerFormItems] = useState<FlowerLogItem[]>([
-    { category: 'Nơ', type: FLOWER_CATEGORIES['Nơ'][0], quantity: 1 }
+    { category: 'Nơ', type: FLOWER_CATEGORIES['Nơ'][0], quantity: 0 }
   ]);
 
   // Fetch flower logs from backend via Next.js API route
@@ -621,7 +623,7 @@ export default function FlowerLogsPage() {
         // Reset form
         setFlowerFormDate(new Date().toISOString().split('T')[0]);
         setFlowerFormCutter('');
-        setFlowerFormItems([{ category: 'Nơ', type: FLOWER_CATEGORIES['Nơ'][0], quantity: 1 }]);
+        setFlowerFormItems([{ category: 'Nơ', type: FLOWER_CATEGORIES['Nơ'][0], quantity: 0 }]);
         setEditingFlowerLog(null);
       } else {
         alert('Lỗi: ' + (data.message || 'Không thể lưu phiếu'));
@@ -679,7 +681,7 @@ export default function FlowerLogsPage() {
 
   // Form helpers
   const addFlowerItem = () => {
-    setFlowerFormItems([...flowerFormItems, { category: 'Nơ', type: FLOWER_CATEGORIES['Nơ'][0], quantity: 1 }]);
+    setFlowerFormItems([...flowerFormItems, { category: 'Nơ', type: FLOWER_CATEGORIES['Nơ'][0], quantity: 0 }]);
     // Tự động scroll đến dòng mới sau khi thêm
     setTimeout(() => {
       const lastCard = document.querySelector('[data-flower-item]:last-child');
@@ -843,7 +845,8 @@ export default function FlowerLogsPage() {
                               <Input 
                                 type="text"
                                 inputMode="numeric"
-                                pattern="[0-9]*"
+                                // Cho phép dấu chấm phân tách nghìn vì value được format
+                                pattern="[0-9\\.]*"
                                 required 
                                 className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-center border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white dark:bg-slate-800" 
                                 value={formatQuantity(item.quantity)} 
