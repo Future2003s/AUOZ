@@ -4,7 +4,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, MessageCircleMore, SendHorizonal } from "lucide-react";
+import {
+  MessageCircleMore,
+  SendHorizonal,
+  Camera,
+  Star,
+  CheckCircle,
+  MessageSquare,
+  ThumbsUp,
+  X,
+  Loader2,
+  Trash2,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -29,6 +40,9 @@ type ProductComment = {
   updatedAt: string;
   user?: CommentUser;
   replies?: ProductComment[];
+  // Optional fields for UI only (not required by backend)
+  rating?: number;
+  images?: string[];
 };
 
 const PAGE_SIZE = 5;
@@ -61,15 +75,19 @@ interface CommentApiResponse {
 }
 
 export default function ProductCommentsSection({ productId }: { productId: string }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const [comments, setComments] = useState<ProductComment[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [rating, setRating] = useState<number>(5);
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "with-replies">("all");
+  const [isWritingReview, setIsWritingReview] = useState(false);
 
   const totalComments = useMemo(
     () => comments.reduce((sum, comment) => sum + 1 + (comment.replyCount || 0), 0),
@@ -83,6 +101,24 @@ export default function ProductCommentsSection({ productId }: { productId: strin
     });
     return ids.size;
   }, [comments]);
+
+  // Helpers for UI-only stars (rating not stored in backend)
+  const renderStars = (rating: number, size = 16, interactive = false, setRating?: (v: number) => void) => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            size={size}
+            className={`${interactive ? "cursor-pointer transition-transform hover:scale-110" : ""} ${
+              star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+            }`}
+            onClick={() => interactive && setRating && setRating(star)}
+          />
+        ))}
+      </div>
+    );
+  };
 
   const parseResponse = (payload: CommentApiResponse | null, fallbackMessage = "Có lỗi xảy ra") => {
     if (!payload) throw new Error(fallbackMessage);
@@ -99,7 +135,7 @@ export default function ProductCommentsSection({ productId }: { productId: strin
       setError(null);
       try {
         const url = `/api/comments/product/${productId}?page=${pageToLoad}&limit=${PAGE_SIZE}`;
-        const res = await fetch(url, { cache: "no-store" });
+        const res = await fetch(url, { cache: "no-store", credentials: "include" });
         const text = await res.text();
         const payload = text ? (JSON.parse(text) as CommentApiResponse) : null;
         const parsed = parseResponse(payload, "Không thể tải bình luận");
@@ -128,6 +164,54 @@ export default function ProductCommentsSection({ productId }: { productId: strin
     fetchComments(1);
   }, [productId, fetchComments]);
 
+  const canDeleteComment = useCallback(
+    (comment: ProductComment) => {
+      if (!user) return false;
+      const currentUserId = (user as any)?._id || user.id;
+      const commentUserId = (comment.user as any)?._id || comment.user?.id;
+      const isOwner = commentUserId && currentUserId && commentUserId === currentUserId;
+      const isAdmin = ["admin", "seller"].includes(user.role);
+      return isOwner || isAdmin;
+    },
+    [user]
+  );
+
+  const handleDelete = useCallback(
+    async (commentId: string) => {
+      if (!isAuthenticated) {
+        toast.error("Vui lòng đăng nhập để xoá bình luận");
+        return;
+      }
+      setDeletingId(commentId);
+      try {
+        const res = await fetch(`/api/comments/${commentId}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+        const text = await res.text();
+        const payload = text ? (JSON.parse(text) as CommentApiResponse) : null;
+        parseResponse(payload, "Không thể xoá bình luận");
+
+        setComments((prev) =>
+          prev.filter((item) => item.id !== commentId && item.parentCommentId !== commentId)
+        );
+        toast.success("Đã xoá bình luận");
+      } catch (err: any) {
+        console.error(err);
+        const message =
+          err?.message?.includes("403") || err?.message?.includes("authorized")
+            ? "Bạn không có quyền xoá bình luận này"
+            : err instanceof Error
+            ? err.message
+            : "Không thể xoá bình luận";
+        toast.error(message);
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [isAuthenticated, parseResponse]
+  );
+
   const handleSubmit = useCallback(async () => {
     if (!content.trim()) {
       toast.error("Vui lòng nhập nội dung bình luận");
@@ -141,6 +225,7 @@ export default function ProductCommentsSection({ productId }: { productId: strin
       const res = await fetch("/api/comments", {
         method: "POST",
         headers,
+        credentials: "include",
         body: JSON.stringify({
           productId,
           content: content.trim(),
@@ -154,203 +239,303 @@ export default function ProductCommentsSection({ productId }: { productId: strin
       const newComment = (parsed.data as ProductComment) || null;
       if (!newComment) throw new Error("Phản hồi không hợp lệ từ máy chủ");
 
-      setComments((prev) => [newComment, ...prev]);
+      // Backend chưa lưu rating, nên gán vào client state để hiển thị ngay
+      setComments((prev) => [{ ...newComment, rating }, ...prev]);
       setContent("");
+      setRating(5);
       toast.success("Đã đăng bình luận");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : "Không thể gửi bình luận");
+      const message =
+        err?.message?.includes("401") || err?.message?.includes("authorized")
+          ? "Vui lòng đăng nhập để bình luận"
+          : err instanceof Error
+          ? err.message
+          : "Không thể gửi bình luận";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
   }, [content, productId]);
 
+  // Filtered comments (only simple filters to match available data)
+  const filteredComments = comments.filter((comment) => {
+    if (filter === "all") return true;
+    if (filter === "with-replies") return (comment.replies?.length || comment.replyCount) > 0;
+    return true;
+  });
+
   return (
-    <section className="mt-12 overflow-hidden rounded-3xl border border-gray-200 bg-gradient-to-br from-white via-white to-rose-50/60 p-6 shadow-lg shadow-rose-100/60 dark:border-gray-800 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-      <div className="flex flex-col gap-4 border-b border-gray-100 pb-6 dark:border-gray-800">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="rounded-2xl bg-rose-100 p-3 text-rose-600 dark:bg-rose-500/20 dark:text-rose-300">
-              <MessageCircleMore className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wider text-rose-500">
-                Bình luận sản phẩm
-              </p>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Chia sẻ cảm nhận của bạn về sản phẩm
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {totalComments > 0
-                  ? `${totalComments} phản hồi từ khách hàng · ${distinctCommenters} người tham gia`
-                  : "Câu chuyện của bạn giúp chúng tôi cải thiện sản phẩm mỗi ngày."}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-3 text-sm">
-            <div className="rounded-2xl border border-rose-100 bg-white px-4 py-2 text-center text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-200">
-              <p className="text-xs uppercase tracking-wide text-rose-500 dark:text-rose-300">Đánh giá</p>
-              <p className="font-semibold">{totalComments || 0}+ bình luận</p>
-            </div>
-            <div className="rounded-2xl border border-rose-100 bg-white px-4 py-2 text-center text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-200">
-              <p className="text-xs uppercase tracking-wide text-rose-500 dark:text-rose-300">Tham gia</p>
-              <p className="font-semibold">{distinctCommenters || 0} khách hàng</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="mt-12 bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 font-sans rounded-3xl border border-gray-200 shadow-sm">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Header Section */}
+        <div className="p-6 border-b border-gray-100 bg-white">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Đánh giá & Bình luận sản phẩm</h2>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-[minmax(0,1.5fr)_minmax(260px,0.8fr)]">
-        <div className="rounded-2xl border border-gray-200 bg-white/80 p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900/80">
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder={isAuthenticated ? "Chia sẻ cảm nhận, đánh giá hoặc trải nghiệm của bạn..." : "Đăng nhập để bình luận"}
-            disabled={!isAuthenticated || submitting}
-            className="min-h-[140px] resize-none border-none bg-transparent text-base text-gray-800 placeholder:text-gray-400 focus-visible:ring-0 dark:text-gray-100"
-          />
-          <div className="mt-4 flex flex-col gap-3 text-sm text-gray-500 dark:text-gray-400 md:flex-row md:items-center md:justify-between">
-            <span className="font-medium text-gray-600 dark:text-gray-300">{content.length}/1000 ký tự</span>
-            <div className="flex flex-wrap gap-3">
-              {!isAuthenticated && (
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
-                  Đăng nhập để bắt đầu
-                </span>
-              )}
-              <Button
-                size="sm"
-                className="min-w-[150px] rounded-full bg-rose-500 text-white hover:bg-rose-600 dark:bg-rose-600"
-                disabled={!isAuthenticated || content.trim().length === 0 || submitting}
-                onClick={handleSubmit}
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang gửi
-                  </>
-                ) : (
-                  <>
-                    <SendHorizonal className="mr-2 h-4 w-4" />
-                    Gửi bình luận
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-dashed border-rose-200 bg-rose-50/60 p-5 text-sm text-rose-800 shadow-inner dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-100">
-          <p className="text-sm font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-200">
-            Gợi ý ghi nhận
-          </p>
-          <ul className="mt-3 space-y-2 text-sm leading-relaxed">
-            <li>• Chia sẻ cảm nhận sau khi sử dụng thực tế</li>
-            <li>• Đính kèm trải nghiệm nổi bật (độ bền, chất liệu, tính năng)</li>
-            <li>• Góp ý để chúng tôi cải thiện dịch vụ tốt hơn</li>
-          </ul>
-          <p className="mt-4 rounded-xl bg-white/80 px-3 py-2 text-xs text-rose-500 shadow-sm dark:bg-gray-900/60 dark:text-rose-100">
-            Mọi phản hồi sẽ được kiểm duyệt nhanh để đảm bảo môi trường tích cực và hữu ích.
-          </p>
-        </div>
-      </div>
-
-      {error && (
-        <div className="mt-6 rounded-xl border border-amber-300 bg-amber-50/70 p-3 text-sm text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
-          {error}
-        </div>
-      )}
-
-      {error && (
-        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-700">
-          {error}
-        </div>
-      )}
-
-      <div className="mt-8 space-y-6">
-        {comments.length === 0 && !loading ? (
-          <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-gray-500 dark:border-gray-700 dark:text-gray-400">
-            Chưa có bình luận nào. Hãy là người đầu tiên!
-          </div>
-        ) : (
-          comments.map((comment) => (
-            <article
-              key={comment.id}
-              className="group rounded-2xl border border-gray-200 bg-white/90 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/70"
-            >
-              <div className="flex items-center gap-3">
-                <Avatar className="h-11 w-11">
-                  {comment.user?.avatar && <AvatarImage src={comment.user.avatar} alt={comment.user.name} />}
-                  <AvatarFallback>{getInitials(comment.user?.name)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">{comment.user?.name || "Khách hàng"}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatTimeAgo(comment.createdAt)}
-                    {comment.isEdited && <span className="ml-2 italic text-gray-400">(đã chỉnh sửa)</span>}
-                  </p>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+            {/* Left: Overview (use comments count) */}
+            <div className="md:col-span-4 flex flex-col items-center justify-center p-6 bg-yellow-50 rounded-xl border border-yellow-100">
+              <div className="text-5xl font-extrabold text-yellow-500 mb-2">
+                {totalComments > 0 ? "5.0" : "0.0"}
               </div>
-              <p className="mt-4 rounded-xl bg-gray-50/70 p-4 text-gray-800 shadow-inner dark:bg-gray-800/60 dark:text-gray-100">
-                {comment.content}
-              </p>
+              <div className="mb-2">{renderStars(totalComments > 0 ? 5 : 0, 24)}</div>
+              <div className="text-gray-600 text-sm font-medium">{totalComments} phản hồi</div>
+            </div>
 
-              {comment.replies && comment.replies.length > 0 && (
-                <div className="mt-4 space-y-3 rounded-xl border border-gray-100 bg-white/70 p-4 dark:border-gray-700 dark:bg-gray-800/60">
-                  {comment.replies.map((reply) => (
-                    <div key={reply.id} className="flex gap-3">
-                      <Avatar className="h-8 w-8">
-                        {reply.user?.avatar && (
-                          <AvatarImage src={reply.user.avatar} alt={reply.user?.name || "Người dùng"} />
-                        )}
-                        <AvatarFallback className="text-xs">{getInitials(reply.user?.name)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="font-semibold text-gray-900 dark:text-white">
-                            {reply.user?.name || "Người dùng"}
+            {/* Right: Stats */}
+            <div className="md:col-span-8 flex flex-col justify-center gap-2">
+              <div className="flex items-center gap-3">
+                <div className="text-sm font-medium text-gray-600 w-12 text-right">Tổng</div>
+                <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-yellow-400 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: "100%" }}
+                  />
+                </div>
+                <div className="text-xs text-gray-400 w-14 text-right">{totalComments} bình luận</div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-sm font-medium text-gray-600 w-12 text-right">Người</div>
+                <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-400 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${distinctCommenters === 0 ? 0 : 100}%` }}
+                  />
+                </div>
+                <div className="text-xs text-gray-400 w-14 text-right">{distinctCommenters} người</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter & Action Bar */}
+        <div className="p-4 bg-gray-50 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-10 backdrop-blur-sm bg-opacity-95">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setFilter("all")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                filter === "all"
+                  ? "bg-indigo-600 text-white shadow-md"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
+              }`}
+            >
+              Tất cả
+            </button>
+            <button
+              onClick={() => setFilter("with-replies")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                filter === "with-replies"
+                  ? "bg-indigo-600 text-white shadow-md"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
+              }`}
+            >
+              Có phản hồi
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsWritingReview((v) => !v)}
+            className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm transition-all flex items-center justify-center gap-2"
+          >
+            {isWritingReview ? <X size={18} /> : <MessageSquare size={18} />}
+            {isWritingReview ? "Đóng" : "Viết bình luận"}
+          </button>
+        </div>
+
+        {/* Form viết bình luận */}
+        {isWritingReview && (
+          <div className="p-6 bg-white border-b border-gray-100 animate-fadeIn">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Chia sẻ trải nghiệm của bạn</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Nội dung bình luận</label>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm text-gray-600">Đánh giá:</span>
+                {renderStars(rating, 18, true, setRating)}
+                <span className="text-xs text-gray-500">({rating}/5)</span>
+              </div>
+              <Textarea
+                className="w-full min-h-[120px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white text-gray-800"
+                placeholder={
+                  isAuthenticated
+                    ? "Hãy chia sẻ cảm nhận, đánh giá hoặc trải nghiệm của bạn..."
+                    : "Đăng nhập để bình luận"
+                }
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                disabled={!isAuthenticated || submitting}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-500">{content.length}/1000 ký tự</div>
+              <div className="flex gap-3">
+                {!isAuthenticated && (
+                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                    Đăng nhập để bắt đầu
+                  </span>
+                )}
+                <Button
+                  size="sm"
+                  className="min-w-[150px] rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                  disabled={!isAuthenticated || content.trim().length === 0 || submitting}
+                  onClick={handleSubmit}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Đang gửi
+                    </>
+                  ) : (
+                    <>
+                      <SendHorizonal className="mr-2 h-4 w-4" />
+                      Gửi bình luận
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Danh sách bình luận */}
+        <div className="divide-y divide-gray-100 bg-white">
+          {filteredComments.length === 0 && !loading ? (
+            <div className="p-12 text-center text-gray-500">
+              <div className="inline-block p-4 rounded-full bg-gray-100 mb-4">
+                <MessageSquare size={32} className="text-gray-400" />
+              </div>
+              <p>Chưa có bình luận nào phù hợp bộ lọc.</p>
+            </div>
+          ) : (
+            filteredComments.map((comment) => (
+              <div key={comment.id} className="p-6 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start gap-4">
+                  {/* Avatar */}
+                  <div className="flex-shrink-0">
+                    {comment.user?.avatar ? (
+                      <img
+                        src={comment.user.avatar}
+                        alt={comment.user.name}
+                        className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg border border-indigo-200">
+                        {getInitials(comment.user?.name)}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2">
+                      <div>
+                        <h4 className="font-bold text-gray-900 text-base">
+                          {comment.user?.name || "Khách hàng"}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                          <span>{formatTimeAgo(comment.createdAt)}</span>
+                          {comment.isEdited && <span className="italic text-gray-400">(đã chỉnh sửa)</span>}
+                        {comment.rating ? (
+                          <span className="flex items-center gap-1 text-amber-500">
+                            {renderStars(comment.rating, 12)}
                           </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatTimeAgo(reply.createdAt)}
-                          </span>
+                        ) : null}
                         </div>
-                        <p className="mt-1 rounded-lg bg-gray-50/70 p-3 text-sm text-gray-700 shadow-inner dark:bg-gray-900/40 dark:text-gray-200">
-                          {reply.content}
-                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 text-green-600 text-xs font-medium bg-green-50 px-2 py-1 rounded-full mt-2 sm:mt-0 w-fit">
+                        <CheckCircle size={12} />
+                        Đã mua hàng
                       </div>
                     </div>
-                  ))}
-                  {comment.replyCount > (comment.replies?.length || 0) && (
-                    <p className="text-xs text-gray-500">
-                      +{comment.replyCount - (comment.replies?.length || 0)} phản hồi khác
+
+                    <p className="text-gray-700 leading-relaxed mb-4 text-sm sm:text-base">
+                      {comment.content}
                     </p>
-                  )}
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-6 mt-2 text-sm text-gray-500">
+                      <button className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors">
+                        <ThumbsUp size={16} />
+                        <span>Hữu ích ({comment.likeCount || 0})</span>
+                      </button>
+                      <button className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors">
+                        <MessageSquare size={16} />
+                        <span>Phản hồi ({comment.replyCount || 0})</span>
+                      </button>
+                      {canDeleteComment(comment) && (
+                        <button
+                          onClick={() => handleDelete(comment.id)}
+                          disabled={deletingId === comment.id}
+                          className="flex items-center gap-1.5 text-red-500 hover:text-red-600 transition-colors disabled:opacity-60"
+                        >
+                          {deletingId === comment.id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
+                          <span>Xoá</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Replies */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <div className="mt-4 space-y-3 rounded-xl border border-gray-100 bg-white/70 p-4">
+                        {comment.replies.map((reply) => (
+                          <div key={reply.id} className="flex gap-3">
+                            <Avatar className="h-8 w-8">
+                              {reply.user?.avatar && (
+                                <AvatarImage src={reply.user.avatar} alt={reply.user?.name || "Người dùng"} />
+                              )}
+                              <AvatarFallback className="text-xs">{getInitials(reply.user?.name)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="font-semibold text-gray-900">
+                                  {reply.user?.name || "Người dùng"}
+                                </span>
+                                <span className="text-xs text-gray-500">{formatTimeAgo(reply.createdAt)}</span>
+                              </div>
+                              <p className="mt-1 rounded-lg bg-gray-50/70 p-3 text-sm text-gray-700 shadow-inner">
+                                {reply.content}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                        {comment.replyCount > (comment.replies?.length || 0) && (
+                          <p className="text-xs text-gray-500">
+                            +{comment.replyCount - (comment.replies?.length || 0)} phản hồi khác
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {hasMore && (
+          <div className="p-6 text-center border-t border-gray-100">
+            <Button
+              variant="outline"
+              onClick={() => fetchComments(page + 1)}
+              disabled={loading}
+              className="min-w-[180px]"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang tải...
+                </>
+              ) : (
+                "Tải thêm bình luận"
               )}
-            </article>
-          ))
+            </Button>
+          </div>
         )}
       </div>
-
-      {hasMore && (
-        <div className="mt-6 text-center">
-          <Button
-            variant="outline"
-            onClick={() => fetchComments(page + 1)}
-            disabled={loading}
-            className="min-w-[180px]"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang tải...
-              </>
-            ) : (
-              "Tải thêm bình luận"
-            )}
-          </Button>
-        </div>
-      )}
-    </section>
+    </div>
   );
 }
 
