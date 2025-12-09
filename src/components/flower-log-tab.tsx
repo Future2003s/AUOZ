@@ -13,6 +13,7 @@ import {
   X,
   Filter,
 } from "lucide-react";
+import { formatDateDDMMYYYY } from "@/lib/date";
 
 export type FlowerLogItem = {
   type: string;
@@ -262,7 +263,7 @@ export const FlowerLogTab: React.FC<{
                             size={14}
                             className="mr-1.5 text-slate-400"
                           />
-                          <span>{log.date}</span>
+                          <span>{formatDateDDMMYYYY(log.date, "N/A")}</span>
                         </div>
                         {log.history && log.history.length > 0 && (
                           <div className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-md inline-flex items-center gap-1">

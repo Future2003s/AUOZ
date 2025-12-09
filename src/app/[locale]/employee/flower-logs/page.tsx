@@ -76,6 +76,36 @@ const parseQuantityInput = (value: string) => {
   return Number.isNaN(parsed) ? 0 : parsed;
 };
 
+// Tạo chuỗi lịch sử: nêu rõ thay đổi từ bao nhiêu -> bao nhiêu
+const buildHistoryEntry = (oldLog: FlowerLog | null, newItems: FlowerLogItem[], editorName?: string) => {
+  const timeString = getCurrentDateTimeString();
+  const actor = editorName ? ` (${editorName})` : "";
+  if (!oldLog) return `Tạo mới: ${timeString}${actor}`;
+
+  const formatItemKey = (item: FlowerLogItem) => `${item.category || ''}::${item.type}`;
+  const oldMap = new Map<string, number>();
+  const newMap = new Map<string, number>();
+
+  (oldLog.items || []).forEach((i) => oldMap.set(formatItemKey(i), Number(i.quantity) || 0));
+  (newItems || []).forEach((i) => newMap.set(formatItemKey(i), Number(i.quantity) || 0));
+
+  const allKeys = new Set([...oldMap.keys(), ...newMap.keys()]);
+  const changes: string[] = [];
+
+  allKeys.forEach((key) => {
+    const [category, type] = key.split("::");
+    const oldQty = oldMap.get(key) ?? 0;
+    const newQty = newMap.get(key) ?? 0;
+    if (oldQty !== newQty) {
+      const prefix = category ? `${category} - ${type}` : type;
+      changes.push(`${prefix}: ${oldQty} -> ${newQty}`);
+    }
+  });
+
+  if (changes.length === 0) return `Sửa: ${timeString}${actor}`;
+  return `Sửa: ${timeString}${actor} | ${changes.join("; ")}`;
+};
+
 // ==========================================
 // HELPER FUNCTIONS
 // ==========================================
@@ -533,6 +563,7 @@ export default function FlowerLogsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalType, setModalType] = useState<'add' | 'edit'>('add');
   const [editingFlowerLog, setEditingFlowerLog] = useState<FlowerLog | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   
   // Form State
   const [flowerFormDate, setFlowerFormDate] = useState(new Date().toISOString().split('T')[0]);
@@ -588,10 +619,13 @@ export default function FlowerLogsPage() {
 
     setIsSubmitting(true);
 
-    const timeString = getCurrentDateTimeString();
+    const editorName = user?.firstName && user?.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user?.firstName || user?.lastName || user?.email || undefined;
+
     const historyEntry = editingFlowerLog 
-      ? [...editingFlowerLog.history, `Sửa: ${timeString}`]
-      : [`Tạo mới: ${timeString}`];
+      ? [...editingFlowerLog.history, buildHistoryEntry(editingFlowerLog, flowerFormItems, editorName)]
+      : [buildHistoryEntry(null, flowerFormItems, editorName)];
 
     try {
       // Use Next.js API route instead of direct backend call
@@ -643,12 +677,14 @@ export default function FlowerLogsPage() {
       setFlowerFormDate(log.date);
       setFlowerFormCutter(log.cutter);
       setFlowerFormItems(normalizeItems(log.items.map(i => ({...i}))));
+      setShowHistory(false);
     } else {
       setModalType('add');
       setEditingFlowerLog(null);
       setFlowerFormDate(new Date().toISOString().split('T')[0]);
       setFlowerFormCutter(user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : '');
-      setFlowerFormItems([{ category: 'Nơ', type: FLOWER_CATEGORIES['Nơ'][0], quantity: 1 }]);
+      setFlowerFormItems([{ category: 'Nơ', type: FLOWER_CATEGORIES['Nơ'][0], quantity: 0 }]);
+      setShowHistory(false);
     }
     setIsModalOpen(true);
   };
@@ -749,6 +785,18 @@ export default function FlowerLogsPage() {
                   {modalType === 'add' ? 'Tạo Phiếu Cắt Hoa Mới' : 'Chỉnh Sửa Phiếu Cắt Hoa'}
                 </h3>
               </div>
+              {modalType === 'edit' && editingFlowerLog && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowHistory((prev) => !prev)}
+                  className="mr-2 px-3 py-2 text-xs sm:text-sm flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700 bg-white/70 dark:bg-slate-800/70 hover:bg-white"
+                >
+                  <History className="w-4 h-4" />
+                  <span>{showHistory ? 'Ẩn lịch sử' : 'Lịch sử'}</span>
+                </Button>
+              )}
               <Button 
                 variant="ghost"
                 size="sm"
@@ -762,6 +810,34 @@ export default function FlowerLogsPage() {
             {/* Modal Content */}
             <div className="overflow-y-auto p-3 sm:p-4 md:p-6 flex-1">
               <form id="mainForm" onSubmit={handleFlowerSubmit} className="space-y-4 sm:space-y-6">
+                {/* History Panel (edit mode, toggle) */}
+                {showHistory && editingFlowerLog && editingFlowerLog.history?.length > 0 && (
+                  <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <CardContent className="p-3 sm:p-4 md:p-5">
+                      <div className="flex items-start gap-2 mb-2">
+                        <History className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">Lịch sử chỉnh sửa</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            Hiển thị đầy đủ các mốc tạo/sửa của phiếu này
+                          </p>
+                        </div>
+                      </div>
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        {editingFlowerLog.history.map((entry, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/50 px-2.5 py-2 rounded-lg border border-slate-100 dark:border-slate-700"
+                          >
+                            <span className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{idx + 1}.</span>
+                            <span className="leading-tight">{entry}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Basic Info */}
                 <Card className="bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700">
                   <CardContent className="p-3 sm:p-4 md:p-5">
