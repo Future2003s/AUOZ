@@ -55,6 +55,25 @@ const FLOWER_CATEGORIES: Record<string, string[]> = {
   "Hoa": ["Hoa Đại Đỏ", "Hoa Đại Trắng", "Hoa Trung Đỏ", "Hoa Trung Trắng", "Hoa Nhỏ Đỏ", "Hoa Nhỏ Trắng"]
 };
 
+// Chuẩn hóa item để tránh quantity dạng string từ backend
+const normalizeItems = (items: FlowerLogItem[]): FlowerLogItem[] =>
+  (items || []).map((item) => ({
+    ...item,
+    quantity: Math.max(1, Number(item.quantity) || 0),
+  }));
+
+// Helpers để format / parse số lượng hiển thị có dấu chấm
+const formatQuantity = (value: number) => {
+  if (!value) return "";
+  return Number(value).toLocaleString("vi-VN");
+};
+
+const parseQuantityInput = (value: string) => {
+  const digitsOnly = value.replace(/\D/g, "");
+  if (!digitsOnly) return 0;
+  return Math.max(1, parseInt(digitsOnly, 10));
+};
+
 // ==========================================
 // HELPER FUNCTIONS
 // ==========================================
@@ -140,7 +159,7 @@ const FlowerLogCard = ({
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{item.type}</span>
               </div>
               <Badge className="ml-2 bg-indigo-600 dark:bg-indigo-500 text-white font-bold px-2.5 py-0.5 rounded-full text-xs flex-shrink-0">
-                {item.quantity}
+                {formatQuantity(item.quantity)}
               </Badge>
             </div>
           ))}
@@ -319,7 +338,7 @@ const FlowerLogTab = ({
                     {type}
                   </div>
                   <div className="text-lg sm:text-xl md:text-2xl font-bold text-indigo-700 dark:text-indigo-300 group-hover:scale-110 transition-transform">
-                    {total}
+                {formatQuantity(total)}
                   </div>
                 </div>
               ))}
@@ -434,7 +453,7 @@ const FlowerLogTab = ({
                                 <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{item.type}</span>
                               </div>
                               <Badge className="ml-1.5 sm:ml-2 bg-indigo-600 dark:bg-indigo-500 text-white font-bold px-1.5 sm:px-2.5 py-0.5 rounded-full text-[10px] xs:text-xs flex-shrink-0">
-                                {item.quantity}
+                                {formatQuantity(item.quantity)}
                               </Badge>
                             </div>
                           ))}
@@ -538,7 +557,12 @@ export default function FlowerLogsPage() {
       
       if (data.success && data.data) {
         const logs = Array.isArray(data.data) ? data.data : [];
-        setFlowerLogs(logs);
+        // Đảm bảo quantity là number để tránh hiển thị 0 đầu
+        const normalizedLogs = logs.map((log: FlowerLog) => ({
+          ...log,
+          items: normalizeItems(log.items),
+        }));
+        setFlowerLogs(normalizedLogs);
       } else {
         console.error('Failed to fetch flower logs:', data.message);
         setFlowerLogs([]);
@@ -616,7 +640,7 @@ export default function FlowerLogsPage() {
       setEditingFlowerLog(log);
       setFlowerFormDate(log.date);
       setFlowerFormCutter(log.cutter);
-      setFlowerFormItems(log.items.map(i => ({...i})));
+      setFlowerFormItems(normalizeItems(log.items.map(i => ({...i}))));
     } else {
       setModalType('add');
       setEditingFlowerLog(null);
@@ -817,12 +841,13 @@ export default function FlowerLogsPage() {
                             <div className="sm:col-span-2">
                               <label className="block text-[10px] xs:text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 sm:mb-1.5">Số Lượng</label>
                               <Input 
-                                type="number" 
-                                min="1" 
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 required 
                                 className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-center border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white dark:bg-slate-800" 
-                                value={item.quantity} 
-                                onChange={(e) => updateFlowerItem(index, 'quantity', Number(e.target.value))} 
+                                value={formatQuantity(item.quantity)} 
+                                onChange={(e) => updateFlowerItem(index, 'quantity', parseQuantityInput(e.target.value))} 
                               />
                             </div>
                             <div className="sm:col-span-1 flex justify-end">

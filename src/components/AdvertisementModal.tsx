@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -32,6 +32,7 @@ function useIsMobile() {
 
 export function AdvertisementModal() {
   const params = useParams();
+  const pathname = usePathname();
   const locale = (params?.locale as string) || "vi";
   const { user } = useAuth();
   const userRole = user?.role;
@@ -41,7 +42,31 @@ export function AdvertisementModal() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Kiểm tra xem có đang ở trang chủ không
+  const isHomePage = () => {
+    if (!pathname) return false;
+    // Loại bỏ locale prefix và trailing slash để kiểm tra
+    let normalizedPath = pathname;
+    
+    // Nếu có locale prefix, loại bỏ nó
+    if (locale && normalizedPath.startsWith(`/${locale}`)) {
+      normalizedPath = normalizedPath.slice(`/${locale}`.length);
+    }
+    
+    // Loại bỏ trailing slash
+    normalizedPath = normalizedPath.replace(/\/$/, "") || "/";
+    
+    // Trang chủ là khi path chỉ còn "/" hoặc rỗng
+    return normalizedPath === "/" || normalizedPath === "";
+  };
+
   useEffect(() => {
+    // Chỉ hiển thị modal ở trang chủ
+    if (!isHomePage()) {
+      setIsLoading(false);
+      return;
+    }
+
     // Kiểm tra xem modal đã được hiển thị trong session này chưa
     const hasShownModal = sessionStorage.getItem("advertisementModalShown");
     if (hasShownModal === "true") {
@@ -106,7 +131,7 @@ export function AdvertisementModal() {
     };
 
     fetchAdvertisement();
-  }, [locale, userRole]);
+  }, [locale, userRole, pathname]);
 
   const handleClose = () => {
     setIsOpen(false);

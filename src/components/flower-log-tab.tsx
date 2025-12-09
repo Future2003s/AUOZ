@@ -28,6 +28,9 @@ export type FlowerLog = {
   history: string[];
 };
 
+const formatQuantity = (value: number) =>
+  Number(value || 0).toLocaleString("vi-VN");
+
 export const FlowerLogTab: React.FC<{
   logs: FlowerLog[];
   onAdd: () => void;
@@ -193,7 +196,7 @@ export const FlowerLogTab: React.FC<{
                   Tổng Hợp Số Liệu
                 </h3>
                 <p className="text-sm text-slate-500">
-                  {filteredLogs.length} phiếu • Tổng {totalItems} sản phẩm
+                  {filteredLogs.length} phiếu • Tổng {formatQuantity(totalItems)} sản phẩm
                 </p>
               </div>
             </div>
@@ -211,7 +214,7 @@ export const FlowerLogTab: React.FC<{
                   {type}
                 </div>
                 <div className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  {total}
+                  {formatQuantity(total)}
                 </div>
               </div>
             ))}
@@ -288,7 +291,7 @@ export const FlowerLogTab: React.FC<{
                             </span>
                           </div>
                           <span className="font-bold text-indigo-600 bg-white px-2.5 py-1 rounded-md shadow-sm border border-indigo-100 text-sm ml-2 flex-shrink-0">
-                            {item.quantity}
+                            {formatQuantity(item.quantity)}
                           </span>
                         </div>
                       ))}
