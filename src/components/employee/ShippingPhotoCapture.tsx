@@ -80,6 +80,7 @@ export default function ShippingPhotoCapture() {
     isInvoice: false,
     isDebt: false,
     isShipped: false,
+    proofImage: ""
   });
 
   const [items, setItems] = useState<OrderItem[]>([]);
@@ -857,6 +858,9 @@ export default function ShippingPhotoCapture() {
       
       // Set both URL and preview after successful upload
       setPhotoUrl(uploadedUrl);
+
+      
+      setFormData((prev) => ({ ...prev, proofImage: uploadedUrl }));
       // Preview is already set from FileReader above
       
       toast.success("Đã tải ảnh lên thành công");
@@ -940,6 +944,7 @@ export default function ShippingPhotoCapture() {
       
       // Set URL after successful upload
       setPhotoUrl(uploadedUrl);
+      setFormData((prev) => ({ ...prev, proofImage: uploadedUrl }));
       
       toast.success("Đã chụp và tải ảnh lên thành công");
     } catch (error) {
@@ -969,6 +974,7 @@ export default function ShippingPhotoCapture() {
     e.stopPropagation();
     setPhotoPreview(null);
     setPhotoUrl(null);
+    setFormData((prev) => ({ ...prev, proofImage: "" }));
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (fileInputGalleryRef.current) fileInputGalleryRef.current.value = "";
   };
@@ -1005,6 +1011,15 @@ export default function ShippingPhotoCapture() {
       toast.error("Vui lòng nhập đơn vị mua hàng.");
       return;
     }
+    if (isUploadingPhoto) {
+      toast.error("Vui lòng đợi ảnh tải lên xong trước khi lưu.");
+      return;
+    }
+    const proofImageUrl = photoUrl || formData.proofImage;
+    if (!proofImageUrl) {
+      toast.error("Vui lòng chụp hoặc tải ảnh xác nhận.");
+      return;
+    }
 
     try {
       setIsSaving(true);
@@ -1024,10 +1039,15 @@ export default function ShippingPhotoCapture() {
         isInvoice: formData.isInvoice,
         isDebt: formData.isDebt,
         isShipped: formData.isShipped,
-        proofImage: photoUrl || undefined,
+        proofImage: proofImageUrl,
         note: formData.note || "",
         status: "completed",
       };
+
+
+      console.log("PAYLOAD -> PROOFT IMAGE",payload)
+
+    
 
       const response = await fetch(`/api/delivery`, {
         method: "POST",
@@ -1036,6 +1056,9 @@ export default function ShippingPhotoCapture() {
       });
 
       const data = await response.json();
+
+
+      console.log("data Proof Image", data);
 
       if (!response.ok) {
         throw new Error(data.message || data.error || "Failed to save order");
@@ -1138,6 +1161,7 @@ export default function ShippingPhotoCapture() {
         isInvoice: false,
         isDebt: false,
         isShipped: false,
+        proofImage: "",
       });
       setPhotoUrl(null);
       setPhotoPreview(null);

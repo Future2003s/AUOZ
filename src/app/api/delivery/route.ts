@@ -43,6 +43,14 @@ export async function POST(request: NextRequest) {
     const url = `${baseUrl}/delivery`;
     const body = await request.json();
 
+    // Debug: ensure proofImage is forwarded
+    console.log("[FE proxy] /api/delivery POST payload keys:", Object.keys(body || {}));
+    if (body?.proofImage) {
+      console.log("[FE proxy] proofImage present:", body.proofImage);
+    } else {
+      console.warn("[FE proxy] proofImage missing in body");
+    }
+
     const response = await proxyJson(url, request, {
       method: "POST",
       requireAuth: true,
