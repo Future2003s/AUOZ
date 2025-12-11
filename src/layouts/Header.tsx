@@ -367,7 +367,7 @@ export default function Header() {
               }`}
               suppressHydrationWarning
             >
-              <div className="relative">
+              <div className="relative" suppressHydrationWarning>
                 <Image
                   src={envConfig.NEXT_PUBLIC_URL_LOGO}
                   alt="LALA-LYCHEEE Logo"
@@ -380,7 +380,10 @@ export default function Header() {
                   priority
                 />
                 {/* Glow effect on hover */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-500/0 via-pink-500/0 to-rose-500/0 group-hover:from-rose-500/20 group-hover:via-pink-500/30 group-hover:to-rose-500/20 blur-xl transition-all duration-500 -z-10 opacity-0 group-hover:opacity-100" />
+                <div 
+                  className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-500/0 via-pink-500/0 to-rose-500/0 group-hover:from-rose-500/20 group-hover:via-pink-500/30 group-hover:to-rose-500/20 blur-xl transition-all duration-500 -z-10 opacity-0 group-hover:opacity-100" 
+                  suppressHydrationWarning
+                />
               </div>
               <span
                 className={`font-bold tracking-tighter hidden sm:block bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent transition-all duration-500 group-hover:from-red-600 group-hover:to-pink-600 group-hover:scale-105 ${

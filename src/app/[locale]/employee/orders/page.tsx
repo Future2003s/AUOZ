@@ -1,200 +1,176 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  ShoppingBag,
-  Search,
-  Filter,
-  MoreVertical,
-  Eye,
-  Edit,
-  Package,
-  Truck,
-  CheckCircle2,
-  Clock,
-  XCircle,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, ListChecks, Loader2 } from "lucide-react";
 
-// Mock data - Replace with real API calls
-const mockOrders = [
-  {
-    id: "ORD-001",
-    customer: "Nguyễn Văn A",
-    items: 3,
-    total: 1250000,
-    status: "pending",
-    date: "2024-01-15",
-  },
-  {
-    id: "ORD-002",
-    customer: "Trần Thị B",
-    items: 2,
-    total: 850000,
-    status: "processing",
-    date: "2024-01-15",
-  },
-  {
-    id: "ORD-003",
-    customer: "Lê Văn C",
-    items: 5,
-    total: 2100000,
-    status: "shipped",
-    date: "2024-01-14",
-  },
-  {
-    id: "ORD-004",
-    customer: "Phạm Thị D",
-    items: 1,
-    total: 450000,
-    status: "delivered",
-    date: "2024-01-13",
-  },
-];
+type DeliveryOrder = {
+  _id?: string;
+  id?: string;
+  orderCode?: string;
+  buyerName?: string;
+  deliveryDate?: string;
+  createdAt?: string;
+  amount?: number;
+  status?: string;
+};
 
-const getStatusBadge = (status: string) => {
-  const statusMap: Record<
-    string,
-    { label: string; color: string; icon: React.ComponentType<{ className?: string }> }
-  > = {
-    pending: {
-      label: "Chờ xử lý",
-      color: "bg-amber-50 text-amber-600 border-amber-200",
-      icon: Clock,
-    },
-    processing: {
-      label: "Đang xử lý",
-      color: "bg-blue-50 text-blue-600 border-blue-200",
-      icon: Package,
-    },
-    shipped: {
-      label: "Đang giao",
-      color: "bg-purple-50 text-purple-600 border-purple-200",
-      icon: Truck,
-    },
-    delivered: {
-      label: "Đã giao",
-      color: "bg-green-50 text-green-600 border-green-200",
-      icon: CheckCircle2,
-    },
-    cancelled: {
-      label: "Đã hủy",
-      color: "bg-red-50 text-red-600 border-red-200",
-      icon: XCircle,
-    },
+export default function OrdersPage() {
+  const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
+
+  const [orders, setOrders] = useState<DeliveryOrder[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch("/api/delivery?status=completed&limit=50", {
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to load orders");
+      }
+      const data = await res.json();
+      const list =
+        data?.data && Array.isArray(data.data)
+          ? data.data
+          : data?.data?.content || [];
+      setOrders(list);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const statusInfo = statusMap[status] || statusMap.pending;
-  const Icon = statusInfo.icon;
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const totalAmountToday = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return orders
+      .filter((o) => (o.deliveryDate || "").startsWith(today))
+      .reduce((sum, o) => sum + (o.amount || 0), 0);
+  }, [orders]);
 
   return (
-    <Badge className={`flex items-center gap-1.5 ${statusInfo.color}`}>
-      <Icon className="w-3 h-3" />
-      {statusInfo.label}
-    </Badge>
-  );
-};
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(amount);
-};
-
-export default function EmployeeOrdersPage() {
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Quản Lý Đơn Hàng
-          </h1>
-          <p className="text-slate-600">
-            Xử lý và theo dõi tất cả đơn hàng
-          </p>
-        </div>
-        <Button className="bg-indigo-500 hover:bg-indigo-600">
-          <ShoppingBag className="w-4 h-4 mr-2" />
-          Tạo đơn mới
-        </Button>
-      </div>
-
-      {/* Filters */}
-      <Card className="border-0 shadow-md">
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Tìm kiếm đơn hàng, khách hàng..."
-                className="pl-10"
-              />
-            </div>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Filter className="w-4 h-4" />
-              Lọc
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Orders List */}
-      <div className="grid gap-4">
-        {mockOrders.map((order) => (
-          <Card
-            key={order.id}
-            className="border-0 shadow-md hover:shadow-lg transition-shadow"
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push(`/${locale}/employee/shipping`)}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4 mb-3">
-                    <div className="p-2 bg-indigo-50 rounded-lg">
-                      <ShoppingBag className="w-5 h-5 text-indigo-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-slate-900">
-                        {order.id}
-                      </h3>
-                      <p className="text-sm text-slate-500">
-                        {order.customer} • {order.date}
-                      </p>
-                    </div>
+            <ArrowLeft size={18} />
+          </button>
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Tổng hợp đơn hàng
+          </h1>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+          <div className="flex items-center gap-1">
+            <ListChecks size={16} />
+            <span>{orders.length} đơn</span>
+          </div>
+          <div className="hidden sm:flex items-center gap-1">
+            <span>Tổng hôm nay:</span>
+            <span className="font-semibold text-blue-600 dark:text-blue-400">
+              {totalAmountToday.toLocaleString("vi-VN")} ₫
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <main className="px-4 py-4">
+        {loading && (
+          <div className="flex items-center justify-center py-10 text-gray-500 dark:text-gray-400">
+            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            Đang tải danh sách đơn...
+          </div>
+        )}
+        {error && (
+          <div className="text-red-500 dark:text-red-400 py-4">{error}</div>
+        )}
+        {!loading && !error && orders.length === 0 && (
+          <div className="text-gray-500 dark:text-gray-400 py-6">
+            Chưa có đơn hàng nào.
+          </div>
+        )}
+        <div className="grid gap-3">
+          {orders.map((order) => {
+            const deliveryDateObj = order.deliveryDate
+              ? new Date(order.deliveryDate)
+              : null;
+            const createdAtObj = order.createdAt ? new Date(order.createdAt) : null;
+            const dateDisplay = deliveryDateObj
+              ? deliveryDateObj.toLocaleDateString("vi-VN")
+              : "--";
+            const timeDisplay = createdAtObj
+              ? createdAtObj.toLocaleTimeString("vi-VN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "--";
+            return (
+              <div
+                key={order._id || order.id}
+                role="button"
+                tabIndex={0}
+                onClick={() =>
+                  router.push(`/${locale}/employee/orders/${order._id || order.id}`)
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push(
+                      `/${locale}/employee/orders/${order._id || order.id}`
+                    );
+                  }
+                }}
+                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-blue-400 hover:shadow-md transition"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      Mã đơn
+                    </span>
+                    <span className="text-sm font-mono font-semibold text-gray-900 dark:text-gray-100">
+                      {order.orderCode || "--"}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-4 ml-14">
-                    <div>
-                      <p className="text-sm text-slate-600">Sản phẩm</p>
-                      <p className="font-semibold">{order.items} món</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-600">Tổng tiền</p>
-                      <p className="font-semibold text-indigo-600">
-                        {formatCurrency(order.total)}
-                      </p>
-                    </div>
-                    <div>{getStatusBadge(order.status)}</div>
-                  </div>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      order.status === "completed"
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                        : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300"
+                    }`}
+                  >
+                    {order.status || "unknown"}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Xem
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Sửa
-                  </Button>
+                <div className="text-sm text-gray-700 dark:text-gray-200 font-semibold">
+                  {order.buyerName || "Chưa có đơn vị mua hàng"}
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-3">
+                  <span className="flex flex-col leading-tight">
+                    <span>Ngày giao: {dateDisplay}</span>
+                    <span>Giờ tạo: {timeDisplay}</span>
+                  </span>
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">
+                    {(order.amount || 0).toLocaleString("vi-VN")} ₫
+                  </span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      </main>
     </div>
   );
 }
-

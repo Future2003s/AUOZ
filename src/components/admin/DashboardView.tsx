@@ -213,30 +213,66 @@ export default function DashboardView() {
         setSummaryStats(stats);
       } else {
         // If API fails, try to get error message
-        let errorData: any = {};
+        const status = summaryRes?.status ?? 0;
+        const statusText = summaryRes?.statusText ?? "Unknown";
+        const url = summaryRes?.url ?? "Unknown URL";
+        
+        // Initialize errorData with base information - use Object.assign to ensure properties are set
+        const errorData: any = {};
+        errorData.message = `HTTP ${status}: ${statusText}`;
+        errorData.status = status;
+        errorData.statusText = statusText;
+        errorData.url = url;
+        
         try {
-          const errorText = await summaryRes.text();
-          if (errorText) {
+          // Try to read error response body
+          let errorText: string = "";
+          try {
+            errorText = await summaryRes.text();
+          } catch (textError) {
+            // If text() fails, note it but don't throw
+            errorData.textReadError = textError instanceof Error ? textError.message : String(textError);
+          }
+          
+          if (errorText && errorText.trim()) {
             try {
-              errorData = JSON.parse(errorText);
-            } catch {
-              errorData = { message: errorText || `HTTP ${summaryRes.status}` };
+              const parsed = JSON.parse(errorText);
+              // Merge parsed data, but preserve base properties
+              Object.assign(errorData, parsed);
+              errorData.rawResponse = errorText.substring(0, 500);
+            } catch (parseError) {
+              // If JSON parse fails, use raw text as message
+              errorData.rawResponse = errorText.substring(0, 500);
+              errorData.parseError = parseError instanceof Error ? parseError.message : String(parseError);
+              if (errorText.length > 0) {
+                errorData.message = errorText.substring(0, 200) || errorData.message;
+              }
             }
           } else {
-            errorData = { message: `HTTP ${summaryRes.status}: ${summaryRes.statusText}` };
+            errorData.emptyResponse = true;
           }
-        } catch (error) {
-          errorData = { 
-            message: `Failed to read error response: ${error instanceof Error ? error.message : "Unknown error"}` 
-          };
+        } catch (readError) {
+          // Ensure we preserve base properties even on error
+          errorData.readError = readError instanceof Error ? readError.message : String(readError);
+          errorData.readErrorStack = readError instanceof Error ? readError.stack : undefined;
+          if (!errorData.message) {
+            errorData.message = `Failed to read error response: ${errorData.readError}`;
+          }
         }
         
+        // Verify errorData has content before logging
         if (process.env.NODE_ENV === "development") {
-          console.error("Analytics API error:", {
-            status: summaryRes.status,
-            statusText: summaryRes.statusText,
-            error: errorData,
-          });
+          console.error("Analytics API error:");
+          console.error("  Status:", status);
+          console.error("  Status Text:", statusText);
+          console.error("  URL:", url);
+          console.error("  Error Data Keys:", Object.keys(errorData));
+          console.error("  Error Data:", errorData);
+          console.error("  Error Data JSON:", JSON.stringify(errorData, null, 2));
+          if (Object.keys(errorData).length === 0) {
+            console.error("  WARNING: Error data object is empty!");
+            console.error("  Original response:", summaryRes);
+          }
         }
         
         // Set fallback stats
@@ -321,30 +357,66 @@ export default function DashboardView() {
         setRecentOrders(formatted);
       } else {
         // If orders API fails
-        let errorData: any = {};
+        const status = ordersRes?.status ?? 0;
+        const statusText = ordersRes?.statusText ?? "Unknown";
+        const url = ordersRes?.url ?? "Unknown URL";
+        
+        // Initialize errorData with base information - use direct assignment to ensure properties are set
+        const errorData: any = {};
+        errorData.message = `HTTP ${status}: ${statusText}`;
+        errorData.status = status;
+        errorData.statusText = statusText;
+        errorData.url = url;
+        
         try {
-          const errorText = await ordersRes.text();
-          if (errorText) {
+          // Try to read error response body
+          let errorText: string = "";
+          try {
+            errorText = await ordersRes.text();
+          } catch (textError) {
+            // If text() fails, note it but don't throw
+            errorData.textReadError = textError instanceof Error ? textError.message : String(textError);
+          }
+          
+          if (errorText && errorText.trim()) {
             try {
-              errorData = JSON.parse(errorText);
-            } catch {
-              errorData = { message: errorText || `HTTP ${ordersRes.status}` };
+              const parsed = JSON.parse(errorText);
+              // Merge parsed data, but preserve base properties
+              Object.assign(errorData, parsed);
+              errorData.rawResponse = errorText.substring(0, 500);
+            } catch (parseError) {
+              // If JSON parse fails, use raw text as message
+              errorData.rawResponse = errorText.substring(0, 500);
+              errorData.parseError = parseError instanceof Error ? parseError.message : String(parseError);
+              if (errorText.length > 0) {
+                errorData.message = errorText.substring(0, 200) || errorData.message;
+              }
             }
           } else {
-            errorData = { message: `HTTP ${ordersRes.status}: ${ordersRes.statusText}` };
+            errorData.emptyResponse = true;
           }
-        } catch (error) {
-          errorData = { 
-            message: `Failed to read error response: ${error instanceof Error ? error.message : "Unknown error"}` 
-          };
+        } catch (readError) {
+          // Ensure we preserve base properties even on error
+          errorData.readError = readError instanceof Error ? readError.message : String(readError);
+          errorData.readErrorStack = readError instanceof Error ? readError.stack : undefined;
+          if (!errorData.message) {
+            errorData.message = `Failed to read error response: ${errorData.readError}`;
+          }
         }
 
+        // Verify errorData has content before logging
         if (process.env.NODE_ENV === "development") {
-          console.error("Orders API error:", {
-            status: ordersRes.status,
-            statusText: ordersRes.statusText,
-            error: errorData,
-          });
+          console.error("Orders API error:");
+          console.error("  Status:", status);
+          console.error("  Status Text:", statusText);
+          console.error("  URL:", url);
+          console.error("  Error Data Keys:", Object.keys(errorData));
+          console.error("  Error Data:", errorData);
+          console.error("  Error Data JSON:", JSON.stringify(errorData, null, 2));
+          if (Object.keys(errorData).length === 0) {
+            console.error("  WARNING: Error data object is empty!");
+            console.error("  Original response:", ordersRes);
+          }
         }
 
         // Set fallback orders

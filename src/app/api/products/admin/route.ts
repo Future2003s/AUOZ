@@ -2,6 +2,10 @@ import { NextRequest } from "next/server";
 import { envConfig } from "@/config";
 import { cookies } from "next/headers";
 
+// Force dynamic rendering to prevent caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q");
@@ -58,7 +62,12 @@ export async function GET(request: NextRequest) {
         }),
         {
           status: res.status,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+          },
         }
       );
     }
@@ -91,7 +100,12 @@ export async function GET(request: NextRequest) {
 
     return new Response(JSON.stringify(transformedData), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
     });
   } catch (e) {
     console.error("Admin products API error:", e);
@@ -103,7 +117,12 @@ export async function GET(request: NextRequest) {
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+          "Pragma": "no-cache",
+          "Expires": "0",
+        },
       }
     );
   }

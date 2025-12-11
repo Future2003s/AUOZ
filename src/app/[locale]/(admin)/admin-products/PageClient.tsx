@@ -271,27 +271,46 @@ export default function PageClient() {
 
   const handleDelete = async (productId: string) => {
     if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+    
+    if (!productId) {
+      toast.error("Không tìm thấy ID sản phẩm");
+      return;
+    }
+
     try {
       setDeletingId(productId);
+      console.log("Deleting product:", productId);
+      
       const response = await productApiRequest.deleteProduct(
         sessionToken || "",
         productId
       );
+      
+      console.log("Delete response:", response);
+      
       if (response.success) {
+        // Remove from local state immediately
         setProducts((prev) => prev.filter((p) => p.id !== productId));
         if (viewing?.id === productId) setViewing(null);
         if (editing?.id === productId) setEditing(null);
+        
         toast.success("Đã xóa sản phẩm thành công!");
+        
+        // Refresh the list to ensure consistency
         if (fetchProductsRef.current) {
           await fetchProductsRef.current();
         } else {
           refreshProducts();
         }
       } else {
-        toast.error(response.message || "Không thể xóa sản phẩm");
+        const errorMsg = response.message || "Không thể xóa sản phẩm";
+        console.error("Delete failed:", errorMsg);
+        toast.error(errorMsg);
       }
-    } catch (error) {
-      toast.error("Không thể xóa sản phẩm");
+    } catch (error: any) {
+      console.error("Delete product error:", error);
+      const errorMsg = error?.message || "Không thể xóa sản phẩm";
+      toast.error(errorMsg);
     } finally {
       setDeletingId(null);
     }
@@ -471,8 +490,16 @@ export default function PageClient() {
       params.set("page", String(currentPage));
       params.set("size", String(productsPerPage));
 
-      const res = await fetch(`/api/products/admin?${params.toString()}`, {
+      // Add timestamp to prevent caching
+      const timestamp = Date.now();
+      const url = `/api/products/admin?${params.toString()}&_t=${timestamp}`;
+      
+      const res = await fetch(url, {
         cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+        },
       });
 
       if (res.ok) {

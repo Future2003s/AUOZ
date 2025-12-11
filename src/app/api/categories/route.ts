@@ -28,9 +28,15 @@ export async function GET(request: NextRequest) {
     });
 
     if (!res.ok) {
-      console.error("Categories API error - status:", res.status);
+      const errorText = await res.text();
+      console.error("Categories API error - status:", res.status, "error:", errorText);
       return new Response(
-        JSON.stringify({ data: [], message: "Failed to fetch categories" }),
+        JSON.stringify({ 
+          success: false,
+          data: [], 
+          message: "Failed to fetch categories",
+          error: errorText
+        }),
         {
           status: res.status,
           headers: { "Content-Type": "application/json" },
@@ -39,6 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
+    console.log("Categories API response:", data);
 
     return new Response(JSON.stringify(data), {
       status: 200,

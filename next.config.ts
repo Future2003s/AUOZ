@@ -69,7 +69,7 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "localhost",
         port: "8081",
-        pathname: "/uploads/**",
+        pathname: "/**",
       },
       // Cloud storage providers
       {

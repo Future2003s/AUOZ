@@ -18,6 +18,11 @@ import {
   Menu,
   X,
   LogOut,
+  Receipt,
+  Bell,
+  Camera,
+  History,
+  User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -60,6 +65,30 @@ const navItems = [
     href: "/employee/flower-logs",
   },
   {
+    id: "debt",
+    label: "Quản Lý Công Nợ",
+    icon: Receipt,
+    href: "/employee/debt",
+  },
+  {
+    id: "invoices",
+    label: "Nhắc Nhở Hóa Đơn",
+    icon: Bell,
+    href: "/employee/invoices",
+  },
+  {
+    id: "shipping",
+    label: "Gửi Hàng & Chụp Ảnh",
+    icon: Camera,
+    href: "/employee/shipping",
+  },
+  {
+    id: "invoice-history",
+    label: "Lịch Sử Hóa Đơn",
+    icon: History,
+    href: "/employee/invoice-history",
+  },
+  {
     id: "reports",
     label: "Báo Cáo",
     icon: BarChart3,
@@ -70,6 +99,12 @@ const navItems = [
     label: "Tài Liệu",
     icon: FileText,
     href: "/employee/documents",
+  },
+  {
+    id: "profile",
+    label: "Hồ Sơ Nhân Viên",
+    icon: User,
+    href: "/employee/profile",
   },
   {
     id: "settings",

@@ -351,36 +351,56 @@ export const productApiRequest = {
     token: string,
     id: string
   ): Promise<{ success: boolean; message: string }> => {
-    const res = await fetch(`/api/products/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      credentials: "include",
-      cache: "no-store",
-    });
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: "include",
+        cache: "no-store",
+      });
 
-    const contentType = res.headers.get("content-type") || "application/json";
-    const text = await res.text();
-    const data =
-      contentType.includes("application/json") && text ? JSON.parse(text) : text;
+      const contentType = res.headers.get("content-type") || "application/json";
+      const text = await res.text();
+      let data: any;
+      
+      try {
+        data = contentType.includes("application/json") && text 
+          ? JSON.parse(text) 
+          : text || null;
+      } catch (parseError) {
+        console.error("Failed to parse delete response:", parseError);
+        data = null;
+      }
 
-    if (!res.ok) {
-      return {
-        success: false,
-        message:
+      if (!res.ok) {
+        const errorMessage = 
           (data && typeof data === "object" && "message" in data
             ? (data as any).message
-            : undefined) || "Failed to delete product",
+            : data?.error) || "Failed to delete product";
+        
+        return {
+          success: false,
+          message: errorMessage,
+        };
+      }
+
+      // Handle response with or without success field
+      const apiResp: ApiResponse<any> =
+        data && typeof data === "object" && "success" in data
+          ? (data as ApiResponse<any>)
+          : { success: res.ok, message: "Product deleted successfully", data };
+      
+      return convertToDeleteResponse(apiResp);
+    } catch (error: any) {
+      console.error("Delete product error:", error);
+      return {
+        success: false,
+        message: error?.message || "Failed to delete product",
       };
     }
-
-    const apiResp: ApiResponse<any> =
-      data && typeof data === "object" && "success" in data
-        ? (data as ApiResponse<any>)
-        : { success: true, data };
-    return convertToDeleteResponse(apiResp);
   },
 
   updateProductStock: (

@@ -18,6 +18,9 @@ import {
   ArrowRight,
   ClipboardList,
   Scissors,
+  Receipt,
+  Bell,
+  Camera,
 } from "lucide-react";
 
 interface TaskCard {
@@ -97,6 +100,33 @@ const taskCards: TaskCard[] = [
     href: "/employee/flower-logs",
     color: "text-rose-600 dark:text-rose-400",
     bgColor: "bg-rose-100 dark:bg-rose-900/30",
+  },
+  {
+    id: "debt",
+    title: "Quản Lý Công Nợ",
+    description: "Theo dõi và quản lý công nợ khách hàng",
+    icon: Receipt,
+    href: "/employee/debt",
+    color: "text-red-600 dark:text-red-400",
+    bgColor: "bg-red-100 dark:bg-red-900/30",
+  },
+  {
+    id: "invoices",
+    title: "Nhắc Nhở Hóa Đơn",
+    description: "Nhắc nhở và xuất hóa đơn cho khách hàng",
+    icon: Bell,
+    href: "/employee/invoices",
+    color: "text-yellow-600 dark:text-yellow-400",
+    bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
+  },
+  {
+    id: "shipping",
+    title: "Gửi Hàng & Chụp Ảnh",
+    description: "Chụp ảnh bằng chứng gửi hàng",
+    icon: Camera,
+    href: "/employee/shipping",
+    color: "text-blue-600 dark:text-blue-400",
+    bgColor: "bg-blue-100 dark:bg-blue-900/30",
   },
 ];
 

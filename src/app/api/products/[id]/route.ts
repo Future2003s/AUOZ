@@ -296,9 +296,21 @@ export async function DELETE(
       );
     }
 
-    const data = await res.json();
+    let data;
+    try {
+      const text = await res.text();
+      data = text ? JSON.parse(text) : null;
+    } catch (e) {
+      console.error("Failed to parse delete response:", e);
+      data = null;
+    }
 
-    return new Response(JSON.stringify(data), {
+    // Ensure response has success field for frontend
+    const responseData = data && typeof data === "object" && "success" in data
+      ? data
+      : { success: true, message: "Product deleted successfully", data };
+
+    return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
