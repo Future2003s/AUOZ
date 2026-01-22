@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -21,7 +22,13 @@ import {
   Receipt,
   Bell,
   Camera,
+  FileX,
+  Truck,
+  CreditCard,
+  AlertCircle,
 } from "lucide-react";
+import { employeeApiRequest, EmployeeMetrics } from "@/apiRequests/employee";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TaskCard {
   id: string;
@@ -130,47 +137,45 @@ const taskCards: TaskCard[] = [
   },
 ];
 
-const stats = [
-  {
-    label: "Đơn hàng hôm nay",
-    value: "24",
-    icon: ShoppingBag,
-    color: "text-blue-600 dark:text-blue-400",
-    bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    change: "+12%",
-    changeColor: "text-green-600 dark:text-green-400",
-  },
-  {
-    label: "Công việc đang làm",
-    value: "8",
-    icon: ClipboardList,
-    color: "text-indigo-600 dark:text-indigo-400",
-    bgColor: "bg-indigo-100 dark:bg-indigo-900/30",
-    change: "+3",
-    changeColor: "text-indigo-600 dark:text-indigo-400",
-  },
-  {
-    label: "Hoàn thành hôm nay",
-    value: "16",
-    icon: CheckCircle2,
-    color: "text-green-600 dark:text-green-400",
-    bgColor: "bg-green-100 dark:bg-green-900/30",
-    change: "+8%",
-    changeColor: "text-green-600 dark:text-green-400",
-  },
-  {
-    label: "Đang chờ xử lý",
-    value: "5",
-    icon: Clock,
-    color: "text-amber-600 dark:text-amber-400",
-    bgColor: "bg-amber-100 dark:bg-amber-900/30",
-    change: "-2",
-    changeColor: "text-red-600 dark:text-red-400",
-  },
-];
+interface StatCard {
+  label: string;
+  value: string | number;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  bgColor: string;
+  change?: string;
+  changeColor?: string;
+  href?: string;
+}
 
 export default function EmployeeDashboard() {
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [metrics, setMetrics] = useState<EmployeeMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      fetchMetrics();
+    }
+  }, [isAuthenticated, authLoading]);
+
+  const fetchMetrics = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await employeeApiRequest.getMetrics();
+      if (response.success && response.data) {
+        setMetrics(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching metrics:", err);
+      setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTaskClick = (href: string) => {
     // Extract locale from current path
@@ -178,6 +183,49 @@ export default function EmployeeDashboard() {
     const locale = currentPath.split("/")[1] || "vi";
     router.push(`/${locale}${href}`);
   };
+
+  const handleStatClick = (href?: string) => {
+    if (href) {
+      const currentPath = window.location.pathname;
+      const locale = currentPath.split("/")[1] || "vi";
+      router.push(`/${locale}${href}`);
+    }
+  };
+
+  const stats: StatCard[] = [
+    {
+      label: "Hóa đơn chưa hoàn thành",
+      value: loading ? "..." : metrics?.incompleteInvoices ?? 0,
+      icon: FileX,
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-100 dark:bg-blue-900/30",
+      href: "/employee/metrics/incomplete-invoices",
+    },
+    {
+      label: "Đơn chưa nhận được hàng",
+      value: loading ? "..." : metrics?.undeliveredOrders ?? 0,
+      icon: Truck,
+      color: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-purple-100 dark:bg-purple-900/30",
+      href: "/employee/metrics/undelivered-orders",
+    },
+    {
+      label: "Đơn chưa thanh toán",
+      value: loading ? "..." : metrics?.unpaidOrders ?? 0,
+      icon: CreditCard,
+      color: "text-orange-600 dark:text-orange-400",
+      bgColor: "bg-orange-100 dark:bg-orange-900/30",
+      href: "/employee/metrics/unpaid-orders",
+    },
+    {
+      label: "Chưa vào công nợ",
+      value: loading ? "..." : metrics?.notInDebt ?? 0,
+      icon: AlertCircle,
+      color: "text-red-600 dark:text-red-400",
+      bgColor: "bg-red-100 dark:bg-red-900/30",
+      href: "/employee/metrics/not-in-debt",
+    },
+  ];
 
   return (
     <div className="space-y-6 mt-25">
@@ -212,19 +260,19 @@ export default function EmployeeDashboard() {
           return (
             <Card
               key={index}
-              className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md hover:shadow-lg transition-shadow"
+              className={`border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md hover:shadow-lg transition-all duration-200 ${
+                stat.href ? "cursor-pointer hover:scale-[1.02]" : ""
+              }`}
+              onClick={() => stat.href && handleStatClick(stat.href)}
             >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className={`p-3 rounded-xl ${stat.bgColor}`}>
                     <Icon className={`w-6 h-6 ${stat.color}`} />
                   </div>
-                  <div
-                    className={`text-sm font-semibold flex items-center gap-1 ${stat.changeColor}`}
-                  >
-                    <TrendingUp className="w-4 h-4" />
-                    {stat.change}
-                  </div>
+                  {stat.href && (
+                    <ArrowRight className={`w-4 h-4 ${stat.color} opacity-50`} />
+                  )}
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
@@ -237,6 +285,11 @@ export default function EmployeeDashboard() {
           );
         })}
       </div>
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {/* Task Cards Grid */}
       <div>

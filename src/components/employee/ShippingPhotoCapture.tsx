@@ -1081,72 +1081,190 @@ export default function ShippingPhotoCapture() {
 
       toast.success(successMessages.join(", "));
 
-      // Create invoice reminder if needed
+      // Create invoice reminder and auto-issue if needed
       if (formData.isInvoice) {
         try {
-          const invoiceResponse = await fetch("/api/invoice", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              customerName: formData.buyerName,
-              orderIds: [],
-              deadline: new Date(
-                Date.now() + 7 * 24 * 60 * 60 * 1000
-              ).toISOString(),
-              notes: formData.note || `Hóa đơn cho đơn hàng ${savedOrder.orderCode}`,
-            }),
-          });
-
-          const invoiceData = await invoiceResponse.json();
-          if (invoiceData.success || invoiceData.data) {
-            const pendingInvoices = JSON.parse(
-              localStorage.getItem("pendingInvoices") || "[]"
+          // First, try to find buyer ID if available
+          let buyerId = formData.buyerId;
+          if (!buyerId && formData.buyerName) {
+            // Try to find buyer by name
+            const buyer = buyers.find(
+              (b) => b.name.toLowerCase() === formData.buyerName.toLowerCase()
             );
-            pendingInvoices.push({
-              orderId: savedOrder._id || savedOrder.id,
-              orderNumber: savedOrder.orderCode,
-              customerName: formData.buyerName,
-              createdAt: new Date().toISOString(),
-            });
-            localStorage.setItem(
-              "pendingInvoices",
-              JSON.stringify(pendingInvoices)
-            );
+            if (buyer) {
+              buyerId = buyer._id || buyer.id;
+            }
           }
+
+          // Note: API createInvoice requires customerId and orderIds (non-empty array)
+          // For delivery orders, we may not have these, so we'll try to create invoice
+          // but if it fails due to missing requirements, we'll just log it
+          // The delivery order itself already has isInvoice flag set to true
+          
+          // Try to find related Order if buyerId exists
+          // For now, we'll create invoice with minimal data if possible
+          // If buyerId exists, we can try to create invoice
+          if (buyerId) {
+            // Try to find orders for this buyer
+            try {
+              const ordersResponse = await fetch(`/api/orders/admin/all?customerId=${buyerId}&limit=1`, {
+                credentials: "include",
+                cache: "no-store",
+              });
+              
+              if (ordersResponse.ok) {
+                const ordersData = await ordersResponse.json();
+                const relatedOrders = ordersData.data || ordersData.data?.content || [];
+                
+                if (relatedOrders.length > 0) {
+                  // We have orders, create invoice with orderIds
+                  const orderIds = relatedOrders.map((o: any) => o._id || o.id).slice(0, 1); // Use first order
+                  
+                  const invoiceResponse = await fetch("/api/invoice", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      customerId: buyerId,
+                      customerName: formData.buyerName,
+                      orderIds: orderIds,
+                      deadline: new Date(
+                        Date.now() + 7 * 24 * 60 * 60 * 1000
+                      ).toISOString(),
+                      notes: formData.note || `Hóa đơn cho đơn hàng ${savedOrder.orderCode}`,
+                    }),
+                  });
+
+                  const invoiceData = await invoiceResponse.json();
+                  if (invoiceData.success && invoiceData.data) {
+                    const invoiceId = invoiceData.data._id || invoiceData.data.id;
+                    
+                    // Automatically issue the invoice
+                    try {
+                      const issueResponse = await fetch(`/api/invoice/${invoiceId}/issue`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          notes: `Tự động xuất hoá đơn cho đơn hàng ${savedOrder.orderCode}`,
+                        }),
+                      });
+
+                      const issueData = await issueResponse.json();
+                      if (issueData.success || issueData.data) {
+                        console.log("Invoice automatically issued:", issueData);
+                        toast.success("Đã tự động xuất hoá đơn");
+                      } else {
+                        console.warn("Failed to auto-issue invoice:", issueData);
+                      }
+                    } catch (issueError) {
+                      console.error("Error auto-issuing invoice:", issueError);
+                    }
+                  }
+                }
+              }
+            } catch (orderError) {
+              console.error("Error finding related orders:", orderError);
+            }
+          }
+          
+          // Store delivery order info for invoice tracking
+          // The delivery order already has isInvoice=true, which indicates invoice should be issued
+          const pendingInvoices = JSON.parse(
+            localStorage.getItem("pendingInvoices") || "[]"
+          );
+          pendingInvoices.push({
+            orderId: savedOrder._id || savedOrder.id,
+            orderNumber: savedOrder.orderCode,
+            customerName: formData.buyerName,
+            deliveryOrderId: savedOrder._id || savedOrder.id,
+            isInvoice: true,
+            createdAt: new Date().toISOString(),
+          });
+          localStorage.setItem(
+            "pendingInvoices",
+            JSON.stringify(pendingInvoices)
+          );
         } catch (error) {
-          console.error("Error creating invoice:", error);
+          console.error("Error processing invoice:", error);
+          // Don't fail the whole process if invoice creation fails
+          // The delivery order already has isInvoice=true flag
         }
       }
 
-      // Create debt if needed
+      // Create debt if needed (creating debt = entering into debt)
       if (formData.isDebt && totalAmount > 0) {
         try {
-          const debtResponse = await fetch("/api/debt", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              customerName: formData.buyerName,
-              orderNumber: savedOrder.orderCode,
-              amount: totalAmount,
-              dueDate: new Date(
-                Date.now() + 30 * 24 * 60 * 60 * 1000
-              ).toISOString(),
-              notes:
-                formData.note ||
-                `Công nợ cho đơn hàng ${savedOrder.orderCode}. Sản phẩm: ${items.map((i) => `${i.name} (${i.quantity}x)`).join(", ")}`,
-            }),
-          });
-
-          const debtData = await debtResponse.json();
-          if (debtData.success || debtData.data) {
-            // Redirect to debt management page
-            setTimeout(() => {
-              router.push(`/${locale}/employee/debt`);
-            }, 1500);
-            return;
+          // First, try to find buyer ID if available
+          let buyerId = formData.buyerId;
+          if (!buyerId && formData.buyerName) {
+            // Try to find buyer by name
+            const buyer = buyers.find(
+              (b) => b.name.toLowerCase() === formData.buyerName.toLowerCase()
+            );
+            if (buyer) {
+              buyerId = buyer._id || buyer.id;
+            }
           }
+
+          // Note: API createDebt requires customerId and orderId (from Order model)
+          // For delivery orders, we may not have these, so we'll try to create debt
+          // but if it fails due to missing requirements, we'll just log it
+          // The delivery order itself already has isDebt flag set to true
+          
+          // Try to find related Order if buyerId exists
+          if (buyerId) {
+            try {
+              const ordersResponse = await fetch(`/api/orders/admin/all?customerId=${buyerId}&limit=1`, {
+                credentials: "include",
+                cache: "no-store",
+              });
+              
+              if (ordersResponse.ok) {
+                const ordersData = await ordersResponse.json();
+                const relatedOrders = ordersData.data || ordersData.data?.content || [];
+                
+                if (relatedOrders.length > 0) {
+                  // We have orders, create debt with orderId
+                  const orderId = relatedOrders[0]._id || relatedOrders[0].id;
+                  
+                  const debtResponse = await fetch("/api/debt", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      customerId: buyerId,
+                      customerName: formData.buyerName,
+                      orderId: orderId,
+                      orderNumber: savedOrder.orderCode,
+                      amount: totalAmount,
+                      dueDate: new Date(
+                        Date.now() + 30 * 24 * 60 * 60 * 1000
+                      ).toISOString(),
+                      description: `Công nợ cho đơn hàng ${savedOrder.orderCode}`,
+                      notes:
+                        formData.note ||
+                        `Công nợ cho đơn hàng ${savedOrder.orderCode}. Sản phẩm: ${items.map((i) => `${i.name} (${i.quantity}x)`).join(", ")}`,
+                    }),
+                  });
+
+                  const debtData = await debtResponse.json();
+                  if (debtData.success || debtData.data) {
+                    console.log("Debt created and entered into debt system:", debtData);
+                    toast.success("Đã tạo công nợ và vào hệ thống công nợ");
+                    // Don't redirect immediately, let user see the success message
+                  }
+                }
+              }
+            } catch (orderError) {
+              console.error("Error finding related orders for debt:", orderError);
+            }
+          }
+          
+          // Store delivery order info for debt tracking
+          // The delivery order already has isDebt=true, which indicates debt should be entered
+          // Even if we couldn't create a formal debt record, the flag is set
         } catch (error) {
-          console.error("Error creating debt:", error);
+          console.error("Error processing debt:", error);
+          // Don't fail the whole process if debt creation fails
+          // The delivery order already has isDebt=true flag
         }
       }
 

@@ -50,34 +50,63 @@ export default function OrderDetailPage() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`/api/delivery/${orderId}`, {
+        
+        // Try to fetch as regular Order first
+        let res = await fetch(`/api/employee/orders/${orderId}`, {
+          credentials: "include",
           cache: "no-store",
         });
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/432e8fdf-0ddd-4690-a25d-aebc1c16d609", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "pre-fix-2",
-            hypothesisId: "D",
-            location: "page.tsx:fetchOrder:response",
-            message: "fetchOrder response",
-            data: { url: `/api/delivery/${orderId}`, status: res.status, ok: res.ok },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || "Không thể tải đơn hàng");
+        
+        let isDeliveryOrder = false;
+        
+        // If not found, try as DeliveryOrder
+        if (!res.ok || res.status === 404) {
+          console.log("[Order Detail] Not found as regular order, trying delivery order...");
+          res = await fetch(`/api/delivery/${orderId}`, {
+            credentials: "include",
+            cache: "no-store",
+          });
+          isDeliveryOrder = true;
         }
+        
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          const errorMessage = errorData?.error || errorData?.message || `HTTP error! status: ${res.status}`;
+          throw new Error(errorMessage);
+        }
+        
         const data = await res.json();
         const record = data?.data || data;
-        setOrder(record);
-        setProofImage(record?.proofImage || null);
+        
+        // Transform regular Order to match DeliveryOrder structure if needed
+        if (!isDeliveryOrder && record) {
+          const transformedRecord: DeliveryOrder = {
+            _id: record._id || record.id,
+            id: record.id || record._id,
+            orderCode: record.orderNumber || record.orderCode,
+            buyerName: record.user && typeof record.user === "object" 
+              ? `${record.user.firstName || ""} ${record.user.lastName || ""}`.trim() || record.user.email || "Khách hàng"
+              : record.shippingAddress
+              ? `${record.shippingAddress.firstName || ""} ${record.shippingAddress.lastName || ""}`.trim() || "Khách hàng"
+              : "Khách hàng",
+            deliveryDate: record.deliveredAt || record.deliveryDate,
+            createdAt: record.createdAt,
+            items: record.items || [],
+            amount: record.total,
+            status: record.status,
+            proofImage: record.proofImage,
+            note: record.note,
+            isShipped: record.status === "shipped" || record.status === "delivered",
+          };
+          setOrder(transformedRecord);
+          setProofImage(transformedRecord.proofImage || null);
+        } else {
+          setOrder(record);
+          setProofImage(record?.proofImage || null);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+        console.error("Error fetching order:", err);
+        setError(err instanceof Error ? err.message : "Không thể tải đơn hàng");
       } finally {
         setLoading(false);
       }

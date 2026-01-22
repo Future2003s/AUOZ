@@ -10,6 +10,7 @@ export * from "./account";
 export * from "./meta";
 export * from "./advertisements";
 export * from "./tasks";
+export * from "./employee";
 
 // Main HTTP client
 export { http } from "../lib/http";
