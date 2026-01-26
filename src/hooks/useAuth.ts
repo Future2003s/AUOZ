@@ -60,7 +60,7 @@ const getCookie = (name: string): string | null => {
 };
 
 // Helper để set cookie từ client-side (chỉ cho remember_me, user data được set bởi API)
-const setCookie = (name: string, value: string, days: number = 7) => {
+const setCookie = (name: string, value: string, days: number = 30) => {
   if (typeof document === 'undefined') return;
   const expires = new Date();
   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
@@ -165,7 +165,7 @@ export const useAuth = (): UseAuthReturn => {
       // Token và user data đã được set trong cookie bởi /api/auth/login
       // Chỉ set remember_me cookie nếu cần
       if (rememberMe) {
-        setCookie(COOKIE_KEYS.REMEMBER_ME, "true", 30);
+        setCookie(COOKIE_KEYS.REMEMBER_ME, "true", 365); // Tăng từ 30 ngày lên 365 ngày (1 năm)
       } else {
         deleteCookie(COOKIE_KEYS.REMEMBER_ME);
       }
@@ -422,7 +422,7 @@ export const useAuth = (): UseAuthReturn => {
         if (updatedUser) {
           const userDataStr = JSON.stringify(updatedUser);
           if (userDataStr.length < 4000) {
-            setCookie(COOKIE_KEYS.USER, userDataStr, 7);
+            setCookie(COOKIE_KEYS.USER, userDataStr, 30); // Tăng từ 7 ngày lên 30 ngày
           }
         }
         

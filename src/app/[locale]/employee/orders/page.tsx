@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, ListChecks, Loader2, Package, User, Calendar, DollarSign, Truck, ImageIcon } from "lucide-react";
+import { ListChecks, Loader2, Package, User, Calendar, DollarSign, Truck, ImageIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -288,17 +288,9 @@ export default function OrdersPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-700 px-4 py-3">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.push(`/${locale}/employee`)}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Quản lý đơn hàng
-            </h1>
-          </div>
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Quản lý đơn hàng
+          </h1>
           <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
             <div className="flex items-center gap-1">
               <ListChecks size={16} />

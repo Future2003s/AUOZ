@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileX, Calendar, User, DollarSign } from "lucide-react";
+import { FileX, Calendar, User, DollarSign } from "lucide-react";
 import { employeeApiRequest } from "@/apiRequests/employee";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
@@ -77,13 +77,6 @@ export default function IncompleteInvoicesPage() {
     <div className="space-y-6 mt-25">
       <div className="flex items-center gap-4">
         <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-          className="hover:bg-slate-100 dark:hover:bg-slate-800"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
             Hóa đơn chưa hoàn thành

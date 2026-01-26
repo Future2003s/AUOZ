@@ -11,6 +11,7 @@ export * from "./meta";
 export * from "./advertisements";
 export * from "./tasks";
 export * from "./employee";
+export * from "./inventory";
 
 // Main HTTP client
 export { http } from "../lib/http";

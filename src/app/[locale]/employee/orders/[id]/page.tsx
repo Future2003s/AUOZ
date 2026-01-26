@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft, Loader2, Truck, Building, ListChecks, UploadCloud } from "lucide-react";
+import { Loader2, Truck, Building, ListChecks, UploadCloud } from "lucide-react";
 
 type OrderItem = {
   name: string;
@@ -262,17 +262,9 @@ export default function OrderDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.push(`/${locale}/employee/orders`)}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <ArrowLeft size={18} />
-          </button>
-          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Chi tiết đơn hàng
-          </h1>
-        </div>
+        <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          Chi tiết đơn hàng
+        </h1>
         {order?.status && (
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
             <ListChecks size={16} />

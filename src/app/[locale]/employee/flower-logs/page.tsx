@@ -52,7 +52,7 @@ interface FlowerLog {
 
 const FLOWER_CATEGORIES: Record<string, string[]> = {
   "Nơ": ["Nơ Đại Đỏ", "Nơ Đại Đen", "Nơ Trung Đỏ", "Nơ Trung Đen", "Nơ Nhỏ Đỏ", "Nơ Nhỏ Đen"],
-  "Hoa": ["Hoa Đại Đỏ", "Hoa Đại Trắng", "Hoa Trung Đỏ", "Hoa Trung Trắng", "Hoa Nhỏ Đỏ", "Hoa Nhỏ Trắng"]
+  "Hoa": ["Hoa Đại Đỏ", "Hoa Đại Trắng", "Hoa Trung Đỏ", "Hoa Trung Trắng", "Hoa Nhỏ Đỏ", "Hoa Nhỏ Trắng","Hoa Satin"]
 };
 
 // Chuẩn hóa item để tránh quantity dạng string từ backend

@@ -18,7 +18,10 @@ import {
   Edit,
   Eye,
   Copy,
-  CheckCircle
+  CheckCircle,
+  Calendar,
+  FileText,
+  AlertCircle
 } from 'lucide-react';
 import { useTasks, Task } from '@/hooks/useTasks';
 import { tasksApi } from '@/apiRequests/tasks';
@@ -38,6 +41,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import TasksToolbar from "./tasks/TasksToolbar";
+import TaskCard from "./tasks/TaskCard";
+import EmptyState from "./tasks/EmptyState";
+import ErrorState from "./tasks/ErrorState";
+import CalendarSkeleton from "./tasks/CalendarSkeleton";
+import TaskDetailView from "./tasks/TaskDetailView";
 
 // --- Types & Interfaces ---
 // Task type is imported from useTasks hook
@@ -116,12 +125,18 @@ export default function TaskCalendar({
   // State để quản lý việc đang sửa (nếu null là đang thêm mới)
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   
+  // State cho detail view (chỉ xem)
+  const [viewingTask, setViewingTask] = useState<Task | null>(null);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState<boolean>(false);
+  
   // Form State
   const [newTaskTitle, setNewTaskTitle] = useState<string>("");
   const [newTaskAssignee, setNewTaskAssignee] = useState<string>("");
   const [newTaskAssigneeIds, setNewTaskAssigneeIds] = useState<string[]>([]); // IDs của employees được chọn (nhiều nhân viên)
   const [newTaskTag, setNewTaskTag] = useState<string>(""); // Default rỗng để user tự nhập
   const [newTaskDesc, setNewTaskDesc] = useState<string>("");
+  const [newTaskDeadline, setNewTaskDeadline] = useState<string>(""); // Thời hạn công việc
+  const [newTaskProgressNotes, setNewTaskProgressNotes] = useState<string>(""); // Ghi chú tiến độ
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoadingTaskDetail, setIsLoadingTaskDetail] = useState<boolean>(false);
   
@@ -137,8 +152,13 @@ export default function TaskCalendar({
   const [showAssigneeSuggestions, setShowAssigneeSuggestions] = useState<boolean>(false);
   const [showEmployeeList, setShowEmployeeList] = useState<boolean>(true); // Hiển thị/ẩn danh sách nhân viên
 
+  // Search and Filter States
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "todo" | "pending" | "done">("all");
+  const [tagFilter, setTagFilter] = useState<string>("");
+
   // Filter tasks based on filterType
-  const tasks: Task[] = useMemo(() => {
+  const filteredTasksByType: Task[] = useMemo(() => {
     if (filterType === "all" || !currentUserId) {
       return apiTasks;
     }
@@ -161,6 +181,36 @@ export default function TaskCalendar({
 
     return apiTasks;
   }, [apiTasks, filterType, currentUserId]);
+
+  // Apply search and filters
+  const tasks: Task[] = useMemo(() => {
+    let result = filteredTasksByType;
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (task) =>
+          task.title.toLowerCase().includes(query) ||
+          task.description?.toLowerCase().includes(query) ||
+          task.assignee.toLowerCase().includes(query) ||
+          task.tag.toLowerCase().includes(query) ||
+          task.progressNotes?.toLowerCase().includes(query)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== "all") {
+      result = result.filter((task) => task.status === statusFilter);
+    }
+
+    // Tag filter
+    if (tagFilter) {
+      result = result.filter((task) => task.tag === tagFilter);
+    }
+
+    return result;
+  }, [filteredTasksByType, searchQuery, statusFilter, tagFilter]);
 
   // Fetch tasks when month changes
   useEffect(() => {
@@ -232,6 +282,8 @@ export default function TaskCalendar({
     setNewTaskAssigneeIds([]);
     setNewTaskDesc("");
     setNewTaskTag("");
+    setNewTaskDeadline("");
+    setNewTaskProgressNotes("");
     setEditingTask(null);
     setAssigneeSearchQuery("");
     setShowAssigneeSuggestions(false);
@@ -302,7 +354,7 @@ export default function TaskCalendar({
     setIsModalOpen(true);
   };
 
-  // Xử lý khi bấm vào Task để xem/sửa
+  // Xử lý khi bấm vào Task để xem chi tiết (chỉ xem)
   const handleTaskClick = useCallback(async (task: Task, e?: React.MouseEvent | any) => {
     if (e) {
       // Xử lý React.MouseEvent
@@ -314,7 +366,7 @@ export default function TaskCalendar({
         e.preventDefault();
       }
     }
-    // Không mở modal nếu dialog xóa đang mở hoặc context menu đang mở
+    // Không mở view nếu dialog xóa đang mở hoặc context menu đang mở
     if (isDeleteDialogOpen || isContextMenuOpenRef.current) return;
     
     // Fetch dữ liệu mới nhất từ database
@@ -325,7 +377,7 @@ export default function TaskCalendar({
         const latestTask = response.data;
         
         // Tạo Task object với format đúng
-        const taskToEdit: Task = {
+        const taskToView: Task = {
           id: task.id,
           _id: latestTask._id,
           date: latestTask.date,
@@ -334,94 +386,66 @@ export default function TaskCalendar({
           tag: latestTask.tag,
           status: latestTask.status,
           description: latestTask.description,
+          deadline: latestTask.deadline,
+          progressNotes: latestTask.progressNotes,
           createdBy: latestTask.createdBy,
         };
         
-        setEditingTask(taskToEdit);
-        
-        // Điền dữ liệu task vào form từ database
-        setSelectedDate(latestTask.date);
-        setNewTaskTitle(latestTask.title);
-        setNewTaskAssignee(latestTask.assignee);
-        // Parse assignee string (có thể là nhiều tên phân cách bởi dấu phẩy)
-        const assigneeNames = latestTask.assignee.split(',').map((name: string) => name.trim()).filter(Boolean);
-        const matchedEmployeeIds: string[] = [];
-        assigneeNames.forEach((name: string) => {
-          const emp = employees.find(e => e.fullName === name || e.email === name);
-          if (emp) {
-            matchedEmployeeIds.push(emp.id);
-          }
-        });
-        setNewTaskAssigneeIds(matchedEmployeeIds);
-        // Nếu không tìm thấy employee nào, giữ nguyên assignee string
-        if (matchedEmployeeIds.length === 0) {
-          setAssigneeSearchQuery(latestTask.assignee);
-        } else {
-          setAssigneeSearchQuery("");
-        }
-        setShowAssigneeSuggestions(false);
-        setNewTaskTag(latestTask.tag || "");
-        setNewTaskDesc(latestTask.description || "");
-        setShowEmployeeList(true); // Mở danh sách khi edit
-        
-        setIsModalOpen(true);
+        setViewingTask(taskToView);
+        setIsDetailViewOpen(true);
       } catch (error) {
         console.error("Error fetching task details:", error);
         toast.error("Không thể tải chi tiết công việc. Sử dụng dữ liệu hiện có.");
-        // Fallback: sử dụng dữ liệu local nếu fetch thất bại
-        setEditingTask(task);
-        setSelectedDate(task.date);
-        setNewTaskTitle(task.title);
-        setNewTaskAssignee(task.assignee);
-        const assigneeNames = task.assignee.split(',').map(name => name.trim()).filter(Boolean);
-        const matchedEmployeeIds: string[] = [];
-        assigneeNames.forEach(name => {
-          const emp = employees.find(e => e.fullName === name || e.email === name);
-          if (emp) {
-            matchedEmployeeIds.push(emp.id);
-          }
-        });
-        setNewTaskAssigneeIds(matchedEmployeeIds);
-        if (matchedEmployeeIds.length === 0) {
-          setAssigneeSearchQuery(task.assignee);
-        } else {
-          setAssigneeSearchQuery("");
-        }
-        setShowAssigneeSuggestions(false);
-        setNewTaskTag(task.tag);
-        setNewTaskDesc(task.description || "");
-        setShowEmployeeList(true);
-        setIsModalOpen(true);
+        // Fallback: sử dụng dữ liệu local
+        setViewingTask(task);
+        setIsDetailViewOpen(true);
       } finally {
         setIsLoadingTaskDetail(false);
       }
     } else {
       // Nếu không có _id, sử dụng dữ liệu local
-      setEditingTask(task);
-      setSelectedDate(task.date);
-      setNewTaskTitle(task.title);
-      setNewTaskAssignee(task.assignee);
-      const assigneeNames = task.assignee.split(',').map(name => name.trim()).filter(Boolean);
-      const matchedEmployeeIds: string[] = [];
-      assigneeNames.forEach(name => {
-        const emp = employees.find(e => e.fullName === name || e.email === name);
-        if (emp) {
-          matchedEmployeeIds.push(emp.id);
-        }
-      });
-      setNewTaskAssigneeIds(matchedEmployeeIds);
-      if (matchedEmployeeIds.length === 0) {
-        setAssigneeSearchQuery(task.assignee);
-      } else {
-        setAssigneeSearchQuery("");
-      }
-      setShowAssigneeSuggestions(false);
-      setNewTaskTag(task.tag);
-      setNewTaskDesc(task.description || "");
-      setShowEmployeeList(true);
-      setIsModalOpen(true);
+      setViewingTask(task);
+      setIsDetailViewOpen(true);
     }
-  }, [isDeleteDialogOpen, employees]);
+  }, [isDeleteDialogOpen]);
+
+  // Xử lý khi muốn sửa task từ detail view
+  const handleEditFromDetailView = useCallback(async () => {
+    if (!viewingTask) return;
+    
+    // Đóng detail view
+    setIsDetailViewOpen(false);
+    
+    // Mở modal edit với dữ liệu từ viewingTask
+    setEditingTask(viewingTask);
+    setSelectedDate(viewingTask.date);
+    setNewTaskTitle(viewingTask.title);
+    setNewTaskAssignee(viewingTask.assignee);
+    
+    // Parse assignee string
+    const assigneeNames = viewingTask.assignee.split(',').map(name => name.trim()).filter(Boolean);
+    const matchedEmployeeIds: string[] = [];
+    assigneeNames.forEach(name => {
+      const emp = employees.find(e => e.fullName === name || e.email === name);
+      if (emp) {
+        matchedEmployeeIds.push(emp.id);
+      }
+    });
+    setNewTaskAssigneeIds(matchedEmployeeIds);
+    if (matchedEmployeeIds.length === 0) {
+      setAssigneeSearchQuery(viewingTask.assignee);
+    } else {
+      setAssigneeSearchQuery("");
+    }
+    setShowAssigneeSuggestions(false);
+    setNewTaskTag(viewingTask.tag || "");
+    setNewTaskDesc(viewingTask.description || "");
+    setNewTaskDeadline(viewingTask.deadline || "");
+    setNewTaskProgressNotes(viewingTask.progressNotes || "");
+    setShowEmployeeList(true);
+    
+    setIsModalOpen(true);
+  }, [viewingTask, employees]);
 
   const handleSaveTask = async () => {
     if (!newTaskTitle) return;
@@ -458,6 +482,8 @@ export default function TaskCalendar({
           assignee: finalAssignee,
           tag: finalTag,
           description: newTaskDesc,
+          deadline: newTaskDeadline || undefined,
+          progressNotes: newTaskProgressNotes || undefined,
         });
       } else {
         // Thêm task mới
@@ -468,6 +494,8 @@ export default function TaskCalendar({
           tag: finalTag,
           status: "todo",
           description: newTaskDesc,
+          deadline: newTaskDeadline || undefined,
+          progressNotes: newTaskProgressNotes || undefined,
         });
       }
       
@@ -493,6 +521,13 @@ export default function TaskCalendar({
     setTaskToDelete({ id: taskId, _id: task._id });
     setIsDeleteDialogOpen(true);
   }, [tasks, isModalOpen]);
+
+  // Xử lý khi muốn xóa task từ detail view
+  const handleDeleteFromDetailView = useCallback(() => {
+    if (!viewingTask) return;
+    setIsDetailViewOpen(false);
+    handleDeleteTask(viewingTask.id);
+  }, [viewingTask, handleDeleteTask]);
 
   const confirmDeleteTask = async () => {
     if (!taskToDelete) return;
@@ -526,7 +561,7 @@ export default function TaskCalendar({
   }, [tasks, toggleTaskStatus]);
 
   const handleCopyTaskInfo = useCallback((task: Task) => {
-    const taskInfo = `Công việc: ${task.title}\nNgày: ${task.date}\nNgười phụ trách: ${task.assignee}\nLoại: ${task.tag}\nTrạng thái: ${task.status === 'done' ? 'Hoàn thành' : task.status === 'pending' ? 'Đang làm' : 'Chưa làm'}\n${task.description ? `Mô tả: ${task.description}` : ''}`;
+    const taskInfo = `Công việc: ${task.title}\nNgày: ${task.date}\nNgười phụ trách: ${task.assignee}\nLoại: ${task.tag}\nTrạng thái: ${task.status === 'done' ? 'Hoàn thành' : task.status === 'pending' ? 'Đang làm' : 'Chưa làm'}\n${task.deadline ? `Thời hạn: ${new Date(task.deadline).toLocaleDateString('vi-VN')}` : ''}\n${task.description ? `Mô tả: ${task.description}` : ''}\n${task.progressNotes ? `Ghi chú tiến độ: ${task.progressNotes}` : ''}`;
     navigator.clipboard.writeText(taskInfo).then(() => {
       toast.success("Đã sao chép thông tin công việc");
     }).catch(() => {
@@ -537,58 +572,78 @@ export default function TaskCalendar({
   // --- Render Components ---
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-sans p-3 md:p-8">
-      {/* Loading Overlay */}
-      {isLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 dark:bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-xl flex flex-col items-center gap-4">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
-            <p className="text-slate-700 dark:text-slate-300 font-medium">Đang tải dữ liệu...</p>
-          </div>
-        </div>
-      )}
+    <div className="space-y-6">
+      {/* Search and Filters Toolbar */}
+      <TasksToolbar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        tagFilter={tagFilter}
+        onTagFilterChange={setTagFilter}
+        tasks={filteredTasksByType}
+      />
 
-      {/* Error Display */}
+      {/* Loading State */}
+      {isLoading && <CalendarSkeleton />}
+
+      {/* Error State */}
       {error && !isLoading && (
-        <div className="max-w-7xl mx-auto mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-        </div>
+        <ErrorState
+          error={error}
+          onRetry={() => {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const startDate = new Date(year, month, 1).toISOString().split("T")[0];
+            const endDate = new Date(year, month + 1, 0).toISOString().split("T")[0];
+            fetchTasks({ startDate, endDate });
+          }}
+        />
       )}
-      
-      {/* Month Navigation */}
-      <div className="max-w-7xl mx-auto mb-6">
-        <div className="flex flex-wrap items-center gap-2 md:gap-4 bg-white dark:bg-slate-800 p-3 md:p-4 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 w-full lg:w-auto justify-between lg:justify-center mx-auto">
-          <div className="flex items-center gap-2">
-              <button 
-                onClick={prevMonth} 
-                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border border-slate-200 dark:border-slate-600 lg:border-none"
-              >
-                <ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400" />
-              </button>
-              <span className="text-base md:text-lg font-bold min-w-[140px] text-center capitalize text-slate-700 dark:text-slate-200">
-                Tháng {currentDate.getMonth() + 1}, {currentDate.getFullYear()}
-              </span>
-              <button 
-                onClick={nextMonth} 
-                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border border-slate-200 dark:border-slate-600 lg:border-none"
-              >
-                <ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400" />
-              </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Calendar Grid Container */}
-      <div className="max-w-7xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 overflow-hidden border border-slate-200 dark:border-slate-700">
-        
-        {/* Desktop Days Header (Hidden on Mobile) */}
-        <div className="hidden lg:grid grid-cols-7 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-800">
-          {DAYS_OF_WEEK.map((day, idx) => (
-            <div key={idx} className={`py-4 text-center font-semibold text-sm ${idx === 0 ? 'text-rose-500 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400'}`}>
-              {day}
+      {/* Calendar Content */}
+      {!isLoading && !error && (
+        <>
+          {/* Month Navigation */}
+          <div className="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <button
+              type="button"
+              onClick={prevMonth}
+              className="min-w-[48px] min-h-[48px] flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 dark:active:bg-slate-600 rounded-xl transition-all active:scale-95 touch-manipulation focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              aria-label="Tháng trước"
+            >
+              <ChevronLeft className="w-6 h-6 text-slate-600 dark:text-slate-300" />
+            </button>
+            <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white capitalize px-4">
+              Tháng {currentDate.getMonth() + 1}, {currentDate.getFullYear()}
+            </h2>
+            <button
+              type="button"
+              onClick={nextMonth}
+              className="min-w-[48px] min-h-[48px] flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 dark:active:bg-slate-600 rounded-xl transition-all active:scale-95 touch-manipulation focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              aria-label="Tháng sau"
+            >
+              <ChevronRight className="w-6 h-6 text-slate-600 dark:text-slate-300" />
+            </button>
+          </div>
+
+          {/* Calendar Grid Container */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+            {/* Desktop Days Header (Hidden on Mobile) */}
+            <div className="hidden lg:grid grid-cols-7 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800">
+              {DAYS_OF_WEEK.map((day, idx) => (
+                <div
+                  key={idx}
+                  className={`py-4 text-center font-semibold text-sm ${
+                    idx === 0
+                      ? "text-rose-500 dark:text-rose-400"
+                      : "text-slate-600 dark:text-slate-400"
+                  }`}
+                >
+                  {day}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
         {/* Responsive Grid: 
             - Mobile: grid-cols-1 (List View) 
@@ -608,11 +663,18 @@ export default function TaskCalendar({
             const dayOfWeekIndex = dateObj.getDay();
 
             return (
-              <div 
-                key={dateStr} 
-                className={`bg-white dark:bg-slate-800 min-h-[120px] lg:min-h-[180px] p-3 md:p-2 transition-all group relative flex flex-col gap-2 
-                  ${filterType === "assigned-tasks" ? 'cursor-default' : 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50'}
-                  ${isToday ? 'bg-indigo-50/50 dark:bg-indigo-900/20 ring-2 ring-indigo-200 dark:ring-indigo-800' : ''}
+              <button
+                type="button"
+                key={dateStr}
+                disabled={filterType === "assigned-tasks"}
+                className={`bg-white dark:bg-slate-800 min-h-[120px] lg:min-h-[180px] p-3 md:p-2.5 transition-all group relative flex flex-col gap-2.5 touch-manipulation
+                  ${
+                    filterType === "assigned-tasks"
+                      ? "cursor-default"
+                      : "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 active:bg-indigo-50 dark:active:bg-indigo-900/20 active:scale-[0.98]"
+                  }
+                  ${isToday ? "bg-indigo-50/50 dark:bg-indigo-900/20 ring-2 ring-indigo-200 dark:ring-indigo-800" : ""}
+                  disabled:opacity-50 disabled:cursor-not-allowed
                 `}
                 onClick={() => handleDayClick(dateStr)}
               >
@@ -635,190 +697,60 @@ export default function TaskCalendar({
                     </div>
 
                     {filterType !== "assigned-tasks" && (
-                      <button className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1.5 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all">
-                          <Plus className="w-4 h-4" />
+                      <button
+                        type="button"
+                        className="min-w-[40px] min-h-[40px] flex items-center justify-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 active:bg-indigo-200 dark:active:bg-indigo-900/50 rounded-lg text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all active:scale-90 touch-manipulation"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDayClick(dateStr);
+                        }}
+                        aria-label="Thêm công việc"
+                      >
+                        <Plus className="w-5 h-5" />
                       </button>
                     )}
                 </div>
 
                 {/* Tasks List */}
-                <div className="flex flex-col gap-2 flex-1">
-                  {dayTasks.length > 0 ? dayTasks.map(task => {
-                    const tagStyle = getTagStyle(task.tag);
-                    const isDone = task.status === 'done';
-                    
-                    return (
-                      <ContextMenu 
+                <div className="flex flex-col gap-2.5 flex-1">
+                  {dayTasks.length > 0 ? (
+                    dayTasks.map((task) => (
+                      <TaskCard
                         key={task.id}
-                        onOpenChange={(open) => {
-                          isContextMenuOpenRef.current = open;
-                        }}
-                      >
-                        <ContextMenuTrigger asChild>
-                          <div 
-                            className={`bg-white dark:bg-slate-700 border rounded-lg p-3 lg:p-2.5 shadow-sm hover:shadow-md transition-all group/task text-left cursor-pointer 
-                              ${isDone 
-                                ? 'border-slate-200 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/50 opacity-70' 
-                                : 'border-slate-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg hover:-translate-y-0.5'
-                              }`}
-                            onDoubleClick={(e) => {
-                              // Double-click để mở modal nhanh
-                              e.stopPropagation();
-                              e.preventDefault();
-                              if (!isContextMenuOpenRef.current && !isDeleteDialogOpen) {
-                                handleTaskClick(task, e);
-                              }
-                            }}
-                          >
-                        <div className="flex justify-between items-start mb-1.5">
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${tagStyle} ${isDone ? 'saturate-0 opacity-70' : ''}`}>
-                                {task.tag}
-                            </span>
-                            
-                            <div className="flex items-center gap-1">
-                                {/* Toggle Done Button */}
-                                <button 
-                                    onClick={(e) => handleToggleTaskStatus(task.id, e)}
-                                    className={`transition-all p-1 lg:p-0.5 rounded-full ${isDone ? 'text-emerald-500 dark:text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300' : 'text-slate-300 dark:text-slate-600 hover:text-emerald-400 dark:hover:text-emerald-500'}`}
-                                >
-                                    {isDone ? 
-                                        <CheckCircle2 className="w-5 h-5 lg:w-4 lg:h-4 fill-emerald-50 dark:fill-emerald-900/30" /> : 
-                                        <div className="w-4 h-4 lg:w-3.5 lg:h-3.5 rounded-full border-2 border-current" />
-                                    }
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <p className={`text-sm lg:text-xs font-semibold text-slate-800 dark:text-slate-200 leading-snug mb-2 transition-all ${isDone ? 'line-through text-slate-400 dark:text-slate-500' : ''}`}>
-                            {task.title}
-                        </p>
-                        
-                        <div className={`flex items-center gap-1.5 mt-auto pt-2 border-t border-slate-100 dark:border-slate-600 ${isDone ? 'opacity-50' : ''}`}>
-                            <div className="w-4 h-4 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center">
-                                <User className="w-2.5 h-2.5 text-slate-500 dark:text-slate-400" />
-                            </div>
-                            <span className="text-xs lg:text-[10px] text-slate-600 dark:text-slate-400 truncate max-w-[120px] lg:max-w-[90px]">
-                                {task.assignee}
-                            </span>
-                        </div>
-                          </div>
-                        </ContextMenuTrigger>
-                        <ContextMenuContent 
-                          className="w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                        >
-                          <ContextMenuItem 
-                            onSelect={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              // Đóng context menu trước khi xử lý
-                              isContextMenuOpenRef.current = false;
-                              // Sử dụng requestAnimationFrame để đảm bảo context menu đóng trước
-                              requestAnimationFrame(() => {
-                                requestAnimationFrame(() => {
-                                  handleTaskClick(task, e);
-                                });
-                              });
-                            }}
-                            className="cursor-pointer"
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            Xem chi tiết
-                          </ContextMenuItem>
-                          {filterType !== "assigned-tasks" && (
-                            <ContextMenuItem 
-                              onSelect={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                isContextMenuOpenRef.current = false;
-                                requestAnimationFrame(() => {
-                                  requestAnimationFrame(() => {
-                                    handleTaskClick(task, e);
-                                  });
-                                });
-                              }}
-                              className="cursor-pointer"
-                            >
-                              <Edit className="w-4 h-4 mr-2" />
-                              Sửa công việc
-                            </ContextMenuItem>
-                          )}
-                          <ContextMenuSeparator />
-                          <ContextMenuItem 
-                            onSelect={async (e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              isContextMenuOpenRef.current = false;
-                              requestAnimationFrame(() => {
-                                requestAnimationFrame(async () => {
-                                  await handleToggleTaskStatus(task.id);
-                                });
-                              });
-                            }}
-                            className="cursor-pointer"
-                          >
-                            {isDone ? (
-                              <>
-                                <Clock className="w-4 h-4 mr-2" />
-                                Đánh dấu chưa hoàn thành
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="w-4 h-4 mr-2" />
-                                Đánh dấu hoàn thành
-                              </>
-                            )}
-                          </ContextMenuItem>
-                          <ContextMenuItem 
-                            onSelect={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              isContextMenuOpenRef.current = false;
-                              requestAnimationFrame(() => {
-                                requestAnimationFrame(() => {
-                                  handleCopyTaskInfo(task);
-                                });
-                              });
-                            }}
-                            className="cursor-pointer"
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Sao chép thông tin
-                          </ContextMenuItem>
-                          {filterType !== "assigned-tasks" && (
-                            <>
-                              <ContextMenuSeparator />
-                              <ContextMenuItem 
-                                onSelect={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  isContextMenuOpenRef.current = false;
-                                  requestAnimationFrame(() => {
-                                    requestAnimationFrame(() => {
-                                      handleDeleteTask(task.id);
-                                    });
-                                  });
-                                }}
-                                variant="destructive"
-                                className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Xóa công việc
-                              </ContextMenuItem>
-                            </>
-                          )}
-                        </ContextMenuContent>
-                      </ContextMenu>
-                    );
-                  }) : (
-                    // Placeholder for empty days on mobile to maintain height consistency
+                        task={task}
+                        filterType={filterType}
+                        onTaskClick={handleTaskClick}
+                        onToggleStatus={handleToggleTaskStatus}
+                        onDelete={handleDeleteTask}
+                        onCopy={handleCopyTaskInfo}
+                        getTagStyle={getTagStyle}
+                        isContextMenuOpenRef={isContextMenuOpenRef}
+                        isDeleteDialogOpen={isDeleteDialogOpen}
+                      />
+                    ))
+                  ) : (
                     <div className="hidden lg:hidden h-8"></div>
                   )}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
       </div>
+
+      {/* Empty State */}
+      {!isLoading && !error && tasks.length === 0 && (
+        <EmptyState
+          onCreateTask={() => {
+            resetForm();
+            setSelectedDate(new Date().toISOString().split("T")[0]);
+            setIsModalOpen(true);
+          }}
+          filterType={filterType}
+        />
+      )}
+        </>
+      )}
 
       {/* Confirm Delete Dialog */}
       <Dialog 
@@ -890,12 +822,14 @@ export default function TaskCalendar({
               <h3 className="text-xl font-bold text-slate-800 dark:text-white">
                 {editingTask ? "Chi tiết công việc" : filterType === "assigned-tasks" ? "Xem công việc" : "Thêm công việc mới"}
               </h3>
-              <button 
+              <button
+                type="button"
                 onClick={() => {
                     setIsModalOpen(false);
                     resetForm();
-                }} 
-                className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                }}
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-slate-300 dark:active:bg-slate-600 rounded-lg transition-all active:scale-90 touch-manipulation"
+                aria-label="Đóng"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -972,7 +906,7 @@ export default function TaskCalendar({
                                                         setShowAssigneeSuggestions(false);
                                                         // Không tự động đóng danh sách để có thể chọn nhiều nhân viên
                                                     }}
-                                                    className="w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                                    className="min-h-[44px] w-full text-left px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 dark:active:bg-slate-600 transition-all touch-manipulation"
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
@@ -1007,7 +941,7 @@ export default function TaskCalendar({
                                     <button
                                         type="button"
                                         onClick={() => setShowEmployeeList(!showEmployeeList)}
-                                        className="w-full flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                                        className="min-h-[44px] w-full flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 dark:active:bg-slate-600 rounded-lg px-2 py-2 transition-all touch-manipulation"
                                     >
                                         <span>
                                             Danh sách nhân viên ({employees.length}) - Đã chọn: {newTaskAssigneeIds.length}
@@ -1027,10 +961,10 @@ export default function TaskCalendar({
                                                     key={employee.id}
                                                     type="button"
                                                     onClick={() => toggleEmployeeSelection(employee.id, employee.fullName)}
-                                                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                                                    className={`min-h-[44px] w-full text-left px-3 py-2.5 rounded-lg transition-all touch-manipulation ${
                                                         isSelected
-                                                            ? 'bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-700'
-                                                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent'
+                                                            ? 'bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-700 active:bg-indigo-200 dark:active:bg-indigo-900/50'
+                                                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 border border-transparent'
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-2">
@@ -1139,20 +1073,81 @@ export default function TaskCalendar({
                     <textarea 
                         value={newTaskDesc}
                         onChange={(e) => setNewTaskDesc(e.target.value)}
-                        placeholder="Mô tả cụ thể yêu cầu, deadline chi tiết..."
-                        rows={5}
+                        placeholder="Mô tả cụ thể yêu cầu công việc..."
+                        rows={4}
                         disabled={filterType === "assigned-tasks" && !editingTask}
                         className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none resize-none leading-relaxed text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     ></textarea>
+                </div>
+
+                {/* Deadline Input */}
+                <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Thời hạn công việc đến bao giờ
+                    </label>
+                    <input 
+                        type="date"
+                        value={newTaskDeadline}
+                        onChange={(e) => setNewTaskDeadline(e.target.value)}
+                        disabled={filterType === "assigned-tasks" && !editingTask}
+                        className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-all text-slate-700 dark:text-slate-300 font-medium bg-white dark:bg-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    {newTaskDeadline && (() => {
+                        const today = new Date();
+                        const deadlineDate = new Date(newTaskDeadline);
+                        const daysDiff = Math.ceil((deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                        if (daysDiff < 0) {
+                            return (
+                                <p className="mt-1.5 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3" />
+                                    Đã quá hạn {Math.abs(daysDiff)} ngày
+                                </p>
+                            );
+                        }
+                        if (daysDiff <= 1) {
+                            return (
+                                <p className="mt-1.5 text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3" />
+                                    Còn {daysDiff} ngày nữa là đến hạn
+                                </p>
+                            );
+                        }
+                        return (
+                            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                Còn {daysDiff} ngày nữa là đến hạn
+                            </p>
+                        );
+                    })()}
+                </div>
+
+                {/* Progress Notes Textarea */}
+                <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        Ghi chú tiến độ công việc
+                    </label>
+                    <textarea 
+                        value={newTaskProgressNotes}
+                        onChange={(e) => setNewTaskProgressNotes(e.target.value)}
+                        placeholder="Ghi chú về tiến độ, những việc đã làm, khó khăn gặp phải..."
+                        rows={4}
+                        disabled={filterType === "assigned-tasks" && !editingTask}
+                        className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none resize-none leading-relaxed text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    ></textarea>
+                    <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        Có thể cập nhật ghi chú này nhiều lần để theo dõi tiến độ công việc
+                    </p>
                 </div>
             </div>
 
             {/* Modal Footer */}
             <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 flex flex-col-reverse sm:flex-row justify-between items-center border-t border-slate-200 dark:border-slate-700 gap-3 sm:gap-0">
                 {editingTask ? (
-                    <button 
+                    <button
+                        type="button"
                         onClick={() => handleDeleteTask(editingTask.id)}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-700 dark:hover:text-rose-300 rounded-lg transition-all"
+                        className="min-h-[44px] w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 active:bg-rose-100 dark:active:bg-rose-900/50 hover:text-rose-700 dark:hover:text-rose-300 rounded-xl transition-all active:scale-95 touch-manipulation"
                     >
                         <Trash2 className="w-4 h-4" /> <span className="sm:hidden">Xóa công việc</span><span className="hidden sm:inline">Xóa</span>
                     </button>
@@ -1161,19 +1156,21 @@ export default function TaskCalendar({
                 )}
                 
                 <div className="flex gap-3 w-full sm:w-auto">
-                    <button 
+                    <button
+                        type="button"
                         onClick={() => {
                             setIsModalOpen(false);
                             resetForm();
                         }}
-                        className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all text-center"
+                        className="min-h-[44px] flex-1 sm:flex-none px-6 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-slate-300 dark:active:bg-slate-600 rounded-xl transition-all active:scale-95 touch-manipulation"
                     >
                         Hủy
                     </button>
-                    <button 
+                    <button
+                        type="button"
                         onClick={handleSaveTask}
                         disabled={isSaving || (filterType === "assigned-tasks" && !editingTask)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="min-h-[44px] flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 active:bg-indigo-700 dark:active:bg-indigo-800 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                     >
                         {isSaving ? (
                             <>
@@ -1193,6 +1190,19 @@ export default function TaskCalendar({
           </div>
         </div>
       )}
+
+      {/* Task Detail View (Read-only) */}
+      <TaskDetailView
+        task={viewingTask}
+        isOpen={isDetailViewOpen}
+        onClose={() => {
+          setIsDetailViewOpen(false);
+          setViewingTask(null);
+        }}
+        onEdit={filterType !== "assigned-tasks" ? handleEditFromDetailView : undefined}
+        onDelete={filterType !== "assigned-tasks" ? handleDeleteFromDetailView : undefined}
+        filterType={filterType}
+      />
 
     </div>
   );

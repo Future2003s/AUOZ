@@ -13,6 +13,8 @@ export interface Task {
   tag: string;
   status: "todo" | "pending" | "done";
   description?: string;
+  deadline?: string; // YYYY-MM-DD format - thời hạn công việc đến bao giờ
+  progressNotes?: string; // ghi chú tiến độ công việc
   createdBy?: string;
 }
 
@@ -96,6 +98,8 @@ export const useTasks = (): UseTasksReturn => {
             tag: task.tag,
             status: task.status,
             description: task.description,
+            deadline: task.deadline,
+            progressNotes: task.progressNotes,
             createdBy: task.createdBy,
           };
         });
@@ -155,6 +159,8 @@ export const useTasks = (): UseTasksReturn => {
               tag: newTask.tag,
               status: newTask.status,
               description: newTask.description,
+              deadline: newTask.deadline,
+              progressNotes: newTask.progressNotes,
               createdBy: newTask.createdBy,
             },
           ],
@@ -170,6 +176,8 @@ export const useTasks = (): UseTasksReturn => {
           tag: newTask.tag,
           status: newTask.status,
           description: newTask.description,
+          deadline: newTask.deadline,
+          progressNotes: newTask.progressNotes,
           createdBy: newTask.createdBy,
         };
       } catch (error) {
@@ -209,6 +217,8 @@ export const useTasks = (): UseTasksReturn => {
             tag: updatedTask.tag,
             status: updatedTask.status,
             description: updatedTask.description,
+            deadline: updatedTask.deadline,
+            progressNotes: updatedTask.progressNotes,
             createdBy: updatedTask.createdBy,
           };
           return {

@@ -11,7 +11,7 @@ export default function EmployeeLayoutClient({ children }: EmployeeLayoutClientP
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <EmployeeMobileNavbar />
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 pb-24 lg:pb-28">
         {children}
       </div>
     </div>

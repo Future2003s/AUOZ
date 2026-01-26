@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CreditCard, Package, User, Calendar, DollarSign } from "lucide-react";
+import { CreditCard, Package, User, Calendar, DollarSign } from "lucide-react";
 import { employeeApiRequest } from "@/apiRequests/employee";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
@@ -82,23 +82,13 @@ export default function UnpaidOrdersPage() {
 
   return (
     <div className="space-y-6 mt-25">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-          className="hover:bg-slate-100 dark:hover:bg-slate-800"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-            Đơn chưa thanh toán
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400">
-            Danh sách các đơn hàng chưa thanh toán
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+          Đơn chưa thanh toán
+        </h1>
+        <p className="text-slate-600 dark:text-slate-400">
+          Danh sách các đơn hàng chưa thanh toán
+        </p>
       </div>
 
       {error && (

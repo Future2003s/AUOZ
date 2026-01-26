@@ -37,12 +37,13 @@ export async function POST() {
         },
       });
 
-      // Set token cookies
+      // Set token cookies với thời gian dài hơn để giống Google
       nextResponse.cookies.set("sessionToken", data.data.token, {
         httpOnly: true,
         sameSite: "lax",
         secure: isProd,
         path: "/",
+        maxAge: 60 * 60 * 24 * 30, // 30 days - tăng từ không có maxAge lên 30 ngày
       });
 
       if (data.data.refreshToken) {
@@ -51,6 +52,7 @@ export async function POST() {
           sameSite: "strict",
           secure: isProd,
           path: "/",
+          maxAge: 60 * 60 * 24 * 365, // 365 days (1 năm) - tăng từ không có maxAge lên 1 năm
         });
       }
 
@@ -63,7 +65,7 @@ export async function POST() {
             sameSite: "lax",
             secure: isProd,
             path: "/",
-            maxAge: 60 * 60 * 24 * 7, // 7 days
+            maxAge: 60 * 60 * 24 * 30, // 30 days - tăng từ 7 ngày lên 30 ngày
           });
         }
       }

@@ -28,6 +28,8 @@ export interface Task {
   tag: string;
   status: "todo" | "pending" | "done";
   description?: string;
+  deadline?: string; // YYYY-MM-DD format - thời hạn công việc đến bao giờ
+  progressNotes?: string; // ghi chú tiến độ công việc
   createdBy?: string;
   updatedBy?: string;
   createdAt?: string;
@@ -57,6 +59,8 @@ export interface CreateTaskPayload {
   tag?: string;
   status?: "todo" | "pending" | "done";
   description?: string;
+  deadline?: string;
+  progressNotes?: string;
 }
 
 export interface UpdateTaskPayload {
@@ -66,6 +70,8 @@ export interface UpdateTaskPayload {
   tag?: string;
   status?: "todo" | "pending" | "done";
   description?: string;
+  deadline?: string;
+  progressNotes?: string;
 }
 
 export const tasksApi = {

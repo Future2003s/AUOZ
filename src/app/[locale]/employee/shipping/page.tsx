@@ -6,7 +6,7 @@ import ShippingPhotoCapture from "@/components/employee/ShippingPhotoCapture";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, Plus, Calendar, DollarSign, User, Truck, Loader2, ArrowLeft, ImageIcon } from "lucide-react";
+import { Package, Plus, Calendar, DollarSign, User, Truck, Loader2, ImageIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -260,19 +260,9 @@ export default function ShippingPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push(`/${locale}/employee`)}
-                className="hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <ArrowLeft size={18} />
-              </Button>
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Gửi hàng & Chụp ảnh
-              </h1>
-            </div>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Gửi hàng & Chụp ảnh
+            </h1>
           </div>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="create" className="flex items-center gap-2">

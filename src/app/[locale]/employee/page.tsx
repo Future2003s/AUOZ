@@ -73,6 +73,15 @@ const taskCards: TaskCard[] = [
     bgColor: "bg-green-100 dark:bg-green-900/30",
   },
   {
+    id: "inventory",
+    title: "Kho Mật Ong",
+    description: "Quản lý tồn kho và nhập/xuất mật ong",
+    icon: Package,
+    href: "/employee/inventory",
+    color: "text-amber-600 dark:text-amber-400",
+    bgColor: "bg-amber-100 dark:bg-amber-900/30",
+  },
+  {
     id: "reports",
     title: "Báo Cáo & Thống Kê",
     description: "Xem báo cáo doanh thu và hiệu suất",

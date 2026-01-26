@@ -160,6 +160,12 @@ export default async function AdminLayout({
         icon: <Package size={18} />,
       },
       {
+        id: "inventory",
+        label: "Kho Mật Ong",
+        href: `/${locale}/admin/inventory`,
+        icon: <Package size={18} />,
+      },
+      {
         id: "categories",
         label: "Danh Mục",
         href: `/${locale}/admin/categories`,
