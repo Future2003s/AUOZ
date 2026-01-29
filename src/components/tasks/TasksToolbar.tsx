@@ -49,13 +49,13 @@ export default function TasksToolbar({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Tìm kiếm công việc..."
-          className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+          className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-colors"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => onSearchChange("")}
-            className="min-w-[36px] min-h-[36px] flex items-center justify-center absolute right-3 top-1/2 -translate-y-1/2 hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 dark:active:bg-slate-600 rounded-lg transition-all active:scale-90 touch-manipulation"
+            className="min-w-[36px] min-h-[36px] flex items-center justify-center absolute right-3 top-1/2 -translate-y-1/2 hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 dark:active:bg-slate-600 rounded-lg transition-colors touch-manipulation"
             aria-label="Xóa tìm kiếm"
           >
             <X className="w-4 h-4 text-slate-400 dark:text-slate-500" />
@@ -68,7 +68,7 @@ export default function TasksToolbar({
         <button
           type="button"
           onClick={() => setShowFilters(!showFilters)}
-          className="min-h-[44px] flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 active:bg-slate-100 dark:active:bg-slate-700 transition-all active:scale-95 touch-manipulation"
+          className="min-h-[44px] flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 active:bg-slate-100 dark:active:bg-slate-700 transition-colors touch-manipulation"
         >
           <Filter className="w-4 h-4" />
           <span>Bộ lọc</span>
@@ -88,7 +88,7 @@ export default function TasksToolbar({
               onStatusFilterChange("all");
               onTagFilterChange("");
             }}
-            className="min-h-[44px] px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 dark:active:bg-slate-600 rounded-lg transition-all active:scale-95 touch-manipulation"
+            className="min-h-[44px] px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 dark:active:bg-slate-600 rounded-lg transition-colors touch-manipulation"
           >
             Xóa tất cả
           </button>
@@ -114,7 +114,7 @@ export default function TasksToolbar({
                   type="button"
                   key={option.value}
                   onClick={() => onStatusFilterChange(option.value as any)}
-                  className={`min-h-[40px] px-4 py-2 text-sm font-medium rounded-lg transition-all active:scale-95 touch-manipulation ${
+                  className={`min-h-[40px] px-4 py-2 text-sm font-medium rounded-lg transition-colors touch-manipulation ${
                     statusFilter === option.value
                       ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/30 active:bg-indigo-600"
                       : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 active:bg-slate-300 dark:active:bg-slate-500"
@@ -136,7 +136,7 @@ export default function TasksToolbar({
                 <button
                   type="button"
                   onClick={() => onTagFilterChange("")}
-                  className={`min-h-[40px] px-4 py-2 text-sm font-medium rounded-lg transition-all active:scale-95 touch-manipulation ${
+                  className={`min-h-[40px] px-4 py-2 text-sm font-medium rounded-lg transition-colors touch-manipulation ${
                     !tagFilter
                       ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/30 active:bg-indigo-600"
                       : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 active:bg-slate-300 dark:active:bg-slate-500"
@@ -149,7 +149,7 @@ export default function TasksToolbar({
                     type="button"
                     key={tag}
                     onClick={() => onTagFilterChange(tag)}
-                    className={`min-h-[40px] px-4 py-2 text-sm font-medium rounded-lg transition-all active:scale-95 touch-manipulation ${
+                    className={`min-h-[40px] px-4 py-2 text-sm font-medium rounded-lg transition-colors touch-manipulation ${
                       tagFilter === tag
                         ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/30 active:bg-indigo-600"
                         : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 active:bg-slate-300 dark:active:bg-slate-500"

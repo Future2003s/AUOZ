@@ -30,7 +30,8 @@ interface DateRangePickerProps {
 const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps>(
   ({ value, onChange, placeholder = 'Chọn khoảng ngày', className, disabled, min, max, label, required, ...props }, ref) => {
     const [open, setOpen] = React.useState(false);
-    const [isMobile, setIsMobile] = React.useState(false);
+    // Use md breakpoint for 2-month layout because Calendar renders months horizontally from md (>=768px)
+    const [isNarrow, setIsNarrow] = React.useState(false);
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
       value?.from || value?.to
         ? {
@@ -40,14 +41,14 @@ const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps
         : undefined
     );
 
-    // Check if mobile on mount and resize
+    // Check layout breakpoint on mount and resize
     React.useEffect(() => {
-      const checkMobile = () => {
-        setIsMobile(window.innerWidth < 640);
+      const checkWidth = () => {
+        setIsNarrow(window.innerWidth < 768);
       };
-      checkMobile();
-      window.addEventListener('resize', checkMobile);
-      return () => window.removeEventListener('resize', checkMobile);
+      checkWidth();
+      window.addEventListener('resize', checkWidth);
+      return () => window.removeEventListener('resize', checkWidth);
     }, []);
 
     // Update dateRange when value prop changes
@@ -155,33 +156,30 @@ const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps
             {...props}
           >
             <CalendarIcon className="mr-2 h-4 w-4 text-slate-500 dark:text-slate-400 shrink-0" />
-            <span className={cn(
-              'flex-1 text-left truncate text-sm sm:text-base',
-              !displayValue && 'text-slate-400 dark:text-slate-500'
-            )}>
+            <span
+              className={cn(
+                "flex-1 text-left truncate text-sm sm:text-base",
+                !displayValue && "text-slate-400 dark:text-slate-500"
+              )}
+            >
               {displayValue || placeholder}
             </span>
             {dateRange && (dateRange.from || dateRange.to) && (
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
                 onClick={handleClear}
-                className="h-5 w-5 p-0 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-full ml-2 shrink-0"
+                className="inline-flex items-center justify-center h-5 w-5 p-0 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-full ml-2 shrink-0 text-slate-500 dark:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
               >
                 <X className="h-3 w-3" />
-              </Button>
+              </button>
             )}
           </Button>
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className={cn(
-              'w-[calc(100vw-1rem)] max-w-lg sm:max-w-2xl p-0',
+              'w-[calc(100vw-1.5rem)] max-w-2xl sm:w-full p-0',
               'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700',
-              'max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl',
-              'fixed left-2 right-2 top-4 bottom-4 sm:left-[50%] sm:right-auto sm:top-[50%] sm:bottom-auto',
-              'sm:translate-x-[-50%] sm:translate-y-[-50%]',
-              'flex flex-col'
+              'max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl flex flex-col'
             )}>
               <DialogHeader className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
                 <DialogTitle className="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
@@ -196,7 +194,7 @@ const DateRangePicker = React.forwardRef<HTMLButtonElement, DateRangePickerProps
                   onSelect={handleSelect}
                   disabled={disabledDays}
                   locale={vi}
-                  numberOfMonths={isMobile ? 1 : 2}
+                  numberOfMonths={isNarrow ? 1 : 2}
                   className="rounded-lg border shadow-sm"
                   formatters={{
                     formatCaption: (date: Date) => format(date, 'MMMM yyyy', { locale: vi }),

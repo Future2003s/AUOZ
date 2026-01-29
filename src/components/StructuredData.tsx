@@ -2,7 +2,7 @@
 import { envConfig } from "@/config";
 
 interface StructuredDataProps {
-  type: "Organization" | "Product" | "Article" | "BreadcrumbList";
+  type: "Organization" | "Product" | "Article" | "BreadcrumbList" | "FAQPage";
   data: Record<string, any>;
 }
 
@@ -51,6 +51,13 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: data.items || [],
+        };
+
+      case "FAQPage":
+        return {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: data.mainEntity || [],
         };
 
       default:

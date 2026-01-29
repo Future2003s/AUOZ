@@ -76,7 +76,6 @@ export default function IncompleteInvoicesPage() {
   return (
     <div className="space-y-6 mt-25">
       <div className="flex items-center gap-4">
-        <Button
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
             Hóa đơn chưa hoàn thành

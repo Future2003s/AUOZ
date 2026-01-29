@@ -95,8 +95,9 @@ export default function TaskDetailView({
         onClick={onClose}
       />
 
-      {/* Detail View - Full screen on mobile, sidebar on desktop */}
-      <div className="fixed inset-0 lg:inset-y-0 lg:right-0 lg:w-full lg:max-w-2xl bg-white dark:bg-slate-800 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300 overflow-hidden">
+      {/* Detail View - Centered modal on all screens */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 animate-in fade-in duration-200">
+        <div className="w-full max-w-2xl max-h-[90vh] bg-white dark:bg-slate-800 shadow-2xl rounded-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20">
           <div className="flex items-center gap-3">
@@ -296,6 +297,7 @@ export default function TaskDetailView({
             )}
           </div>
         )}
+        </div>
       </div>
     </>
   );

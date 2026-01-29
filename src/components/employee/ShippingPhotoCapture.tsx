@@ -1085,14 +1085,14 @@ export default function ShippingPhotoCapture() {
       if (formData.isInvoice) {
         try {
           // First, try to find buyer ID if available
-          let buyerId = formData.buyerId;
+          let buyerId: string | undefined = formData.buyerId || undefined;
           if (!buyerId && formData.buyerName) {
             // Try to find buyer by name
             const buyer = buyers.find(
               (b) => b.name.toLowerCase() === formData.buyerName.toLowerCase()
             );
             if (buyer) {
-              buyerId = buyer._id || buyer.id;
+              buyerId = (buyer._id || buyer.id) as string | undefined;
             }
           }
 
@@ -1194,14 +1194,14 @@ export default function ShippingPhotoCapture() {
       if (formData.isDebt && totalAmount > 0) {
         try {
           // First, try to find buyer ID if available
-          let buyerId = formData.buyerId;
+          let buyerId: string | undefined = formData.buyerId || undefined;
           if (!buyerId && formData.buyerName) {
             // Try to find buyer by name
             const buyer = buyers.find(
               (b) => b.name.toLowerCase() === formData.buyerName.toLowerCase()
             );
             if (buyer) {
-              buyerId = buyer._id || buyer.id;
+              buyerId = (buyer._id || buyer.id) as string | undefined;
             }
           }
 

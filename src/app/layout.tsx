@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Quicksand } from "next/font/google";
 import "./globals.css";
+import "./styleSmoothUI.css";
 import { NextFont } from "next/dist/compiled/@next/font";
 import NextTopLoader from "nextjs-toploader";
 import AppProvider from "@/context/app-provider";
@@ -14,6 +15,7 @@ import { ThemeProvider } from "@/context/theme-context";
 import { QueryProvider } from "@/providers/query-provider";
 import { I18nProvider } from "../i18n/I18nProvider";
 import { envConfig } from "@/config";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 
 const fontSans: NextFont = Quicksand({
   subsets: ["latin"],
@@ -53,8 +55,16 @@ export const metadata: Metadata = {
       { url: "/images/logo.png", type: "image/png", sizes: "192x192" },
       { url: "/images/logo.png", type: "image/png", sizes: "512x512" },
     ],
-    apple: [{ url: "/images/logo.png" }],
+    apple: [
+      { url: "/images/logo.png", sizes: "180x180", type: "image/png" },
+    ],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "LALA Employee",
+  },
+  manifest: "/manifest.json",
   openGraph: {
     type: "website",
     locale: "vi_VN",
@@ -98,6 +108,11 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#e11d48",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({
@@ -134,6 +149,7 @@ export default async function RootLayout({
           </AppContext>
           <Toaster />
         </AppProvider>
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

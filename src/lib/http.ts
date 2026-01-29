@@ -167,27 +167,27 @@ const requestWithRetry = async (
 };
 
 export const http = {
-  get(url: string, options?: Omit<RequestConfig, "body">) {
-    return requestWithRetry("GET", url, options);
+  get<T = any>(url: string, options?: Omit<RequestConfig, "body">): Promise<T> {
+    return requestWithRetry("GET", url, options) as Promise<T>;
   },
 
-  post<TypeRequestBody>(
+  post<T = any>(
     url: string,
     body: any,
     options?: Omit<RequestConfig, "body">
-  ) {
-    return requestWithRetry("POST", url, { ...options, body });
+  ): Promise<T> {
+    return requestWithRetry("POST", url, { ...options, body }) as Promise<T>;
   },
 
-  put(url: string, body: any, options?: Omit<RequestConfig, "body">) {
-    return requestWithRetry("PUT", url, { ...options, body });
+  put<T = any>(url: string, body: any, options?: Omit<RequestConfig, "body">): Promise<T> {
+    return requestWithRetry("PUT", url, { ...options, body }) as Promise<T>;
   },
 
-  patch(url: string, body: any, options?: Omit<RequestConfig, "body">) {
-    return requestWithRetry("PATCH", url, { ...options, body });
+  patch<T = any>(url: string, body: any, options?: Omit<RequestConfig, "body">): Promise<T> {
+    return requestWithRetry("PATCH", url, { ...options, body }) as Promise<T>;
   },
 
-  delete(url: string, options?: Omit<RequestConfig, "body">) {
-    return requestWithRetry("DELETE", url, options);
+  delete<T = any>(url: string, options?: Omit<RequestConfig, "body">): Promise<T> {
+    return requestWithRetry("DELETE", url, options) as Promise<T>;
   },
 };

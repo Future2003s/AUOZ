@@ -5,10 +5,18 @@ import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function ContextMenu({
-  ...props
-}: React.ComponentProps<typeof ContextMenuPrimitive.Root>) {
-  return <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />;
+function ContextMenu(
+  props: React.ComponentProps<typeof ContextMenuPrimitive.Root> & {
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+  }
+) {
+  return (
+    <ContextMenuPrimitive.Root
+      data-slot="context-menu"
+      {...(props as any)}
+    />
+  );
 }
 
 function ContextMenuTrigger({

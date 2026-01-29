@@ -178,9 +178,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             <>
               {/* Items list */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {items.map((item) => (
+              {items.map((item, index) => (
                   <div
-                    key={`${item.id}-${item.variantId || ""}`}
+                  key={`${item.id}-${item.variantId || "no-variant"}-${index}`}
                     className="flex gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
                   >
                     {/* Product image */}

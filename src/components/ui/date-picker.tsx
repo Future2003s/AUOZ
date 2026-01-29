@@ -121,11 +121,9 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className={cn(
-              'w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] max-w-none sm:max-w-md p-0',
+              'w-[calc(100vw-1.5rem)] max-w-md sm:w-full p-0',
               'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700',
-              'max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-lg sm:rounded-xl shadow-2xl',
-              '!left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2',
-              '!mx-0 !my-0'
+              'max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-lg sm:rounded-xl shadow-2xl'
             )}>
               <DialogHeader className="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 sm:pb-3 border-b border-slate-200 dark:border-slate-700 text-center sm:text-left">
                 <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">

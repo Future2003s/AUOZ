@@ -68,7 +68,7 @@ const TAG_PALETTE = [
   'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-800',
 ];
 
-  // Hàm lấy màu nhất quán dựa trên tên tag
+// Hàm lấy màu nhất quán dựa trên tên tag (pure function, không cần hook)
 const getTagStyle = (tagName: string): string => {
   if (!tagName) return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700';
   
@@ -124,6 +124,7 @@ export default function TaskCalendar({
   
   // State để quản lý việc đang sửa (nếu null là đang thêm mới)
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isEditingMode, setIsEditingMode] = useState<boolean>(false);
   
   // State cho detail view (chỉ xem)
   const [viewingTask, setViewingTask] = useState<Task | null>(null);
@@ -147,6 +148,9 @@ export default function TaskCalendar({
   // Ref để theo dõi context menu đang mở (tránh re-render)
   const isContextMenuOpenRef = useRef<boolean>(false);
   
+  // State để lưu task đang thao tác (nguồn sự thật cho context menu)
+  const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
+  
   // State cho tìm kiếm tên nhân viên
   const [assigneeSearchQuery, setAssigneeSearchQuery] = useState<string>("");
   const [showAssigneeSuggestions, setShowAssigneeSuggestions] = useState<boolean>(false);
@@ -154,8 +158,26 @@ export default function TaskCalendar({
 
   // Search and Filter States
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<"all" | "todo" | "pending" | "done">("all");
   const [tagFilter, setTagFilter] = useState<string>("");
+
+  // Debounce search query để tránh filter quá nhiều lần
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Auto-scroll to today's cell on initial load (use local YYYY-MM-DD)
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .split("T")[0];
+  }, []);
+  const todayCellRef = useRef<HTMLDivElement | null>(null);
 
   // Filter tasks based on filterType
   const filteredTasksByType: Task[] = useMemo(() => {
@@ -182,13 +204,13 @@ export default function TaskCalendar({
     return apiTasks;
   }, [apiTasks, filterType, currentUserId]);
 
-  // Apply search and filters
+  // Apply search and filters (dùng debounced search)
   const tasks: Task[] = useMemo(() => {
     let result = filteredTasksByType;
 
-    // Search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    // Search filter (dùng debounced query)
+    if (debouncedSearchQuery.trim()) {
+      const query = debouncedSearchQuery.toLowerCase();
       result = result.filter(
         (task) =>
           task.title.toLowerCase().includes(query) ||
@@ -210,7 +232,31 @@ export default function TaskCalendar({
     }
 
     return result;
-  }, [filteredTasksByType, searchQuery, statusFilter, tagFilter]);
+  }, [filteredTasksByType, debouncedSearchQuery, statusFilter, tagFilter]);
+
+  // Memoize tasks grouped by date để tránh filter/sort mỗi lần render
+  const tasksByDate = useMemo(() => {
+    const grouped: Record<string, Task[]> = {};
+    const statusOrder: Record<Task["status"], number> = {
+      todo: 0,
+      pending: 1,
+      done: 2,
+    };
+    
+    tasks.forEach(task => {
+      if (!grouped[task.date]) {
+        grouped[task.date] = [];
+      }
+      grouped[task.date].push(task);
+    });
+    
+    // Sort tasks trong mỗi ngày
+    Object.keys(grouped).forEach(date => {
+      grouped[date].sort((a, b) => (statusOrder[a.status] ?? 0) - (statusOrder[b.status] ?? 0));
+    });
+    
+    return grouped;
+  }, [tasks]);
 
   // Fetch tasks when month changes
   useEffect(() => {
@@ -221,6 +267,34 @@ export default function TaskCalendar({
     
     fetchTasks({ startDate, endDate });
   }, [currentDate, fetchTasks]);
+
+  // Scroll to today's cell (only once) when viewing current month and data is ready
+  useEffect(() => {
+    if (isLoading || error) return;
+
+    const todayDate = new Date(todayStr);
+    const isCurrentMonth =
+      currentDate.getFullYear() === todayDate.getFullYear() &&
+      currentDate.getMonth() === todayDate.getMonth();
+
+    if (!isCurrentMonth) return;
+
+    // Delay một nhịp để chắc chắn grid đã render xong rồi mới scroll
+    // Sử dụng requestAnimationFrame để tối ưu performance
+    let rafId: number;
+    let timeoutId: NodeJS.Timeout;
+    
+    rafId = requestAnimationFrame(() => {
+      timeoutId = setTimeout(() => {
+        todayCellRef.current?.scrollIntoView({ behavior: "auto", block: "nearest" });
+      }, 100);
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [currentDate, todayStr, isLoading, error]);
 
   // Đảm bảo modal không mở khi dialog đang mở
   useEffect(() => {
@@ -236,6 +310,14 @@ export default function TaskCalendar({
       isContextMenuOpenRef.current = false;
     }
   }, [isModalOpen, isDeleteDialogOpen]);
+
+  // Đảm bảo không bao giờ hiển thị đồng thời Modal thêm/sửa và View chi tiết
+  useEffect(() => {
+    if (isDetailViewOpen && isModalOpen) {
+      setIsModalOpen(false);
+      resetForm();
+    }
+  }, [isDetailViewOpen, isModalOpen]);
 
   // --- Logic Lịch ---
   const getDaysInMonth = (date: Date): (string | null)[] => {
@@ -285,6 +367,7 @@ export default function TaskCalendar({
     setNewTaskDeadline("");
     setNewTaskProgressNotes("");
     setEditingTask(null);
+    setIsEditingMode(false);
     setAssigneeSearchQuery("");
     setShowAssigneeSuggestions(false);
     setShowEmployeeList(true); // Reset về hiển thị danh sách
@@ -368,6 +451,12 @@ export default function TaskCalendar({
     }
     // Không mở view nếu dialog xóa đang mở hoặc context menu đang mở
     if (isDeleteDialogOpen || isContextMenuOpenRef.current) return;
+
+    // Đảm bảo modal thêm/sửa không còn mở khi xem chi tiết
+    if (isModalOpen) {
+      setIsModalOpen(false);
+      resetForm();
+    }
     
     // Fetch dữ liệu mới nhất từ database
     if (task._id) {
@@ -409,43 +498,85 @@ export default function TaskCalendar({
     }
   }, [isDeleteDialogOpen]);
 
+  // Mở modal chỉnh sửa trực tiếp từ Task (không qua màn hình chi tiết)
+  const openEditModalForTask = useCallback(
+    (task: Task) => {
+      setEditingTask(task);
+      setIsEditingMode(true);
+      setSelectedDate(task.date);
+      setNewTaskTitle(task.title);
+      setNewTaskAssignee(task.assignee);
+
+      // Parse assignee string -> danh sách nhân viên
+      const assigneeNames = task.assignee
+        .split(',')
+        .map((name) => name.trim())
+        .filter(Boolean);
+      const matchedEmployeeIds: string[] = [];
+      assigneeNames.forEach((name) => {
+        const emp = employees.find(
+          (e) => e.fullName === name || e.email === name
+        );
+        if (emp) {
+          matchedEmployeeIds.push(emp.id);
+        }
+      });
+      setNewTaskAssigneeIds(matchedEmployeeIds);
+      if (matchedEmployeeIds.length === 0) {
+        setAssigneeSearchQuery(task.assignee);
+      } else {
+        setAssigneeSearchQuery("");
+      }
+      setShowAssigneeSuggestions(false);
+      setNewTaskTag(task.tag || "");
+      setNewTaskDesc(task.description || "");
+      setNewTaskDeadline(task.deadline || "");
+      setNewTaskProgressNotes(task.progressNotes || "");
+      setShowEmployeeList(true);
+
+      setIsModalOpen(true);
+    },
+    [employees]
+  );
+
+  // Handler để mở edit modal từ activeTaskId (đảm bảo dùng task mới nhất từ list)
+  const handleEditFromActiveTaskId = useCallback(() => {
+    if (activeTaskId === null) {
+      toast.error("Không tìm thấy công việc để chỉnh sửa");
+      return;
+    }
+    
+    const taskToEdit = tasks.find(t => t.id === activeTaskId);
+    if (!taskToEdit) {
+      toast.error("Không tìm thấy công việc để chỉnh sửa");
+      return;
+    }
+    
+    openEditModalForTask(taskToEdit);
+  }, [activeTaskId, tasks, openEditModalForTask]);
+
+  // Callback để set activeTaskId khi context menu mở
+  const handleContextMenuOpen = useCallback((taskId: number) => {
+    // Set ngay lập tức, đồng bộ
+    setActiveTaskId(taskId);
+  }, []);
+
+  // Callback để reset activeTaskId khi context menu đóng
+  const handleContextMenuClose = useCallback(() => {
+    // Reset nếu không có modal nào đang mở
+    if (!isModalOpen && !isDetailViewOpen) {
+      setActiveTaskId(null);
+    }
+  }, [isModalOpen, isDetailViewOpen]);
+
   // Xử lý khi muốn sửa task từ detail view
   const handleEditFromDetailView = useCallback(async () => {
     if (!viewingTask) return;
-    
-    // Đóng detail view
+
+    // Đóng detail view và mở modal edit với dữ liệu mới nhất
     setIsDetailViewOpen(false);
-    
-    // Mở modal edit với dữ liệu từ viewingTask
-    setEditingTask(viewingTask);
-    setSelectedDate(viewingTask.date);
-    setNewTaskTitle(viewingTask.title);
-    setNewTaskAssignee(viewingTask.assignee);
-    
-    // Parse assignee string
-    const assigneeNames = viewingTask.assignee.split(',').map(name => name.trim()).filter(Boolean);
-    const matchedEmployeeIds: string[] = [];
-    assigneeNames.forEach(name => {
-      const emp = employees.find(e => e.fullName === name || e.email === name);
-      if (emp) {
-        matchedEmployeeIds.push(emp.id);
-      }
-    });
-    setNewTaskAssigneeIds(matchedEmployeeIds);
-    if (matchedEmployeeIds.length === 0) {
-      setAssigneeSearchQuery(viewingTask.assignee);
-    } else {
-      setAssigneeSearchQuery("");
-    }
-    setShowAssigneeSuggestions(false);
-    setNewTaskTag(viewingTask.tag || "");
-    setNewTaskDesc(viewingTask.description || "");
-    setNewTaskDeadline(viewingTask.deadline || "");
-    setNewTaskProgressNotes(viewingTask.progressNotes || "");
-    setShowEmployeeList(true);
-    
-    setIsModalOpen(true);
-  }, [viewingTask, employees]);
+    openEditModalForTask(viewingTask);
+  }, [viewingTask, openEditModalForTask]);
 
   const handleSaveTask = async () => {
     if (!newTaskTitle) return;
@@ -474,9 +605,21 @@ export default function TaskCalendar({
         }
       }
 
-      if (editingTask && editingTask._id) {
+      // Xác định _id backend của task đang chỉnh sửa (fallback bằng tasks array nếu cần)
+      let editingBackendId: string | undefined;
+      if (editingTask) {
+        editingBackendId = editingTask._id;
+        if (!editingBackendId) {
+          const found = tasks.find((t) => t.id === editingTask!.id);
+          if (found?._id) {
+            editingBackendId = found._id;
+          }
+        }
+      }
+
+      if (isEditingMode && editingBackendId) {
         // Cập nhật task cũ
-        await updateTask(editingTask._id, {
+        await updateTask(editingBackendId, {
           date: selectedDate,
           title: newTaskTitle,
           assignee: finalAssignee,
@@ -569,6 +712,264 @@ export default function TaskCalendar({
     });
   }, []);
 
+  const handleEditTaskFromCard = useCallback(
+    (task: Task) => {
+      // Không cho phép chỉnh sửa nhanh trong tab assigned-tasks theo rule hiện tại
+      if (filterType === "assigned-tasks") return;
+      // Đảm bảo không mở song song với dialog xóa
+      if (isDeleteDialogOpen) return;
+      openEditModalForTask(task);
+    },
+    [filterType, isDeleteDialogOpen, openEditModalForTask]
+  );
+
+  // Helper để lấy activeTask từ activeTaskId
+  const getActiveTask = useCallback((): Task | null => {
+    if (activeTaskId === null) return null;
+    const task = tasks.find(t => t.id === activeTaskId);
+    return task || null;
+  }, [activeTaskId, tasks]);
+
+  // Helper để copy text với fallback
+  const copyToClipboard = useCallback(async (text: string): Promise<boolean> => {
+    try {
+      if (typeof window !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+      // Fallback cho trình duyệt cũ
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const success = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return success;
+    } catch (error) {
+      console.error("Failed to copy:", error);
+      return false;
+    }
+  }, []);
+
+  // Handler xem chi tiết từ context menu - dùng activeTaskId
+  const handleViewDetailFromContextMenu = useCallback(async () => {
+    const task = getActiveTask();
+    if (!task) {
+      toast.error("Không tìm thấy công việc");
+      return;
+    }
+    
+    // Reset context menu ref trước khi mở detail view
+    isContextMenuOpenRef.current = false;
+    
+    // Đảm bảo modal thêm/sửa không còn mở khi xem chi tiết
+    if (isModalOpen) {
+      setIsModalOpen(false);
+      resetForm();
+    }
+    
+    // Fetch dữ liệu mới nhất từ database và mở detail view
+    if (task._id) {
+      try {
+        setIsLoadingTaskDetail(true);
+        const response = await tasksApi.getById(task._id);
+        const latestTask = response.data;
+        
+        setViewingTask({
+          id: task.id,
+          _id: latestTask._id,
+          date: latestTask.date,
+          title: latestTask.title,
+          assignee: latestTask.assignee,
+          tag: latestTask.tag,
+          status: latestTask.status,
+          description: latestTask.description,
+          deadline: latestTask.deadline,
+          progressNotes: latestTask.progressNotes,
+          createdBy: latestTask.createdBy,
+        });
+        setIsDetailViewOpen(true);
+      } catch (error) {
+        console.error("Error fetching task details:", error);
+        toast.error("Không thể tải chi tiết công việc. Sử dụng dữ liệu hiện có.");
+        setViewingTask(task);
+        setIsDetailViewOpen(true);
+      } finally {
+        setIsLoadingTaskDetail(false);
+      }
+    } else {
+      setViewingTask(task);
+      setIsDetailViewOpen(true);
+    }
+    
+    // Reset activeTaskId sau khi đã mở detail view
+    setActiveTaskId(null);
+  }, [getActiveTask, isModalOpen]);
+
+  // Handler edit từ context menu - dùng activeTaskId
+  const handleEditFromContextMenu = useCallback(() => {
+    if (filterType === "assigned-tasks") {
+      toast.error("Không thể chỉnh sửa công việc trong tab này");
+      return;
+    }
+    if (isDeleteDialogOpen) return;
+    
+    // Reset context menu ref trước khi mở edit modal
+    isContextMenuOpenRef.current = false;
+    
+    handleEditFromActiveTaskId();
+    setActiveTaskId(null);
+  }, [filterType, isDeleteDialogOpen, handleEditFromActiveTaskId]);
+
+  // Handler toggle status từ context menu - dùng activeTaskId
+  const handleToggleStatusFromContextMenu = useCallback(async () => {
+    const task = getActiveTask();
+    if (!task || !task._id) {
+      toast.error("Không tìm thấy công việc");
+      return;
+    }
+    
+    const wasDone = task.status === "done";
+    
+    try {
+      await toggleTaskStatus(task._id);
+      toast.success(
+        wasDone 
+          ? "Đã đánh dấu chưa hoàn thành" 
+          : "Đã đánh dấu hoàn thành"
+      );
+      setActiveTaskId(null);
+    } catch (error) {
+      console.error("Error toggling status:", error);
+    }
+  }, [getActiveTask, toggleTaskStatus]);
+
+  // Handler delete từ context menu - dùng activeTaskId
+  const handleDeleteFromContextMenu = useCallback(() => {
+    const task = getActiveTask();
+    if (!task || !task._id) {
+      toast.error("Không tìm thấy công việc");
+      return;
+    }
+    
+    // Không cho phép xóa trong tab assigned-tasks
+    if (filterType === "assigned-tasks") return;
+    
+    handleDeleteTask(task.id);
+    setActiveTaskId(null);
+  }, [getActiveTask, filterType, handleDeleteTask]);
+
+  // Handler copy info từ context menu - dùng activeTaskId
+  const handleCopyInfoFromContextMenu = useCallback(async () => {
+    const task = getActiveTask();
+    if (!task) {
+      toast.error("Không tìm thấy công việc");
+      return;
+    }
+    
+    const taskInfo = `Công việc: ${task.title}\nNgày: ${task.date}\nNgười phụ trách: ${task.assignee}\nLoại: ${task.tag}\nTrạng thái: ${task.status === 'done' ? 'Hoàn thành' : task.status === 'pending' ? 'Đang làm' : 'Chưa làm'}\n${task.deadline ? `Thời hạn: ${new Date(task.deadline).toLocaleDateString('vi-VN')}` : ''}\n${task.description ? `Mô tả: ${task.description}` : ''}\n${task.progressNotes ? `Ghi chú tiến độ: ${task.progressNotes}` : ''}`;
+    
+    const success = await copyToClipboard(taskInfo);
+    if (success) {
+      toast.success("Đã sao chép thông tin công việc");
+    } else {
+      toast.error("Không thể sao chép thông tin");
+    }
+    setActiveTaskId(null);
+  }, [getActiveTask, copyToClipboard]);
+
+  // Handler copy ID từ context menu - dùng activeTaskId
+  const handleCopyIdFromContextMenu = useCallback(async () => {
+    const task = getActiveTask();
+    if (!task || !task._id) {
+      toast.error("Không tìm thấy ID công việc");
+      return;
+    }
+    
+    const success = await copyToClipboard(task._id);
+    if (success) {
+      toast.success("Đã sao chép ID công việc");
+    } else {
+      toast.error("Không thể sao chép ID");
+    }
+    setActiveTaskId(null);
+  }, [getActiveTask, copyToClipboard]);
+
+  // Handler copy link từ context menu - dùng activeTaskId
+  const handleCopyLinkFromContextMenu = useCallback(async () => {
+    const task = getActiveTask();
+    if (!task || !task._id) {
+      toast.error("Không tìm thấy công việc");
+      return;
+    }
+    
+    const url = `${window.location.origin}/vi/employee/tasks?taskId=${task._id}`;
+    const success = await copyToClipboard(url);
+    if (success) {
+      toast.success("Đã sao chép đường dẫn");
+    } else {
+      toast.error("Không thể sao chép đường dẫn");
+    }
+    setActiveTaskId(null);
+  }, [getActiveTask, copyToClipboard]);
+
+  // Handler duplicate từ context menu - dùng activeTaskId
+  const handleDuplicateFromContextMenu = useCallback(async () => {
+    const task = getActiveTask();
+    if (!task) {
+      toast.error("Không tìm thấy công việc");
+      return;
+    }
+    
+    // Không cho phép tạo mới trong tab assigned-tasks
+    if (filterType === "assigned-tasks") return;
+    if (!task.date || !task.title) return;
+
+    try {
+      await createTask({
+        date: task.date,
+        title: `${task.title} (copy)`,
+        assignee: task.assignee,
+        tag: task.tag || "Chung",
+        status: "todo",
+        description: task.description,
+        deadline: task.deadline || undefined,
+        progressNotes: task.progressNotes || undefined,
+      });
+      toast.success("Đã nhân bản công việc");
+      setActiveTaskId(null);
+    } catch (error) {
+      console.error("Error duplicating task:", error);
+      toast.error("Không thể nhân bản công việc");
+    }
+  }, [getActiveTask, filterType, createTask]);
+
+  const handleDuplicateTask = useCallback(
+    async (task: Task) => {
+      // Không cho phép tạo mới trong tab assigned-tasks
+      if (filterType === "assigned-tasks") return;
+      if (!task.date || !task.title) return;
+
+      try {
+        await createTask({
+          date: task.date,
+          title: `${task.title} (copy)`,
+          assignee: task.assignee,
+          tag: task.tag || "Chung",
+          status: "todo",
+          description: task.description,
+          deadline: task.deadline || undefined,
+          progressNotes: task.progressNotes || undefined,
+        });
+      } catch (error) {
+        console.error("Error duplicating task:", error);
+      }
+    },
+    [createTask, filterType]
+  );
+
   // --- Render Components ---
 
   return (
@@ -648,41 +1049,46 @@ export default function TaskCalendar({
         {/* Responsive Grid: 
             - Mobile: grid-cols-1 (List View) 
             - Desktop: grid-cols-7 (Calendar View) 
+            - Tăng khoảng cách giữa các ô ngày để thoáng hơn
         */}
-        <div className="grid grid-cols-1 lg:grid-cols-7 auto-rows-fr bg-slate-200 dark:bg-slate-700 gap-px"> 
+        <div className="grid grid-cols-1 lg:grid-cols-7 auto-rows-min lg:auto-rows-[minmax(96px,auto)] bg-slate-200 dark:bg-slate-700 gap-1"> 
           
           {days.map((dateStr, index) => {
             // Logic ẩn ô trống (padding days) trên mobile để tránh khoảng trắng vô nghĩa
             if (!dateStr) {
-              return <div key={`empty-${index}`} className="hidden lg:block bg-slate-50 dark:bg-slate-800/50 min-h-[140px]" />;
+              return <div key={`empty-${index}`} className="hidden lg:block bg-slate-50 dark:bg-slate-800/50 min-h-[96px]" />;
             }
 
-            const dayTasks = tasks.filter(t => t.date === dateStr);
-            const isToday = dateStr === new Date().toISOString().split('T')[0];
+            // Sử dụng memoized tasks by date thay vì filter mỗi lần
+            const sortedDayTasks = tasksByDate[dateStr] || [];
+            const hasTasks = sortedDayTasks.length > 0;
+            const isToday = dateStr === todayStr;
             const dateObj = new Date(dateStr);
             const dayOfWeekIndex = dateObj.getDay();
 
             return (
-              <button
-                type="button"
+              <div
                 key={dateStr}
-                disabled={filterType === "assigned-tasks"}
-                className={`bg-white dark:bg-slate-800 min-h-[120px] lg:min-h-[180px] p-3 md:p-2.5 transition-all group relative flex flex-col gap-2.5 touch-manipulation
+                ref={(el) => {
+                  if (isToday) todayCellRef.current = el;
+                }}
+                className={`bg-white dark:bg-slate-800 ${
+                  hasTasks ? "min-h-[120px] lg:min-h-[180px]" : "min-h-[72px] lg:min-h-[100px]"
+                } p-3 md:p-2.5 group relative flex flex-col gap-2.5 touch-manipulation
                   ${
                     filterType === "assigned-tasks"
                       ? "cursor-default"
-                      : "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 active:bg-indigo-50 dark:active:bg-indigo-900/20 active:scale-[0.98]"
+                      : "cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 active:bg-indigo-50 dark:active:bg-indigo-900/20"
                   }
-                  ${isToday ? "bg-indigo-50/50 dark:bg-indigo-900/20 ring-2 ring-indigo-200 dark:ring-indigo-800" : ""}
-                  disabled:opacity-50 disabled:cursor-not-allowed
+                  ${isToday ? "bg-indigo-50/50 dark:bg-indigo-900/20 ring-2 ring-indigo-200 dark:ring-indigo-800 scroll-mt-24" : ""}
                 `}
-                onClick={() => handleDayClick(dateStr)}
+                onClick={filterType !== "assigned-tasks" ? () => handleDayClick(dateStr) : undefined}
               >
                 {/* Date Header */}
                 <div className="flex justify-between items-center lg:items-start mb-2 lg:mb-0">
                     <div className="flex items-center gap-2">
                         {/* Date Number */}
-                        <span className={`text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full transition-all 
+                        <span className={`text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full transition-colors
                             ${isToday 
                               ? 'bg-indigo-500 dark:bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/50' 
                               : 'text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 lg:bg-transparent lg:dark:bg-transparent lg:text-slate-500 dark:lg:text-slate-400 lg:group-hover:text-indigo-600 dark:lg:group-hover:text-indigo-400 lg:group-hover:bg-indigo-50 dark:lg:group-hover:bg-indigo-900/20'
@@ -699,7 +1105,7 @@ export default function TaskCalendar({
                     {filterType !== "assigned-tasks" && (
                       <button
                         type="button"
-                        className="min-w-[40px] min-h-[40px] flex items-center justify-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 active:bg-indigo-200 dark:active:bg-indigo-900/50 rounded-lg text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all active:scale-90 touch-manipulation"
+                        className="min-w-[40px] min-h-[40px] flex items-center justify-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 active:bg-indigo-200 dark:active:bg-indigo-900/50 rounded-lg text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors touch-manipulation"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDayClick(dateStr);
@@ -712,27 +1118,45 @@ export default function TaskCalendar({
                 </div>
 
                 {/* Tasks List */}
-                <div className="flex flex-col gap-2.5 flex-1">
-                  {dayTasks.length > 0 ? (
-                    dayTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
+                <div className={`flex flex-col gap-2.5 ${hasTasks ? "flex-1" : ""}`}>
+                  {hasTasks ? (
+                    sortedDayTasks.map((task) => {
+                      // Memoize task props để tránh re-render không cần thiết
+                      const taskKey = `task-${task.id}-${task._id}`;
+                      return (
+                        <TaskCard
+                          key={taskKey}
+                          task={task}
                         filterType={filterType}
+                        currentUserId={currentUserId}
+                        isAdmin={isAdmin}
                         onTaskClick={handleTaskClick}
+                        onEditTask={handleEditTaskFromCard}
+                        // Context menu handlers - dùng activeTaskId
+                        onViewDetailFromContextMenu={handleViewDetailFromContextMenu}
+                        onEditFromContextMenu={handleEditFromContextMenu}
+                        onToggleStatusFromContextMenu={handleToggleStatusFromContextMenu}
+                        onDeleteFromContextMenu={handleDeleteFromContextMenu}
+                        onCopyInfoFromContextMenu={handleCopyInfoFromContextMenu}
+                        onCopyIdFromContextMenu={handleCopyIdFromContextMenu}
+                        onCopyLinkFromContextMenu={handleCopyLinkFromContextMenu}
+                        onDuplicateFromContextMenu={handleDuplicateFromContextMenu}
+                        // Legacy handlers (cho backward compatibility)
                         onToggleStatus={handleToggleTaskStatus}
                         onDelete={handleDeleteTask}
                         onCopy={handleCopyTaskInfo}
+                        onDuplicate={handleDuplicateTask}
                         getTagStyle={getTagStyle}
                         isContextMenuOpenRef={isContextMenuOpenRef}
                         isDeleteDialogOpen={isDeleteDialogOpen}
-                      />
-                    ))
-                  ) : (
-                    <div className="hidden lg:hidden h-8"></div>
-                  )}
+                          onContextMenuOpen={handleContextMenuOpen}
+                          onContextMenuClose={handleContextMenuClose}
+                        />
+                      );
+                    })
+                  ) : null}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -820,7 +1244,11 @@ export default function TaskCalendar({
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20">
               <h3 className="text-xl font-bold text-slate-800 dark:text-white">
-                {editingTask ? "Chi tiết công việc" : filterType === "assigned-tasks" ? "Xem công việc" : "Thêm công việc mới"}
+                {editingTask
+                  ? "Sửa công việc"
+                  : filterType === "assigned-tasks"
+                  ? "Xem công việc"
+                  : "Thêm công việc mới"}
               </h3>
               <button
                 type="button"

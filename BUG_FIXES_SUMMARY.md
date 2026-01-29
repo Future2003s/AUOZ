@@ -78,6 +78,28 @@
 - ✅ Có nút "Thử lại" và "Về trang chủ"
 - ✅ Hiển thị stack trace trong development mode
 
+### 9. ✅ Employee Tasks context menu sai chức năng
+**Files chính:**
+- `src/app/[locale]/employee/tasks/page.tsx`
+- `src/components/task-calendar.tsx`
+- `src/components/tasks/TaskCard.tsx`
+- `src/hooks/useTaskContextMenu.tsx`
+
+- ✅ Tách hook `useTaskContextMenu` để chuẩn hóa logic hiển thị/ẩn/disable các menu item theo:
+  - `task.status`, `task.createdBy`, `currentUserId`, `isAdmin`, `filterType` (`my-tasks` / `assigned-tasks` / `all`)
+- ✅ Sửa context menu:
+  - "Xem chi tiết" luôn mở đúng Task Detail View
+  - "Sửa công việc" giờ mở đúng modal chỉnh sửa (trước đây chỉ mở xem chi tiết)
+  - Ẩn nút sửa/xóa trong tab `assigned-tasks` theo đúng nghiệp vụ hiện tại
+  - Chỉ cho phép xóa khi user là admin hoặc là người tạo task (khớp rule backend)
+- ✅ Thêm các action tiện ích:
+  - Nhân bản công việc (duplicate) bằng cách tạo task mới từ dữ liệu cũ
+  - Sao chép thông tin, sao chép ID, sao chép link task
+- ✅ Bổ sung unit test tối thiểu cho `useTaskContextMenu`:
+  - Employee không phải owner không thấy nút xoá
+  - Admin luôn thấy nút xoá
+  - Tab `assigned-tasks` không cho sửa/xóa từ context menu
+
 ---
 
 ## 📁 FILES ĐÃ TẠO/SỬA

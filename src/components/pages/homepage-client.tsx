@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo } from "react";
 import type { CSSProperties } from "react";
-import "@/app/styleSmoothUI.css";
 import { CursorEffect } from "@/components/cursor-effect";
 import { MapsLocationCompany } from "@/components/location-company-maps";
 import { SocialProofSection } from "@/components/social-proof-section";

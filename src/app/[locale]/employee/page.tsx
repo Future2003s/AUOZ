@@ -21,14 +21,19 @@ import {
   Scissors,
   Receipt,
   Bell,
+  BellOff,
   Camera,
   FileX,
   Truck,
   CreditCard,
   AlertCircle,
+  Download,
 } from "lucide-react";
 import { employeeApiRequest, EmployeeMetrics } from "@/apiRequests/employee";
 import { useAuth } from "@/hooks/useAuth";
+import { useInstallPrompt } from "@/hooks/useInstallPrompt";
+import { usePushNotification } from "@/hooks/usePushNotification";
+import { Button } from "@/components/ui/button";
 
 interface TaskCard {
   id: string;
@@ -160,6 +165,8 @@ interface StatCard {
 export default function EmployeeDashboard() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isInstallable, isInstalled, install } = useInstallPrompt();
+  const { isSupported: pushSupported, isSubscribed: pushSubscribed } = usePushNotification();
   const [metrics, setMetrics] = useState<EmployeeMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -249,6 +256,31 @@ export default function EmployeeDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {isInstallable && !isInstalled && (
+            <Button
+              onClick={install}
+              size="sm"
+              variant="outline"
+              className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Cài đặt App
+            </Button>
+          )}
+          {pushSupported && (
+            <Badge 
+              variant={pushSubscribed ? "default" : "outline"} 
+              className={`${pushSubscribed ? "bg-green-500 hover:bg-green-600" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"} dark:text-slate-300`}
+              title={pushSubscribed ? "Đã bật thông báo push" : "Chưa bật thông báo push"}
+            >
+              {pushSubscribed ? (
+                <Bell className="w-3 h-3 mr-1" />
+              ) : (
+                <BellOff className="w-3 h-3 mr-1" />
+              )}
+              {pushSubscribed ? "Thông báo" : "Tắt TB"}
+            </Badge>
+          )}
           <ThemeToggle />
           <Badge variant="outline" className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-300">
             <Clock className="w-3 h-3 mr-1" />

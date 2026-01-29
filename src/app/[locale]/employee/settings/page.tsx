@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings, User, Bell, Shield, Globe } from "lucide-react";
+import { PushNotificationSettings } from "@/components/employee/PushNotificationSettings";
 
 export default function EmployeeSettingsPage() {
   return (
@@ -52,12 +53,15 @@ export default function EmployeeSettingsPage() {
         </CardContent>
       </Card>
 
+      {/* Push Notification Settings */}
+      <PushNotificationSettings />
+
       {/* Notification Settings */}
       <Card className="border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-indigo-600" />
-            Thông báo
+            Cài đặt thông báo khác
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -66,15 +70,6 @@ export default function EmployeeSettingsPage() {
               <p className="font-semibold">Thông báo email</p>
               <p className="text-sm text-slate-600">
                 Nhận thông báo qua email
-              </p>
-            </div>
-            <input type="checkbox" defaultChecked className="w-5 h-5" />
-          </div>
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-            <div>
-              <p className="font-semibold">Thông báo đơn hàng mới</p>
-              <p className="text-sm text-slate-600">
-                Nhận thông báo khi có đơn hàng mới
               </p>
             </div>
             <input type="checkbox" defaultChecked className="w-5 h-5" />

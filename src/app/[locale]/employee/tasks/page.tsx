@@ -10,29 +10,14 @@ export default function EmployeeTasksPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"my-tasks" | "assigned-tasks">("my-tasks");
   const currentUserId = user?._id || user?.id;
+  const isAdminLike =
+    user?.role === "admin" || user?.role === "seller" || user?.role === "staff";
 
   // Memoize filterType để tránh re-render không cần thiết
   const filterType = useMemo(() => activeTab, [activeTab]);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <Calendar className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Lịch Phân Công
-            </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Quản lý và theo dõi công việc theo lịch
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "my-tasks" | "assigned-tasks")} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1">
@@ -58,6 +43,7 @@ export default function EmployeeTasksPage() {
             key="task-calendar-shared" 
             filterType={filterType} 
             currentUserId={currentUserId}
+            isAdmin={Boolean(isAdminLike)}
           />
         </div>
       </Tabs>
