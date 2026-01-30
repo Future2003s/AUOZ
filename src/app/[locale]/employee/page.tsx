@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   Calendar,
   Package,
@@ -12,8 +11,6 @@ import {
   BarChart3,
   Users,
   ShoppingBag,
-  CheckCircle2,
-  Clock,
   TrendingUp,
   Settings,
   ArrowRight,
@@ -21,19 +18,15 @@ import {
   Scissors,
   Receipt,
   Bell,
-  BellOff,
   Camera,
   FileX,
   Truck,
   CreditCard,
   AlertCircle,
-  Download,
+  Clock,
 } from "lucide-react";
 import { employeeApiRequest, EmployeeMetrics } from "@/apiRequests/employee";
 import { useAuth } from "@/hooks/useAuth";
-import { useInstallPrompt } from "@/hooks/useInstallPrompt";
-import { usePushNotification } from "@/hooks/usePushNotification";
-import { Button } from "@/components/ui/button";
 
 interface TaskCard {
   id: string;
@@ -165,17 +158,25 @@ interface StatCard {
 export default function EmployeeDashboard() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { isInstallable, isInstalled, install } = useInstallPrompt();
-  const { isSupported: pushSupported, isSubscribed: pushSubscribed } = usePushNotification();
   const [metrics, setMetrics] = useState<EmployeeMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
       fetchMetrics();
     }
   }, [isAuthenticated, authLoading]);
+
+  useEffect(() => {
+    // Cập nhật thời gian mỗi giây
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const fetchMetrics = async () => {
     try {
@@ -245,53 +246,26 @@ export default function EmployeeDashboard() {
 
   return (
     <div className="space-y-6 mt-25">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-            Dashboard Nhân Viên
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400">
-            Quản lý công việc và nhiệm vụ hàng ngày
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {isInstallable && !isInstalled && (
-            <Button
-              onClick={install}
-              size="sm"
-              variant="outline"
-              className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Cài đặt App
-            </Button>
-          )}
-          {pushSupported && (
-            <Badge 
-              variant={pushSubscribed ? "default" : "outline"} 
-              className={`${pushSubscribed ? "bg-green-500 hover:bg-green-600" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"} dark:text-slate-300`}
-              title={pushSubscribed ? "Đã bật thông báo push" : "Chưa bật thông báo push"}
-            >
-              {pushSubscribed ? (
-                <Bell className="w-3 h-3 mr-1" />
-              ) : (
-                <BellOff className="w-3 h-3 mr-1" />
-              )}
-              {pushSubscribed ? "Thông báo" : "Tắt TB"}
-            </Badge>
-          )}
-          <ThemeToggle />
-          <Badge variant="outline" className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-300">
-            <Clock className="w-3 h-3 mr-1" />
-            {new Date().toLocaleDateString("vi-VN", {
+      {/* Date & Time Display */}
+      <div className="flex justify-end">
+        <Badge variant="outline" className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-300 px-4 py-2 text-sm font-medium">
+          <Clock className="w-4 h-4 mr-2" />
+          <span>
+            {currentTime.toLocaleDateString("vi-VN", {
               weekday: "long",
               year: "numeric",
               month: "long",
               day: "numeric",
             })}
-          </Badge>
-        </div>
+          </span>
+          <span className="ml-2 font-semibold">
+            {currentTime.toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })}
+          </span>
+        </Badge>
       </div>
 
       {/* Stats Grid */}
@@ -377,38 +351,6 @@ export default function EmployeeDashboard() {
           })}
         </div>
       </div>
-
-      {/* Quick Actions */}
-      <Card className="border border-slate-200 dark:border-slate-700 shadow-lg bg-gradient-to-r from-indigo-600 to-blue-700 dark:from-indigo-700 dark:to-blue-800 text-white">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-bold mb-2">
-                Cần hỗ trợ?
-              </h3>
-              <p className="text-indigo-100 dark:text-indigo-200">
-                Liên hệ với quản lý hoặc xem tài liệu hướng dẫn
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleTaskClick("/employee/documents")}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 dark:bg-white/10 dark:hover:bg-white/20 rounded-lg font-medium transition-colors flex items-center gap-2"
-              >
-                <FileText className="w-4 h-4" />
-                Tài liệu
-              </button>
-              <button
-                onClick={() => handleTaskClick("/employee/settings")}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 dark:bg-white/10 dark:hover:bg-white/20 rounded-lg font-medium transition-colors flex items-center gap-2"
-              >
-                <Settings className="w-4 h-4" />
-                Cài đặt
-              </button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

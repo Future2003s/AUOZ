@@ -3,7 +3,7 @@ import { envConfig } from "@/config";
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Handle both Promise and direct object (Next.js 13+ vs 15+)
   const resolvedParams = params instanceof Promise ? await params : params;

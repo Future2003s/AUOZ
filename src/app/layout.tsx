@@ -15,7 +15,7 @@ import { ThemeProvider } from "@/context/theme-context";
 import { QueryProvider } from "@/providers/query-provider";
 import { I18nProvider } from "../i18n/I18nProvider";
 import { envConfig } from "@/config";
-import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import PWARegister from "./_components/PWARegister";
 
 const fontSans: NextFont = Quicksand({
   subsets: ["latin"],
@@ -52,19 +52,26 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/images/logo.png", type: "image/png", sizes: "192x192" },
-      { url: "/images/logo.png", type: "image/png", sizes: "512x512" },
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icons/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
     apple: [
-      { url: "/images/logo.png", sizes: "180x180", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "180x180", type: "image/png" },
     ],
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "LALA Employee",
   },
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "msapplication-TileColor": "#0b1220",
+    "msapplication-config": "/browserconfig.xml",
+  },
   openGraph: {
     type: "website",
     locale: "vi_VN",
@@ -107,7 +114,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#e11d48",
+  themeColor: "#0b1220",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -149,7 +156,7 @@ export default async function RootLayout({
           </AppContext>
           <Toaster />
         </AppProvider>
-        <ServiceWorkerRegistration />
+        <PWARegister />
       </body>
     </html>
   );

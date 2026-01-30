@@ -3,7 +3,7 @@ import { proxyJson } from "@/lib/next-api-auth";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ addressId: string }> | { addressId: string } }
+  { params }: { params: Promise<{ addressId: string }> }
 ) {
   try {
     const resolvedParams = params instanceof Promise ? await params : params;
@@ -50,7 +50,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ addressId: string }> | { addressId: string } }
+  { params }: { params: Promise<{ addressId: string }> }
 ) {
   try {
     const resolvedParams = params instanceof Promise ? await params : params;

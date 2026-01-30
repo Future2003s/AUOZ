@@ -21,12 +21,28 @@ import {
   Megaphone,
   FileText,
   Briefcase,
+  Calendar,
+  Package,
+  BarChart3,
+  ClipboardList,
+  Scissors,
+  Receipt,
+  Bell,
+  Camera,
+  FileX,
+  Truck,
+  CreditCard,
+  AlertCircle,
+  UserCog,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import MenuItem from "./MenuItem";
 import AdminHeader from "./AdminHeader";
 import NavigationOptimizer from "./NavigationOptimizer";
 import ClientContent from "./ClientContent";
+import { UpdateBanner } from "@/components/pwa/UpdateBanner";
+import { InstallPrompt } from "@/components/employee/InstallPrompt";
+import { AdminPWAManifest } from "./AdminPWAManifest";
 
 interface MenuSection {
   category: string;
@@ -169,6 +185,71 @@ export default function AdminDashboard({
         ],
       },
       {
+        category: "Quản lý Nhân viên",
+        items: [
+          {
+            id: "employee-dashboard",
+            label: "Dashboard Nhân viên",
+            icon: LayoutDashboard,
+            href: `/${locale}/employee`,
+          },
+          {
+            id: "employee-orders",
+            label: "Đơn hàng Nhân viên",
+            icon: ShoppingBag,
+            href: `/${locale}/employee/orders`,
+          },
+          {
+            id: "employee-tasks",
+            label: "Công việc Nhân viên",
+            icon: ClipboardList,
+            href: `/${locale}/employee/tasks`,
+          },
+          {
+            id: "employee-inventory",
+            label: "Kho Mật Ong",
+            icon: Package,
+            href: `/${locale}/employee/inventory`,
+          },
+          {
+            id: "employee-shipping",
+            label: "Gửi Hàng & Chụp Ảnh",
+            icon: Camera,
+            href: `/${locale}/employee/shipping`,
+          },
+          {
+            id: "employee-debt",
+            label: "Quản Lý Công Nợ",
+            icon: Receipt,
+            href: `/${locale}/employee/debt`,
+          },
+          {
+            id: "employee-invoices",
+            label: "Nhắc Nhở Hóa Đơn",
+            icon: Bell,
+            href: `/${locale}/employee/invoices`,
+          },
+          {
+            id: "employee-flower-logs",
+            label: "Sổ Cắt Hoa",
+            icon: Scissors,
+            href: `/${locale}/employee/flower-logs`,
+          },
+          {
+            id: "employee-metrics",
+            label: "Thống Kê Nhân viên",
+            icon: BarChart3,
+            href: `/${locale}/employee/metrics/incomplete-invoices`,
+          },
+          {
+            id: "employee-settings",
+            label: "Cài đặt Nhân viên",
+            icon: UserCog,
+            href: `/${locale}/employee/settings`,
+          },
+        ],
+      },
+      {
         category: "Hệ thống",
         items: [
           {
@@ -191,7 +272,11 @@ export default function AdminDashboard({
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-gray-900">
+      <AdminPWAManifest />
       <NavigationOptimizer />
+      {/* PWA Components */}
+      <UpdateBanner />
+      <InstallPrompt />
       {/* SIDEBAR NAVIGATION */}
       <aside
         className={`

@@ -48,13 +48,49 @@ export function usePushNotification(): UsePushNotificationReturn {
 
     const checkSubscription = async () => {
       try {
-        // Wait for service worker to be ready
-        if (!navigator.serviceWorker.controller) {
-          console.log("[Push Notification] Waiting for service worker...");
-          await navigator.serviceWorker.ready;
+        // Đợi service worker ready với timeout
+        const waitForSW = async (timeout = 10000) => {
+          return Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('SW timeout')), timeout)
+            )
+          ]);
+        };
+
+        // Kiểm tra xem có registration không
+        let registration: ServiceWorkerRegistration | null = null;
+        
+        try {
+          // Thử lấy registration hiện có
+          registration = (await navigator.serviceWorker.getRegistration()) || null;
+          
+          // Nếu chưa có, đợi ready
+          if (!registration) {
+            console.log("[Push Notification] Waiting for service worker to register...");
+            registration = await waitForSW() as ServiceWorkerRegistration;
+          } else {
+            // Đợi ready để đảm bảo SW active
+            await waitForSW(5000);
+          }
+          
+          console.log("[Push Notification] Service worker ready");
+        } catch (swError) {
+          console.warn("[Push Notification] Service worker not ready yet:", swError);
+          // Retry sau 2 giây
+          setTimeout(() => {
+            checkSubscription();
+          }, 2000);
+          return;
         }
 
-        const registration = await navigator.serviceWorker.ready;
+        // Lấy registration một lần nữa để đảm bảo
+        registration = (await navigator.serviceWorker.getRegistration()) || null;
+        if (!registration) {
+          console.warn("[Push Notification] No service worker registration found");
+          return;
+        }
+
         const sub = await registration.pushManager.getSubscription();
         
         if (sub) {
@@ -73,13 +109,18 @@ export function usePushNotification(): UsePushNotificationReturn {
         }
       } catch (err) {
         console.error("[Push Notification] Error checking subscription:", err);
-        setError("Không thể kiểm tra trạng thái đăng ký");
+        // Không set error để tránh spam, chỉ log
         setIsSubscribed(false);
         setSubscription(null);
       }
     };
 
-    checkSubscription();
+    // Đợi một chút để đảm bảo SW đã được register
+    const timeoutId = setTimeout(() => {
+      checkSubscription();
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
   }, [isSupported, isAuthenticated]);
 
   // Verify subscription with backend
@@ -142,23 +183,42 @@ export function usePushNotification(): UsePushNotificationReturn {
 
       console.log("[Push Notification] Permission granted, getting service worker...");
 
-      // Ensure service worker is ready
-      if (!navigator.serviceWorker.controller) {
-        console.log("[Push Notification] Waiting for service worker registration...");
+      // Đợi service worker ready với timeout
+      let registration: ServiceWorkerRegistration;
+      try {
+        registration = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise<ServiceWorkerRegistration>((_, reject) => 
+            setTimeout(() => reject(new Error('SW timeout')), 10000)
+          )
+        ]);
+        console.log("[Push Notification] Service worker ready");
+      } catch (swError) {
+        throw new Error("Service worker chưa sẵn sàng. Vui lòng đợi và thử lại sau.");
       }
-      const registration = await navigator.serviceWorker.ready;
-      console.log("[Push Notification] Service worker ready");
 
       // Get VAPID public key from server
       console.log("[Push Notification] Fetching VAPID key...");
-      const vapidKeyResponse = await fetch("/api/notifications/push/vapid-key");
-      if (!vapidKeyResponse.ok) {
-        throw new Error("Không thể lấy VAPID key từ server");
-      }
-      const { publicKey } = await vapidKeyResponse.json();
-      
-      if (!publicKey) {
-        throw new Error("VAPID key không hợp lệ");
+      let publicKey: string;
+      try {
+        const vapidKeyResponse = await fetch("/api/notifications/push/vapid-key");
+        if (!vapidKeyResponse.ok) {
+          if (vapidKeyResponse.status === 404) {
+            throw new Error("VAPID key endpoint không tồn tại. Vui lòng cấu hình backend.");
+          }
+          throw new Error(`Không thể lấy VAPID key từ server (${vapidKeyResponse.status})`);
+        }
+        const data = await vapidKeyResponse.json();
+        publicKey = data.publicKey;
+        
+        if (!publicKey) {
+          throw new Error("VAPID key không hợp lệ");
+        }
+      } catch (fetchError) {
+        console.error("[Push Notification] VAPID key fetch error:", fetchError);
+        throw fetchError instanceof Error 
+          ? fetchError 
+          : new Error("Lỗi khi lấy VAPID key từ server");
       }
 
       console.log("[Push Notification] VAPID key received, subscribing...");
@@ -229,8 +289,18 @@ export function usePushNotification(): UsePushNotificationReturn {
       let currentSubscription = subscription;
       if (!currentSubscription) {
         console.log("[Push Notification] No subscription in state, checking service worker...");
-        const registration = await navigator.serviceWorker.ready;
-        currentSubscription = await registration.pushManager.getSubscription();
+        try {
+          const registration = await Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise<ServiceWorkerRegistration>((_, reject) => 
+              setTimeout(() => reject(new Error('SW timeout')), 5000)
+            )
+          ]);
+          currentSubscription = await registration.pushManager.getSubscription();
+        } catch (swError) {
+          console.warn("[Push Notification] Service worker not ready for unsubscribe:", swError);
+          // Vẫn tiếp tục với unsubscribe nếu có subscription trong state
+        }
       }
 
       if (!currentSubscription) {

@@ -10,7 +10,7 @@ const METRICS_TYPES = [
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ type: string }> | { type: string } }
+  { params }: { params: Promise<{ type: string }> }
 ) {
   try {
     // Handle both Promise and direct params (Next.js 13+ compatibility)

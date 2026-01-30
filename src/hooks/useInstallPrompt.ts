@@ -34,14 +34,69 @@ export function useInstallPrompt(): UseInstallPromptReturn {
                       (window.navigator as any).standalone === true;
     setIsStandalone(standalone);
     setIsInstalled(standalone);
+    
+    // Check service worker status - required for A2HS
+    const checkSWStatus = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          // Wait for service worker to be ready (important for A2HS)
+          const registration = await navigator.serviceWorker.ready;
+          if (registration) {
+            console.log("[Install Prompt] ✅ Service worker ready:", registration.scope);
+            if (registration.active) {
+              console.log("[Install Prompt] ✅ Service worker is active - A2HS ready");
+            } else if (registration.installing) {
+              console.log("[Install Prompt] ⏳ Service worker is installing...");
+              // Wait for installation to complete
+              registration.installing.addEventListener('statechange', () => {
+                if (registration.installing?.state === 'activated') {
+                  console.log("[Install Prompt] ✅ Service worker activated - A2HS ready");
+                }
+              });
+            } else if (registration.waiting) {
+              console.log("[Install Prompt] ⏳ Service worker is waiting...");
+            }
+          } else {
+            console.warn("[Install Prompt] ⚠️ No service worker registration found - A2HS may not work");
+          }
+        } catch (error) {
+          console.error("[Install Prompt] Error checking service worker:", error);
+        }
+      } else {
+        console.warn("[Install Prompt] ⚠️ Service workers not supported - A2HS may not work");
+      }
+    };
+    
+    // Check SW status after a short delay to ensure registration is complete
+    const swCheckTimeout = setTimeout(checkSWStatus, 2000);
 
     // Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       const event = e as BeforeInstallPromptEvent;
+      console.log("[Install Prompt] beforeinstallprompt event received");
       setDeferredPrompt(event);
       setIsInstallable(true);
     };
+    
+    // Debug: Log service worker status
+    const checkServiceWorker = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          console.log("[Install Prompt] Service worker is ready:", registration.scope);
+          if (navigator.serviceWorker.controller) {
+            console.log("[Install Prompt] Service worker controller is active");
+          } else {
+            console.log("[Install Prompt] Service worker controller not active yet");
+          }
+        } catch (error) {
+          console.error("[Install Prompt] Service worker check failed:", error);
+        }
+      }
+    };
+    
+    checkServiceWorker();
 
     // Listen for app installed event
     const handleAppInstalled = () => {
@@ -61,6 +116,7 @@ export function useInstallPrompt(): UseInstallPromptReturn {
     }
 
     return () => {
+      clearTimeout(swCheckTimeout);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
@@ -76,29 +132,59 @@ export function useInstallPrompt(): UseInstallPromptReturn {
           "2. Chọn 'Thêm vào Màn hình chính'\n" +
           "3. Nhấn 'Thêm' để hoàn tất"
         );
+        return;
       }
+      
+      // Check if service worker is ready
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          if (!registration.active) {
+            console.warn("[Install Prompt] Service worker not active yet, waiting...");
+            // Wait a bit and try again
+            setTimeout(() => {
+              if (deferredPrompt) {
+                install();
+              }
+            }, 1000);
+            return;
+          }
+        } catch (error) {
+          console.error("[Install Prompt] Service worker not ready:", error);
+        }
+      }
+      
+      console.warn("[Install Prompt] Install prompt not available yet");
       return;
     }
 
     try {
+      console.log("[Install Prompt] Showing install prompt...");
+      
       // Show the install prompt
       await deferredPrompt.prompt();
 
       // Wait for user response
       const { outcome } = await deferredPrompt.userChoice;
 
+      console.log(`[Install Prompt] User choice: ${outcome}`);
+
       if (outcome === "accepted") {
-        console.log("User accepted the install prompt");
+        console.log("[Install Prompt] ✅ User accepted the install prompt");
         setIsInstalled(true);
+        setIsInstallable(false);
       } else {
-        console.log("User dismissed the install prompt");
+        console.log("[Install Prompt] ❌ User dismissed the install prompt");
       }
 
-      // Clear the deferred prompt
+      // Clear the deferred prompt (can only be used once)
       setDeferredPrompt(null);
       setIsInstallable(false);
     } catch (error) {
-      console.error("Error showing install prompt:", error);
+      console.error("[Install Prompt] Error showing install prompt:", error);
+      // Clear prompt on error
+      setDeferredPrompt(null);
+      setIsInstallable(false);
     }
   };
 

@@ -7,7 +7,7 @@ const baseUrl =
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> | { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const params = await context.params;
   const body = await request.text();

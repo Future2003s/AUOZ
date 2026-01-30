@@ -162,11 +162,11 @@ export default function TaskCalendar({
   const [statusFilter, setStatusFilter] = useState<"all" | "todo" | "pending" | "done">("all");
   const [tagFilter, setTagFilter] = useState<string>("");
 
-  // Debounce search query để tránh filter quá nhiều lần
+  // Debounce search query để tránh filter quá nhiều lần (giảm từ 300ms xuống 200ms để responsive hơn)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
-    }, 300);
+    }, 200);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
@@ -258,7 +258,13 @@ export default function TaskCalendar({
     return grouped;
   }, [tasks]);
 
-  // Fetch tasks when month changes
+  // Fetch tasks when month changes (tối ưu: chỉ fetch khi tháng thực sự thay đổi)
+  const currentMonthKey = useMemo(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    return `${year}-${month}`;
+  }, [currentDate]);
+
   useEffect(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -266,35 +272,42 @@ export default function TaskCalendar({
     const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
     
     fetchTasks({ startDate, endDate });
-  }, [currentDate, fetchTasks]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMonthKey]); // Chỉ phụ thuộc vào month key, không phụ thuộc vào fetchTasks
 
   // Scroll to today's cell (only once) when viewing current month and data is ready
+  // Tối ưu: giảm delay và chỉ scroll một lần khi data đã load xong
+  const hasScrolledRef = useRef(false);
   useEffect(() => {
-    if (isLoading || error) return;
+    if (isLoading || error || hasScrolledRef.current) return;
 
     const todayDate = new Date(todayStr);
     const isCurrentMonth =
       currentDate.getFullYear() === todayDate.getFullYear() &&
       currentDate.getMonth() === todayDate.getMonth();
 
-    if (!isCurrentMonth) return;
+    if (!isCurrentMonth) {
+      hasScrolledRef.current = false; // Reset khi chuyển tháng
+      return;
+    }
 
-    // Delay một nhịp để chắc chắn grid đã render xong rồi mới scroll
-    // Sử dụng requestAnimationFrame để tối ưu performance
-    let rafId: number;
-    let timeoutId: NodeJS.Timeout;
-    
-    rafId = requestAnimationFrame(() => {
-      timeoutId = setTimeout(() => {
-        todayCellRef.current?.scrollIntoView({ behavior: "auto", block: "nearest" });
-      }, 100);
-    });
+    // Giảm delay từ 100ms xuống 50ms để responsive hơn
+    const timeoutId = setTimeout(() => {
+      if (todayCellRef.current) {
+        todayCellRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        hasScrolledRef.current = true;
+      }
+    }, 50);
 
     return () => {
-      cancelAnimationFrame(rafId);
-      if (timeoutId) clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
     };
   }, [currentDate, todayStr, isLoading, error]);
+
+  // Reset scroll flag khi chuyển tháng
+  useEffect(() => {
+    hasScrolledRef.current = false;
+  }, [currentMonthKey]);
 
   // Đảm bảo modal không mở khi dialog đang mở
   useEffect(() => {
@@ -347,18 +360,18 @@ export default function TaskCalendar({
     return days;
   };
 
-  const days = getDaysInMonth(currentDate);
+  const days = useMemo(() => getDaysInMonth(currentDate), [currentDate]);
 
-  const prevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  };
+  const prevMonth = useCallback(() => {
+    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  }, []);
 
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-  };
+  const nextMonth = useCallback(() => {
+    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  }, []);
 
-  // Reset form về trạng thái ban đầu
-  const resetForm = () => {
+  // Reset form về trạng thái ban đầu (memoize để tránh re-render)
+  const resetForm = useCallback(() => {
     setNewTaskTitle("");
     setNewTaskAssignee("");
     setNewTaskAssigneeIds([]);
@@ -371,10 +384,10 @@ export default function TaskCalendar({
     setAssigneeSearchQuery("");
     setShowAssigneeSuggestions(false);
     setShowEmployeeList(true); // Reset về hiển thị danh sách
-  };
+  }, []);
   
-  // Toggle chọn/bỏ chọn nhân viên
-  const toggleEmployeeSelection = (employeeId: string, employeeName: string) => {
+  // Toggle chọn/bỏ chọn nhân viên (memoize để tránh re-render)
+  const toggleEmployeeSelection = useCallback((employeeId: string, employeeName: string) => {
     setNewTaskAssigneeIds(prev => {
       if (prev.includes(employeeId)) {
         // Bỏ chọn
@@ -399,10 +412,10 @@ export default function TaskCalendar({
         return newIds;
       }
     });
-  };
+  }, [employees]);
   
-  // Xóa nhân viên khỏi danh sách đã chọn
-  const removeSelectedEmployee = (employeeId: string) => {
+  // Xóa nhân viên khỏi danh sách đã chọn (memoize để tránh re-render)
+  const removeSelectedEmployee = useCallback((employeeId: string) => {
     setNewTaskAssigneeIds(prev => {
       const newIds = prev.filter(id => id !== employeeId);
       const selectedNames = newIds.map(id => {
@@ -412,7 +425,7 @@ export default function TaskCalendar({
       setNewTaskAssignee(selectedNames.join(', '));
       return newIds;
     });
-  };
+  }, [employees]);
   
   // Tìm kiếm employees dựa trên query
   const filteredEmployees = useMemo(() => {
@@ -426,7 +439,7 @@ export default function TaskCalendar({
     );
   }, [employees, assigneeSearchQuery]);
 
-  const handleDayClick = (dateStr: string | null) => {
+  const handleDayClick = useCallback((dateStr: string | null) => {
     if (!dateStr) return;
     // Không cho phép tạo task mới trong tab "assigned-tasks"
     if (filterType === "assigned-tasks") return;
@@ -435,7 +448,7 @@ export default function TaskCalendar({
     resetForm(); // Đảm bảo form trống khi thêm mới
     setSelectedDate(dateStr);
     setIsModalOpen(true);
-  };
+  }, [filterType, isDeleteDialogOpen]);
 
   // Xử lý khi bấm vào Task để xem chi tiết (chỉ xem)
   const handleTaskClick = useCallback(async (task: Task, e?: React.MouseEvent | any) => {

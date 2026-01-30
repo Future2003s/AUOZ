@@ -1,4 +1,11 @@
 import type { NextConfig } from "next";
+import withSerwistInit from "@serwist/next";
+
+const withSerwist = withSerwistInit({
+  swSrc: "src/app/sw.ts",
+  swDest: "public/sw.js",
+  disable: false, // Bật PWA trong development để test
+});
 
 const nextConfig: NextConfig = {
   // Tối ưu hiệu năng tối đa cho trải nghiệm mượt mà
@@ -169,6 +176,29 @@ const nextConfig: NextConfig = {
 
   // Tối ưu React strict mode (có thể tắt trong production để tăng hiệu năng)
   reactStrictMode: true,
+
+  // Headers for service worker (Serwist sẽ tự động handle, nhưng giữ lại để đảm bảo)
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
+          },
+          {
+            key: "Service-Worker-Allowed",
+            value: "/",
+          },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

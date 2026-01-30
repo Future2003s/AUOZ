@@ -18,6 +18,17 @@ export function InstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
+  // Debug logging
+  useEffect(() => {
+    console.log("[InstallPrompt] State:", {
+      isInstallable,
+      isInstalled,
+      isIOS,
+      showPrompt,
+      dismissed,
+    });
+  }, [isInstallable, isInstalled, isIOS, showPrompt, dismissed]);
+
   useEffect(() => {
     // Check if user has dismissed the prompt before
     const dismissedKey = "a2hs-dismissed";
@@ -29,11 +40,21 @@ export function InstallPrompt() {
     // 1. App is installable or iOS
     // 2. Not already installed
     // 3. Not dismissed in last 24 hours
-    // 4. Wait 3 seconds after page load
+    // 4. Wait 5 seconds after page load (give time for SW to activate)
     if ((isInstallable || isIOS) && !isInstalled && dismissedTimestamp < oneDayAgo) {
       const timer = setTimeout(() => {
-        setShowPrompt(true);
-      }, 3000);
+        // Double check service worker is ready before showing
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(() => {
+            setShowPrompt(true);
+          }).catch(() => {
+            // Still show if SW check fails (might be iOS)
+            setShowPrompt(true);
+          });
+        } else {
+          setShowPrompt(true);
+        }
+      }, 5000); // Increased delay to ensure SW is ready
 
       return () => clearTimeout(timer);
     }
@@ -59,27 +80,27 @@ export function InstallPrompt() {
 
   return (
     <>
-      {/* Banner for Android/Desktop */}
+      {/* Banner for Android/Desktop - Similar to a2hs example */}
       {!isIOS && isInstallable && (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-in slide-in-from-bottom-5">
-          <Card className="border-2 border-primary shadow-2xl bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10">
+        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-in slide-in-from-bottom-5 duration-300">
+          <Card className="border-2 border-primary shadow-2xl bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-primary/20 rounded-lg">
+                <div className="p-2 bg-primary/20 rounded-lg flex-shrink-0">
                   <Download className="w-5 h-5 text-primary" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm mb-1 text-foreground">
                     Cài đặt ứng dụng
                   </h3>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Cài đặt để truy cập nhanh hơn và làm việc offline
+                    Cài đặt để truy cập nhanh hơn, làm việc offline và nhận thông báo
                   </p>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
                       onClick={handleInstall}
-                      className="flex-1"
+                      className="flex-1 bg-primary hover:bg-primary/90"
                     >
                       <Download className="w-4 h-4 mr-2" />
                       Cài đặt ngay
@@ -88,7 +109,8 @@ export function InstallPrompt() {
                       size="sm"
                       variant="ghost"
                       onClick={handleDismiss}
-                      className="px-2"
+                      className="px-2 flex-shrink-0"
+                      aria-label="Đóng"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -163,11 +185,12 @@ export function InstallPrompt() {
       )}
 
       {/* Floating Install Button (always visible if installable) */}
-      {!isIOS && isInstallable && !showPrompt && !isInstalled && (
+      {!isIOS && isInstallable && !isInstalled && (
         <Button
           onClick={handleInstall}
-          className="fixed bottom-4 right-4 z-50 rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all"
+          className="fixed bottom-4 right-4 z-50 rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all bg-primary text-primary-foreground"
           size="icon"
+          title="Cài đặt ứng dụng"
         >
           <Download className="w-5 h-5" />
           <span className="sr-only">Cài đặt ứng dụng</span>
