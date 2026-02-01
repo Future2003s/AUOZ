@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { employeeApiRequest, EmployeeMetrics } from "@/apiRequests/employee";
 import { useAuth } from "@/hooks/useAuth";
+import { NotificationBell } from "@/components/employee/NotificationBell";
 
 interface TaskCard {
   id: string;
@@ -246,26 +247,30 @@ export default function EmployeeDashboard() {
 
   return (
     <div className="space-y-6 mt-25">
-      {/* Date & Time Display */}
-      <div className="flex justify-end">
-        <Badge variant="outline" className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-300 px-4 py-2 text-sm font-medium">
-          <Clock className="w-4 h-4 mr-2" />
-          <span>
-            {currentTime.toLocaleDateString("vi-VN", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </span>
-          <span className="ml-2 font-semibold">
-            {currentTime.toLocaleTimeString("vi-VN", {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            })}
-          </span>
-        </Badge>
+      {/* Header with Date, Time and Notifications */}
+      <div className="flex justify-between items-center">
+        <div className="flex-1" />
+        <div className="flex items-center gap-3">
+          <NotificationBell />
+          <Badge variant="outline" className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-300 px-4 py-2 text-sm font-medium">
+            <Clock className="w-4 h-4 mr-2" />
+            <span>
+              {currentTime.toLocaleDateString("vi-VN", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+            <span className="ml-2 font-semibold">
+              {currentTime.toLocaleTimeString("vi-VN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              })}
+            </span>
+          </Badge>
+        </div>
       </div>
 
       {/* Stats Grid */}

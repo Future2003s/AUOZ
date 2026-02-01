@@ -127,23 +127,38 @@ self.addEventListener("notificationclick", (event: any) => {
 
   // Check if notification is for admin or employee
   const notificationData = event.notification.data || {};
-  const urlToOpen = notificationData.url || "/vi/admin/dashboard";
+  const urlToOpen = notificationData.url || "/vi/employee";
 
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((clientList: any[]) => {
-        // Tìm window đã mở
+        // Tìm window đã mở với URL tương tự (same origin)
         for (let i = 0; i < clientList.length; i++) {
           const client = clientList[i];
-          if (client.url === urlToOpen && "focus" in client) {
-            return client.focus();
+          if (client.url && client.url.startsWith(self.location.origin)) {
+            // Focus existing window and navigate
+            if ("focus" in client) {
+              client.focus();
+            }
+            // Navigate to the URL
+            if ("navigate" in client && client.navigate) {
+              return client.navigate(urlToOpen);
+            }
+            // Fallback: postMessage to navigate
+            if ("postMessage" in client) {
+              client.postMessage({ type: "navigate", url: urlToOpen });
+            }
+            return;
           }
         }
-        // Mở window mới
+        // Mở window mới nếu không có window nào mở
         if (self.clients.openWindow) {
           return self.clients.openWindow(urlToOpen);
         }
+      })
+      .catch((error) => {
+        console.error("[SW] Error handling notification click:", error);
       })
   );
 });

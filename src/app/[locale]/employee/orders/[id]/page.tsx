@@ -60,15 +60,25 @@ export default function OrderDetailPage() {
         let isDeliveryOrder = false;
         
         // If not found, try as DeliveryOrder
-        if (!res.ok || res.status === 404) {
-          console.log("[Order Detail] Not found as regular order, trying delivery order...");
-          res = await fetch(`/api/delivery/${orderId}`, {
-            credentials: "include",
-            cache: "no-store",
-          });
-          isDeliveryOrder = true;
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          const errorMessage = errorData?.error || errorData?.message || "";
+          
+          // If order not found, try delivery order
+          if (res.status === 404 || errorMessage.toLowerCase().includes("not found")) {
+            console.log("[Order Detail] Not found as regular order, trying delivery order...");
+            res = await fetch(`/api/delivery/${orderId}`, {
+              credentials: "include",
+              cache: "no-store",
+            });
+            isDeliveryOrder = true;
+          } else {
+            // Other errors (401, 403, 500, etc.)
+            throw new Error(errorMessage || `HTTP error! status: ${res.status}`);
+          }
         }
         
+        // Check if delivery order fetch also failed
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
           const errorMessage = errorData?.error || errorData?.message || `HTTP error! status: ${res.status}`;
