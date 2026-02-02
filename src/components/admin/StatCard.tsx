@@ -1,6 +1,6 @@
 "use client";
 import React, { memo } from "react";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface StatCardProps {
   label: string;
@@ -8,48 +8,65 @@ interface StatCardProps {
   change: string;
   isPositive: boolean;
   icon: React.ComponentType<{ className?: string }>;
+  color?: string;
+  bgColor?: string;
 }
 
-const StatCard = memo(({ label, value, change, isPositive, icon: Icon }: StatCardProps) => {
+const StatCard = memo(({ 
+  label, 
+  value, 
+  change, 
+  isPositive, 
+  icon: Icon,
+  color = "text-blue-600 dark:text-blue-400",
+  bgColor = "bg-blue-100 dark:bg-blue-900/30"
+}: StatCardProps) => {
+  // Map icons to colors if not provided
+  const iconColors: Record<string, { color: string; bgColor: string }> = {
+    ShoppingBag: {
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-100 dark:bg-blue-900/30",
+    },
+    Ticket: {
+      color: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-purple-100 dark:bg-purple-900/30",
+    },
+    Users: {
+      color: "text-green-600 dark:text-green-400",
+      bgColor: "bg-green-100 dark:bg-green-900/30",
+    },
+  };
+
+  const iconName = Icon.displayName || Icon.name || "";
+  const finalColor = color || iconColors[iconName]?.color || "text-blue-600 dark:text-blue-400";
+  const finalBgColor = bgColor || iconColors[iconName]?.bgColor || "bg-blue-100 dark:bg-blue-900/30";
+
   return (
-    <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100">
-      <div className="p-5">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <Icon className="h-6 w-6 text-gray-400" aria-hidden="true" />
-          </div>
-          <div className="ml-5 w-0 flex-1">
-            <dl>
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                {label}
-              </dt>
-              <dd>
-                <div className="text-lg font-bold text-gray-900">
-                  {value}
-                </div>
-              </dd>
-            </dl>
+    <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className={`p-3 rounded-xl ${finalBgColor}`}>
+            <Icon className={`w-6 h-6 ${finalColor}`} />
           </div>
         </div>
-      </div>
-      <div className="bg-gray-50 px-5 py-3">
-        <div className="text-sm">
-          <span
-            className={`font-medium inline-flex items-center ${
-              isPositive ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {isPositive ? (
-              <ArrowUpRight size={14} className="mr-1" />
-            ) : (
-              <ArrowDownRight size={14} className="mr-1" />
-            )}
-            {change}
-          </span>
-          <span className="text-gray-500 ml-2"> so với tháng trước</span>
+        <div>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
+            {value}
+          </p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{label}</p>
+          <div className="flex items-center text-xs">
+            <span
+              className={`font-medium ${
+                isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+              }`}
+            >
+              {change}
+            </span>
+            <span className="text-slate-500 dark:text-slate-400 ml-2">so với tháng trước</span>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 });
 

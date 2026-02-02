@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { Loader2, Truck, Building, ListChecks, UploadCloud } from "lucide-react";
+import { Loader2, Truck, Building, ListChecks, UploadCloud, Phone, MapPin, CreditCard } from "lucide-react";
 
 type OrderItem = {
   name: string;
@@ -29,6 +29,27 @@ type DeliveryOrder = {
   isInvoice?: boolean;
   isDebt?: boolean;
   isShipped?: boolean;
+  shippingAddress?: {
+    firstName?: string;
+    lastName?: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+    phone?: string;
+  };
+  phone?: string;
+  customer?: {
+    fullName?: string;
+    phone?: string;
+    address?: string;
+    note?: string;
+  };
+  payment?: {
+    method?: string;
+    status?: string;
+  };
 };
 
 export default function OrderDetailPage() {
@@ -98,15 +119,19 @@ export default function OrderDetailPage() {
               ? `${record.user.firstName || ""} ${record.user.lastName || ""}`.trim() || record.user.email || "Khách hàng"
               : record.shippingAddress
               ? `${record.shippingAddress.firstName || ""} ${record.shippingAddress.lastName || ""}`.trim() || "Khách hàng"
-              : "Khách hàng",
+              : record.customer?.fullName || "Khách hàng",
             deliveryDate: record.deliveredAt || record.deliveryDate,
             createdAt: record.createdAt,
             items: record.items || [],
             amount: record.total,
             status: record.status,
             proofImage: record.proofImage,
-            note: record.note,
+            note: record.note || record.customerNotes || record.customer?.note,
             isShipped: record.status === "shipped" || record.status === "delivered",
+            shippingAddress: record.shippingAddress || undefined,
+            phone: record.shippingAddress?.phone || record.customer?.phone || record.phone,
+            customer: record.customer || undefined,
+            payment: record.payment || undefined,
           };
           setOrder(transformedRecord);
           setProofImage(transformedRecord.proofImage || null);
@@ -331,6 +356,94 @@ export default function OrderDetailPage() {
                   <Truck size={16} className="text-green-500" />
                   <span>{order.isShipped ? "Đã giao" : "Chưa giao"}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Thông tin khách hàng */}
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Thông tin khách hàng
+              </h2>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start gap-3">
+                  <Building className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="text-gray-500 dark:text-gray-400 text-xs mb-1">Tên khách hàng</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                      {order.buyerName || order.shippingAddress 
+                        ? `${order.shippingAddress?.firstName || ""} ${order.shippingAddress?.lastName || ""}`.trim() || order.buyerName
+                        : order.customer?.fullName || "Chưa có thông tin"}
+                    </div>
+                  </div>
+                </div>
+                
+                {(order.phone || order.shippingAddress?.phone || order.customer?.phone) && (
+                  <div className="flex items-start gap-3">
+                    <Phone className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-gray-500 dark:text-gray-400 text-xs mb-1">Số điện thoại</div>
+                      <a 
+                        href={`tel:${order.phone || order.shippingAddress?.phone || order.customer?.phone}`}
+                        className="font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        {order.phone || order.shippingAddress?.phone || order.customer?.phone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                
+                {(order.shippingAddress || order.customer?.address) && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-gray-500 dark:text-gray-400 text-xs mb-1">Địa chỉ giao hàng</div>
+                      {order.shippingAddress ? (
+                        <div className="text-gray-900 dark:text-gray-100 space-y-1">
+                          {order.shippingAddress.street && (
+                            <div>{order.shippingAddress.street}</div>
+                          )}
+                          <div>
+                            {[
+                              order.shippingAddress.city,
+                              order.shippingAddress.state,
+                              order.shippingAddress.zipCode,
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </div>
+                          {order.shippingAddress.country && (
+                            <div>{order.shippingAddress.country}</div>
+                          )}
+                        </div>
+                      ) : order.customer?.address ? (
+                        <div className="text-gray-900 dark:text-gray-100">
+                          {order.customer.address}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
+                
+                {order.payment?.method && (
+                  <div className="flex items-start gap-3">
+                    <CreditCard className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-gray-500 dark:text-gray-400 text-xs mb-1">Phương thức thanh toán</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                        {order.payment.method === "cash_on_delivery" 
+                          ? "Thanh toán khi nhận hàng (COD)" 
+                          : order.payment.method === "bank_transfer"
+                          ? "Chuyển khoản ngân hàng"
+                          : order.payment.method}
+                      </div>
+                      {order.payment.status && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Trạng thái: {order.payment.status}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

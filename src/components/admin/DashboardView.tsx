@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePathname } from "next/navigation";
 import StatCard from "./StatCard";
 import OrderRow from "./OrderRow";
@@ -23,6 +24,8 @@ interface SummaryStat {
   change: string;
   isPositive: boolean;
   icon: React.ComponentType<{ className?: string }>;
+  color?: string;
+  bgColor?: string;
 }
 
 interface RecentOrder {
@@ -41,6 +44,8 @@ const FALLBACK_STATS: SummaryStat[] = [
     change: "0%",
     isPositive: true,
     icon: ShoppingBag,
+    color: "text-blue-600 dark:text-blue-400",
+    bgColor: "bg-blue-100 dark:bg-blue-900/30",
   },
   {
     label: "Đơn hàng mới",
@@ -48,6 +53,8 @@ const FALLBACK_STATS: SummaryStat[] = [
     change: "0%",
     isPositive: true,
     icon: Ticket,
+    color: "text-purple-600 dark:text-purple-400",
+    bgColor: "bg-purple-100 dark:bg-purple-900/30",
   },
   {
     label: "Khách hàng",
@@ -55,6 +62,8 @@ const FALLBACK_STATS: SummaryStat[] = [
     change: "0%",
     isPositive: true,
     icon: Users,
+    color: "text-green-600 dark:text-green-400",
+    bgColor: "bg-green-100 dark:bg-green-900/30",
   },
   {
     label: "Voucher đã dùng",
@@ -62,6 +71,8 @@ const FALLBACK_STATS: SummaryStat[] = [
     change: "0%",
     isPositive: true,
     icon: Ticket,
+    color: "text-orange-600 dark:text-orange-400",
+    bgColor: "bg-orange-100 dark:bg-orange-900/30",
   },
 ];
 
@@ -176,6 +187,8 @@ export default function DashboardView() {
             change: `${revenueChange > 0 ? "+" : ""}${revenueChange.toFixed(1)}%`,
             isPositive: revenueChange >= 0,
             icon: ShoppingBag,
+            color: "text-blue-600 dark:text-blue-400",
+            bgColor: "bg-blue-100 dark:bg-blue-900/30",
           },
           {
             label: "Đơn hàng mới",
@@ -183,6 +196,8 @@ export default function DashboardView() {
             change: `${ordersChange > 0 ? "+" : ""}${ordersChange.toFixed(1)}%`,
             isPositive: ordersChange >= 0,
             icon: Ticket,
+            color: "text-purple-600 dark:text-purple-400",
+            bgColor: "bg-purple-100 dark:bg-purple-900/30",
           },
           {
             label: "Khách hàng",
@@ -190,6 +205,8 @@ export default function DashboardView() {
             change: `${customersChange > 0 ? "+" : ""}${customersChange.toFixed(1)}%`,
             isPositive: customersChange >= 0,
             icon: Users,
+            color: "text-green-600 dark:text-green-400",
+            bgColor: "bg-green-100 dark:bg-green-900/30",
           },
           {
             label: "Voucher đã dùng",
@@ -197,6 +214,8 @@ export default function DashboardView() {
             change: `${vouchersChange > 0 ? "+" : ""}${vouchersChange.toFixed(1)}%`,
             isPositive: vouchersChange >= 0,
             icon: Ticket,
+            color: "text-orange-600 dark:text-orange-400",
+            bgColor: "bg-orange-100 dark:bg-orange-900/30",
           },
         ]);
       } else {
@@ -318,15 +337,15 @@ export default function DashboardView() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mt-25">
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
-          <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-lg p-4 flex items-center space-x-3">
+          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-red-800">
+            <p className="text-sm font-medium">
               Lỗi tải dữ liệu: {error}
             </p>
-            <p className="text-xs text-red-600 mt-1">
+            <p className="text-xs mt-1">
               Vui lòng thử làm mới trang.
             </p>
           </div>
@@ -334,7 +353,7 @@ export default function DashboardView() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className="text-red-700 border-red-300 hover:bg-red-100"
+            className="text-red-700 dark:text-red-300 border-red-300 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/30"
           >
             Thử lại
           </Button>
@@ -343,8 +362,8 @@ export default function DashboardView() {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tổng quan</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Tổng quan</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Báo cáo hoạt động kinh doanh ngày hôm nay.
           </p>
         </div>
@@ -353,7 +372,7 @@ export default function DashboardView() {
             variant="outline"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="inline-flex items-center px-4 py-2"
+            className="inline-flex items-center px-4 py-2 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             <RefreshCw
               size={16}
@@ -364,19 +383,20 @@ export default function DashboardView() {
           <Button
             variant="outline"
             onClick={handleExportReport}
-            className="inline-flex items-center px-4 py-2"
+            className="inline-flex items-center px-4 py-2 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             <Download size={16} className="mr-2" /> Xuất báo cáo
           </Button>
           <Link href={`/${locale}/admin/orders/create`}>
-            <Button className="inline-flex items-center px-4 py-2">
+            <Button className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white">
               <Plus size={16} className="mr-2" /> Tạo đơn hàng
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryStats.map((stat, index) => (
           <StatCard
             key={`${stat.label}-${index}`}
@@ -385,59 +405,65 @@ export default function DashboardView() {
             change={stat.change}
             isPositive={stat.isPositive}
             icon={stat.icon}
+            color={stat.color}
+            bgColor={stat.bgColor}
           />
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Orders - Chiếm 2/3 */}
-        <div className="bg-white shadow-sm rounded-xl border border-gray-100 lg:col-span-2">
-          <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="text-lg font-medium leading-6 text-gray-900">
-              Đơn hàng gần đây
-            </h3>
-            <Link
-              href={`/${locale}/admin/orders`}
-              className="text-sm text-indigo-600 hover:text-indigo-900 font-medium"
-            >
-              Xem tất cả
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
-            {recentOrders.length > 0 ? (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Mã đơn
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Khách hàng
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tổng tiền
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Trạng thái
-                    </th>
-                    <th className="relative px-6 py-3">
-                      <span className="sr-only">Edit</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {recentOrders.map((order) => (
-                    <OrderRow key={order.id} order={order} />
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="px-6 py-12 text-center text-gray-500">
-                <p>Chưa có đơn hàng nào</p>
-              </div>
-            )}
-          </div>
-        </div>
+        <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md lg:col-span-2">
+          <CardHeader className="px-6 py-5 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-medium text-slate-900 dark:text-white">
+                Đơn hàng gần đây
+              </CardTitle>
+              <Link
+                href={`/${locale}/admin/orders`}
+                className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 font-medium transition-colors"
+              >
+                Xem tất cả
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              {recentOrders.length > 0 ? (
+                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                  <thead className="bg-slate-50 dark:bg-slate-900/50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        Mã đơn
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        Khách hàng
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        Tổng tiền
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        Trạng thái
+                      </th>
+                      <th className="relative px-6 py-3">
+                        <span className="sr-only">Edit</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                    {recentOrders.map((order) => (
+                      <OrderRow key={order.id} order={order} />
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                  <p>Chưa có đơn hàng nào</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* PWA Status - Chiếm 1/3 */}
         <div className="lg:col-span-1">

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ListChecks, Loader2, Package, User, Calendar, DollarSign, Truck, ImageIcon } from "lucide-react";
+import { ListChecks, Loader2, Package, User, Calendar, DollarSign, Truck, ImageIcon, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -56,6 +56,8 @@ export default function OrdersPage() {
   const [total, setTotal] = useState(0);
   const [deliveryTotal, setDeliveryTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+  const [deleteConfirmOrder, setDeleteConfirmOrder] = useState<{ id: string; orderNumber: string } | null>(null);
   const limit = 20;
 
   const fetchOrders = async () => {
@@ -284,6 +286,37 @@ export default function OrdersPage() {
     return labels[status] || status;
   };
 
+  const handleDeleteOrder = async (orderId: string, orderType: "order" | "delivery") => {
+    try {
+      setDeletingOrderId(orderId);
+      
+      // Determine the API endpoint based on order type
+      const endpoint = orderType === "delivery" 
+        ? `/api/delivery/${orderId}`
+        : `/api/employee/orders/${orderId}`;
+
+      const res = await fetch(endpoint, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData?.message || errorData?.error || "Không thể xóa đơn hàng");
+      }
+
+      // Refresh orders list
+      await fetchOrders();
+      await fetchDeliveryOrders();
+      setDeleteConfirmOrder(null);
+    } catch (err) {
+      console.error("Error deleting order:", err);
+      alert(err instanceof Error ? err.message : "Không thể xóa đơn hàng");
+    } finally {
+      setDeletingOrderId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="sticky top-0 z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-700 px-4 py-3">
@@ -385,7 +418,12 @@ export default function OrdersPage() {
                   className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex flex-col gap-3 cursor-pointer hover:border-blue-400 hover:shadow-md transition"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div 
+                      className="flex items-center gap-2 flex-1 cursor-pointer"
+                      onClick={() => {
+                        router.push(`/${locale}/employee/orders/${order.id}`);
+                      }}
+                    >
                       {order.type === "delivery" ? (
                         <Truck className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       ) : (
@@ -403,13 +441,25 @@ export default function OrdersPage() {
                         </span>
                       )}
                     </div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusColor(
-                        order.status
-                      )}`}
-                    >
-                      {getStatusLabel(order.status)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusColor(
+                          order.status
+                        )}`}
+                      >
+                        {getStatusLabel(order.status)}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteConfirmOrder({ id: order.id, orderNumber: order.orderNumber });
+                        }}
+                        className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
+                        title="Xóa đơn hàng"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
@@ -464,6 +514,52 @@ export default function OrdersPage() {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmOrder && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              Xác nhận xóa đơn hàng
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Bạn có chắc chắn muốn xóa đơn hàng <span className="font-mono font-semibold">{deleteConfirmOrder.orderNumber}</span>? 
+              Hành động này không thể hoàn tác.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirmOrder(null)}
+                className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                disabled={deletingOrderId === deleteConfirmOrder.id}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  const order = allOrders.find(o => o.id === deleteConfirmOrder.id);
+                  if (order) {
+                    handleDeleteOrder(deleteConfirmOrder.id, order.type);
+                  }
+                }}
+                disabled={deletingOrderId === deleteConfirmOrder.id}
+                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
+              >
+                {deletingOrderId === deleteConfirmOrder.id ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Đang xóa...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Xóa đơn hàng
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

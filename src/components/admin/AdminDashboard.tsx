@@ -58,16 +58,16 @@ interface MenuItem {
 
 const StatusBadge = memo(({ status }: { status: string }) => {
   const styles: Record<string, string> = {
-    "Hoàn thành": "bg-green-100 text-green-700",
-    "Đang xử lý": "bg-blue-100 text-blue-700",
-    "Vận chuyển": "bg-yellow-100 text-yellow-700",
-    "Đã hủy": "bg-red-100 text-red-700",
+    "Hoàn thành": "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+    "Đang xử lý": "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
+    "Vận chuyển": "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
+    "Đã hủy": "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
   };
 
   return (
     <span
       className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-        styles[status] || "bg-gray-100 text-gray-700"
+        styles[status] || "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
       }`}
     >
       {status}
@@ -365,7 +365,7 @@ export default function AdminDashboard({
         />
 
         {/* SCROLLABLE CONTENT */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
           <div className="max-w-7xl mx-auto">
             <Suspense
               fallback={

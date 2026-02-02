@@ -15,22 +15,22 @@ interface OrderRowProps {
 
 const OrderRow = memo(({ order }: OrderRowProps) => {
   return (
-    <tr className="hover:bg-gray-50 transition-colors">
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+    <tr className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600 dark:text-indigo-400">
         {order.id}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-100">
         <div>{order.customer}</div>
-        <div className="text-xs text-gray-400">{order.date}</div>
+        <div className="text-xs text-slate-500 dark:text-slate-400">{order.date}</div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 font-medium">
         {order.total}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <StatusBadge status={order.status} />
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-        <button className="text-gray-400 hover:text-gray-600">
+        <button className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
           <MoreVertical size={16} />
         </button>
       </td>
