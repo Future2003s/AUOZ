@@ -2,11 +2,17 @@
 
 import { useState, useEffect, useCallback } from "react";
 
+interface ExtendedNotificationOptions extends NotificationOptions {
+  title?: string;
+  autoClose?: boolean;
+  vibrate?: number[];
+}
+
 interface UseOSNotificationsReturn {
   isSupported: boolean;
   permission: NotificationPermission;
   requestPermission: () => Promise<NotificationPermission>;
-  showNotification: (options: NotificationOptions) => Promise<Notification | null>;
+  showNotification: (options: ExtendedNotificationOptions) => Promise<Notification | null>;
   isMobile: boolean;
 }
 
@@ -78,7 +84,7 @@ export function useOSNotifications(): UseOSNotificationsReturn {
   }, [isSupported, isMobile]);
 
   const showNotification = useCallback(
-    async (options: NotificationOptions): Promise<Notification | null> => {
+    async (options: ExtendedNotificationOptions): Promise<Notification | null> => {
       if (!isSupported) {
         console.warn("Notifications not supported");
         return null;

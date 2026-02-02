@@ -157,7 +157,7 @@ self.addEventListener("notificationclick", (event: any) => {
           return self.clients.openWindow(urlToOpen);
         }
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.error("[SW] Error handling notification click:", error);
       })
   );
