@@ -12,6 +12,9 @@ const schema = z.object({
   NEXT_PUBLIC_URL_LOGO: z.string().default("https://placehold.co/200x80"),
   NEXT_PUBLIC_BACKEND_URL: z.string().optional(),
   NEXT_PUBLIC_API_VERSION: z.string().default("v1"),
+
+  // Optional LAN Share base URL (e.g. http://192.168.0.102:8080)
+  NEXT_PUBLIC_LAN_API_BASE: z.string().optional(),
 });
 
 const parsed = schema.safeParse({
@@ -21,6 +24,7 @@ const parsed = schema.safeParse({
   NEXT_PUBLIC_URL_LOGO: process.env.NEXT_PUBLIC_URL_LOGO,
   NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
   NEXT_PUBLIC_API_VERSION: process.env.NEXT_PUBLIC_API_VERSION,
+  NEXT_PUBLIC_LAN_API_BASE: process.env.NEXT_PUBLIC_LAN_API_BASE,
 });
 
 let envConfig: z.infer<typeof schema>;
@@ -95,6 +99,7 @@ export type EnvConfigStrict = {
   NEXT_PUBLIC_URL_LOGO: string;
   NEXT_PUBLIC_BACKEND_URL: string;
   NEXT_PUBLIC_API_VERSION: string;
+  NEXT_PUBLIC_LAN_API_BASE?: string;
 };
 
 const envStrict: EnvConfigStrict = {
@@ -108,6 +113,7 @@ const envStrict: EnvConfigStrict = {
   NEXT_PUBLIC_BACKEND_URL:
     envConfig.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8081",
   NEXT_PUBLIC_API_VERSION: envConfig.NEXT_PUBLIC_API_VERSION || "v1",
+  NEXT_PUBLIC_LAN_API_BASE: envConfig.NEXT_PUBLIC_LAN_API_BASE,
 };
 
 // Export under the same name used across the project

@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
+import { useQuery, useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { 
-  Package, Search, Plus, Filter, Menu, X, 
+  Package, Search, Plus, X,
+  // Filter, Menu, // unused
   Trash2, Edit2, Save, AlertCircle, CheckCircle, 
   ArrowRightLeft, ArrowDownCircle, ArrowUpCircle, AlertTriangle, Scale,
-  History, Calendar, User, Loader2, RefreshCw
+  History, Calendar, User, Loader2, RefreshCw, ChevronDown, ChevronUp
 } from 'lucide-react';
 import {
   getInventories,
@@ -19,8 +20,16 @@ import {
   InventoryItem,
   InventoryHistoryItem,
   InventoryStats,
+  InventoryFilters,
+  CreateInventoryData,
+  UpdateInventoryData,
+  StockAdjustmentData,
 } from '@/apiRequests/inventory';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import Link from 'next/link';
+import { InventoryHeader } from '@/features/inventory/components/InventoryHeader';
+import { InventorySidebar } from '@/features/inventory/components/InventorySidebar';
 
 export default function HoneyInventoryManager() {
   const queryClient = useQueryClient();
@@ -31,6 +40,10 @@ export default function HoneyInventoryManager() {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [showSidebar, setShowSidebar] = useState(true);
   const [activeView, setActiveView] = useState('all'); // 'all', 'low', 'premium', 'history'
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  
+  // Use React's built-in deferral to keep typing smooth without extra state/effects
+  const deferredSearchTerm = useDeferredValue(searchTerm);
   
   // Modal State: Sản phẩm
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,8 +72,8 @@ export default function HoneyInventoryManager() {
   
   // Build filters based on activeView
   const inventoryFilters = useMemo(() => {
-    const filters: any = {
-      search: searchTerm || undefined,
+    const filters: InventoryFilters = {
+      search: deferredSearchTerm || undefined,
       page: 1,
       limit: 1000,
       sort: 'lastUpdated',
@@ -74,7 +87,7 @@ export default function HoneyInventoryManager() {
     }
     
     return filters;
-  }, [searchTerm, activeView]);
+  }, [deferredSearchTerm, activeView]);
 
   // Fetch inventories
   const { data: inventoryData, isLoading: inventoryLoading, refetch: refetchInventory, error: inventoryError } = useQuery({
@@ -94,7 +107,7 @@ export default function HoneyInventoryManager() {
   });
 
   // Fetch stats
-  const { data: statsData, isLoading: statsLoading, error: statsError } = useQuery({
+  const { data: statsData, error: statsError } = useQuery({
     queryKey: ['inventoryStats'],
     queryFn: async () => {
       try {
@@ -111,17 +124,16 @@ export default function HoneyInventoryManager() {
 
   // Fetch history
   const { data: historyData, isLoading: historyLoading, error: historyError } = useQuery({
-    queryKey: ['inventoryHistory', { search: searchTerm }],
+    queryKey: ['inventoryHistory', { search: deferredSearchTerm }],
     queryFn: async () => {
       try {
         const response = await getInventoryHistory({
-          search: searchTerm || undefined,
+          search: deferredSearchTerm || undefined,
           page: 1,
           limit: 1000,
           sort: 'createdAt',
           order: 'desc',
         });
-        console.log('History response:', response);
         return response;
       } catch (error) {
         console.error('Error fetching history:', error);
@@ -133,8 +145,21 @@ export default function HoneyInventoryManager() {
 
   // Parse data - http.get trả về response trực tiếp
   // Response structure: { success: true, data: [...], pagination: {...} }
-  const inventory: InventoryItem[] = Array.isArray(inventoryData?.data) ? inventoryData.data : [];
-  const history: InventoryHistoryItem[] = Array.isArray(historyData?.data) ? historyData.data : [];
+  const rawInventory = useMemo<InventoryItem[]>(
+    () => (Array.isArray(inventoryData?.data) ? (inventoryData?.data ?? []) : []),
+    [inventoryData]
+  );
+
+  const premiumCount = useMemo(
+    () => rawInventory.filter((i) => ['Cao cấp', 'Premium'].includes(i.category)).length,
+    [rawInventory]
+  );
+
+  const history = useMemo<InventoryHistoryItem[]>(
+    () => (Array.isArray(historyData?.data) ? (historyData?.data ?? []) : []),
+    [historyData]
+  );
+  
   const stats: InventoryStats = statsData?.data || {
     totalJars: 0,
     totalValue: 0,
@@ -142,14 +167,49 @@ export default function HoneyInventoryManager() {
     lowStock: 0,
   };
 
+  // Sort inventory based on sortConfig
+  const inventory = useMemo(() => {
+    if (!sortConfig) return rawInventory;
+    
+    const sorted = [...rawInventory].sort((a, b) => {
+      const aValue = a[sortConfig.key as keyof InventoryItem] as unknown;
+      const bValue = b[sortConfig.key as keyof InventoryItem] as unknown;
+      
+      // Normalize for comparison
+      const aNorm =
+        typeof aValue === 'string' ? aValue.toLowerCase() : (aValue as number | null);
+      const bNorm =
+        typeof bValue === 'string' ? bValue.toLowerCase() : (bValue as number | null);
+
+      if (aNorm === null || aNorm === undefined) return 1;
+      if (bNorm === null || bNorm === undefined) return -1;
+
+      if (aNorm < bNorm) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aNorm > bNorm) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+      }
+    );
+    
+    return sorted;
+  }, [rawInventory, sortConfig]);
+
+  const handleSort = useCallback((key: string) => {
+    setSortConfig(prev => {
+      if (prev?.key === key) {
+        return prev.direction === 'asc' 
+          ? { key, direction: 'desc' }
+          : null;
+      }
+      return { key, direction: 'asc' };
+    });
+  }, []);
+
   // Debug: Log inventory data structure
   useEffect(() => {
     if (inventoryData) {
-      console.log('Inventory data structure:', {
-        hasData: !!inventoryData.data,
-        isArray: Array.isArray(inventoryData.data),
-        length: Array.isArray(inventoryData.data) ? inventoryData.data.length : 'N/A',
-        fullResponse: inventoryData
+      // Keep debug lightweight to avoid spamming console in production
+      console.debug('Inventory loaded:', {
+        length: Array.isArray(inventoryData.data) ? inventoryData.data.length : 0,
       });
     }
   }, [inventoryData]);
@@ -193,99 +253,242 @@ export default function HoneyInventoryManager() {
   };
 
   // --- MUTATIONS ---
+  // Update all inventories caches (all filters) so UI updates instantly after mutations
+  const updateInventoriesCache = useCallback(
+    (updater: (prev: InventoryItem[]) => InventoryItem[]) => {
+      queryClient.setQueriesData({ queryKey: ['inventories'] }, (old: unknown) => {
+        if (!old) return old;
+        if (typeof old !== 'object') return old;
+        const maybe = old as { data?: unknown };
+        if (!Array.isArray(maybe.data)) return old;
+        return { ...(old as object), data: updater(maybe.data as InventoryItem[]) };
+      });
+    },
+    [queryClient]
+  );
+
+  const getErrorMessage = (err: unknown, fallback: string) => {
+    if (!err) return fallback;
+    if (err instanceof Error) return err.message || fallback;
+    if (typeof err === 'object') {
+      const anyErr = err as { payload?: { message?: string }; message?: string };
+      return anyErr?.payload?.message || anyErr?.message || fallback;
+    }
+    return fallback;
+  };
   
   const createMutation = useMutation({
     mutationFn: createInventory,
     onSuccess: async (data) => {
       console.log('Create success:', data);
       setIsModalOpen(false);
-      // Invalidate and refetch queries
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['inventories'] }),
-        queryClient.invalidateQueries({ queryKey: ['inventoryStats'] }),
-      ]);
-      // Refetch immediately to show new data
-      await refetchInventory();
-      alert('Tạo sản phẩm thành công!');
+      const created: InventoryItem | undefined = data?.data;
+      if (created) {
+        updateInventoriesCache((prev) => {
+          // Avoid duplicates if backend returns already-present item
+          const without = prev.filter((x) => x.id !== created.id);
+          return [created, ...without];
+        });
+      }
+      // Invalidate in background (don't refetch immediately to avoid stale backend response overriding optimistic UI)
+      queryClient.invalidateQueries({ queryKey: ['inventories'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryStats'] });
+      // Background refetch with a small delay (gives backend time to commit)
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['inventories'] });
+        queryClient.refetchQueries({ queryKey: ['inventoryStats'] });
+      }, 500);
+      toast.success('Tạo sản phẩm thành công!', {
+        description: 'Sản phẩm mới đã được thêm vào kho.',
+        duration: 3000,
+      });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Create error:', error);
-      const message = error?.payload?.message || error?.message || 'Có lỗi xảy ra khi tạo sản phẩm';
-      alert(`Lỗi: ${message}`);
+      const message = getErrorMessage(error, 'Có lỗi xảy ra khi tạo sản phẩm');
+      toast.error('Lỗi khi tạo sản phẩm', {
+        description: message,
+        duration: 4000,
+      });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateInventory(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateInventoryData }) => updateInventory(id, data),
     onSuccess: async (data) => {
       console.log('Update success:', data);
       setIsModalOpen(false);
-      // Invalidate and refetch queries
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['inventories'] }),
-        queryClient.invalidateQueries({ queryKey: ['inventoryStats'] }),
-      ]);
-      // Refetch immediately to show updated data
-      await refetchInventory();
-      alert('Cập nhật sản phẩm thành công!');
+      const updated: InventoryItem | undefined = data?.data;
+      if (updated) {
+        updateInventoriesCache((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
+      }
+      // Invalidate in background (avoid immediate refetch overriding optimistic UI)
+      queryClient.invalidateQueries({ queryKey: ['inventories'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryStats'] });
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['inventories'] });
+        queryClient.refetchQueries({ queryKey: ['inventoryStats'] });
+      }, 500);
+      toast.success('Cập nhật sản phẩm thành công!', {
+        description: 'Thông tin sản phẩm đã được cập nhật.',
+        duration: 3000,
+      });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Update error:', error);
-      const message = error?.payload?.message || error?.message || 'Có lỗi xảy ra khi cập nhật sản phẩm';
-      alert(`Lỗi: ${message}`);
+      const message = getErrorMessage(error, 'Có lỗi xảy ra khi cập nhật sản phẩm');
+      toast.error('Lỗi khi cập nhật sản phẩm', {
+        description: message,
+        duration: 4000,
+      });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteInventory,
-    onSuccess: async (data) => {
+    onSuccess: async (data, id) => {
       console.log('Delete success:', data);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['inventories'] }),
-        queryClient.invalidateQueries({ queryKey: ['inventoryStats'] }),
-        queryClient.invalidateQueries({ queryKey: ['inventoryHistory'] }),
-      ]);
+      updateInventoriesCache((prev) => prev.filter((x) => x.id !== id));
+      queryClient.invalidateQueries({ queryKey: ['inventories'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryStats'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryHistory'] });
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['inventories'] });
+        queryClient.refetchQueries({ queryKey: ['inventoryStats'] });
+        queryClient.refetchQueries({ queryKey: ['inventoryHistory'] });
+      }, 500);
       setSelectedItems([]);
       setIsDeleteModalOpen(false);
       setDeleteTarget(null);
-      alert('Xóa sản phẩm thành công!');
+      toast.success('Xóa sản phẩm thành công!', {
+        description: 'Sản phẩm đã được xóa khỏi kho.',
+        duration: 3000,
+      });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Delete error:', error);
+      const anyErr = error as { statusCode?: number; payload?: { message?: string } };
       // Kiểm tra nếu lỗi là do không có quyền (403 Forbidden)
-      if (error?.statusCode === 403 || error?.payload?.message?.toLowerCase().includes('forbidden') || 
-          error?.payload?.message?.toLowerCase().includes('không có quyền') ||
-          error?.payload?.message?.toLowerCase().includes('access denied')) {
-        const message = error?.payload?.message || 'Bạn không có quyền thực hiện thao tác này. Chỉ quản trị viên mới có thể xóa sản phẩm.';
+      const msgLower = anyErr?.payload?.message?.toLowerCase?.() || '';
+      if (
+        anyErr?.statusCode === 403 ||
+        msgLower.includes('forbidden') ||
+        msgLower.includes('không có quyền') ||
+        msgLower.includes('access denied')
+      ) {
+        const message =
+          anyErr?.payload?.message ||
+          'Bạn không có quyền thực hiện thao tác này. Chỉ quản trị viên mới có thể xóa sản phẩm.';
         setPermissionErrorMessage(message);
         setIsPermissionErrorModalOpen(true);
         setIsDeleteModalOpen(false);
       } else {
-        const message = error?.payload?.message || error?.message || 'Có lỗi xảy ra khi xóa sản phẩm';
-        alert(`Lỗi: ${message}`);
+        const message = getErrorMessage(error, 'Có lỗi xảy ra khi xóa sản phẩm');
+        toast.error('Lỗi khi xóa sản phẩm', {
+          description: message,
+          duration: 4000,
+        });
       }
     },
   });
 
   const adjustStockMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => adjustStock(id, data),
+    mutationFn: ({ id, data }: { id: string; data: StockAdjustmentData }) => adjustStock(id, data),
+    onMutate: async (variables) => {
+      const { id, data } = variables;
+
+      // Cancel outgoing fetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['inventories'] });
+      await queryClient.cancelQueries({ queryKey: ['inventoryStats'] });
+
+      const previousInventories = queryClient.getQueriesData({ queryKey: ['inventories'] });
+      const previousStats = queryClient.getQueryData(['inventoryStats']);
+
+      const delta = data.type === 'import' ? data.amount : -data.amount;
+
+      // Optimistically update inventory quantity (all inventories caches across filters)
+      updateInventoriesCache((prev) =>
+        prev.map((x) => (x.id === id ? { ...x, quantity: Number(x.quantity) + delta } : x))
+      );
+
+      // Optimistically update stats (Tổng số lọ) so header changes immediately too
+      queryClient.setQueryData(['inventoryStats'], (old: unknown) => {
+        if (!old || typeof old !== 'object') return old;
+        const maybe = old as { data?: unknown };
+        if (!maybe.data || typeof maybe.data !== 'object') return old;
+        const statsData = maybe.data as InventoryStats;
+        return {
+          ...(old as object),
+          data: {
+            ...statsData,
+            totalJars: Number(statsData.totalJars || 0) + delta,
+          },
+        };
+      });
+
+      return { previousInventories: previousInventories as Array<[QueryKey, unknown]>, previousStats };
+    },
     onSuccess: async (data) => {
       console.log('Adjust stock success:', data);
       setIsStockModalOpen(false);
-      // Invalidate and refetch queries
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['inventories'] }),
-        queryClient.invalidateQueries({ queryKey: ['inventoryStats'] }),
-        queryClient.invalidateQueries({ queryKey: ['inventoryHistory'] }),
-      ]);
-      // Refetch immediately to show updated data
-      await refetchInventory();
-      alert('Điều chỉnh kho thành công!');
+
+      // Support multiple backend response shapes to ensure cache always updates
+      const anyData = data as unknown as {
+        data?: {
+          inventory?: InventoryItem;
+        } & Partial<InventoryItem>;
+        inventory?: InventoryItem;
+      };
+
+      const updatedInventory: InventoryItem | undefined =
+        anyData?.data?.inventory ||
+        anyData?.inventory ||
+        // Some backends may return inventory directly in data
+        (anyData?.data && 'id' in anyData.data ? (anyData.data as unknown as InventoryItem) : undefined);
+
+      if (updatedInventory) {
+        updateInventoriesCache((prev) =>
+          prev.map((x) => (x.id === updatedInventory.id ? { ...x, ...updatedInventory } : x))
+        );
+      }
+      // Invalidate in background (avoid immediate refetch overriding optimistic UI)
+      queryClient.invalidateQueries({ queryKey: ['inventories'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryStats'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryHistory'] });
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['inventories'] });
+        queryClient.refetchQueries({ queryKey: ['inventoryStats'] });
+        queryClient.refetchQueries({ queryKey: ['inventoryHistory'] });
+      }, 800);
+      toast.success('Điều chỉnh kho thành công!', {
+        description: `Đã ${stockAction.type === 'import' ? 'nhập' : 'xuất'} ${stockAction.amount} ${stockAction.unit} thành công.`,
+        duration: 3000,
+      });
     },
-    onError: (error: any) => {
+    onError: (error: unknown, _variables, context) => {
       console.error('Adjust stock error:', error);
-      const message = error?.payload?.message || error?.message || 'Có lỗi xảy ra khi điều chỉnh kho';
-      alert(`Lỗi: ${message}`);
+
+      // Roll back optimistic updates
+      if (context?.previousInventories) {
+        for (const [queryKey, value] of context.previousInventories) {
+          queryClient.setQueryData<unknown>(queryKey, value);
+        }
+      }
+      if (context?.previousStats !== undefined) {
+        queryClient.setQueryData<unknown>(['inventoryStats'], context.previousStats);
+      }
+
+      const message = getErrorMessage(error, 'Có lỗi xảy ra khi điều chỉnh kho');
+      toast.error('Lỗi khi điều chỉnh kho', {
+        description: message,
+        duration: 4000,
+      });
+    },
+    onSettled: () => {
+      // Ensure server is source of truth after optimistic update
+      queryClient.invalidateQueries({ queryKey: ['inventories'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryStats'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryHistory'] });
     },
   });
 
@@ -319,7 +522,7 @@ export default function HoneyInventoryManager() {
     e.preventDefault();
     
     try {
-      const data = {
+      const data: CreateInventoryData = {
         name: currentItem.name,
         quantity: Number(currentItem.quantity) || 0,
         unit: currentItem.unit,
@@ -377,7 +580,18 @@ export default function HoneyInventoryManager() {
     e.preventDefault();
     const adjustAmount = Number(stockAction.amount);
     if (!adjustAmount || adjustAmount <= 0 || !stockAction.itemId) {
-      alert('Vui lòng nhập số lượng hợp lệ');
+      toast.error('Số lượng không hợp lệ', {
+        description: 'Vui lòng nhập số lượng lớn hơn 0.',
+        duration: 3000,
+      });
+      return;
+    }
+    
+    if (stockAction.type === 'export' && adjustAmount > stockAction.currentQty) {
+      toast.error('Số lượng xuất vượt quá tồn kho', {
+        description: `Hiện tại chỉ có ${stockAction.currentQty} ${stockAction.unit} trong kho.`,
+        duration: 4000,
+      });
       return;
     }
 
@@ -424,116 +638,69 @@ export default function HoneyInventoryManager() {
           <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 mb-2">Yêu cầu đăng nhập</h2>
           <p className="text-gray-600 mb-4">Bạn cần đăng nhập để truy cập trang quản lý kho.</p>
-          <a 
-            href="/login" 
+          <Link
+            href="/login"
             className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Đăng nhập
-          </a>
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 text-slate-800 font-sans">
+    <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans overflow-hidden">
       
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 shadow-sm z-10">
-        <div className="flex items-center space-x-4">
-          <button onClick={() => setShowSidebar(!showSidebar)} className="p-2 hover:bg-gray-100 rounded-lg lg:hidden">
-            <Menu className="w-6 h-6 text-gray-600" />
-          </button>
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center shadow-md">
-              <Package className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">HoneyTrack</h1>
-              <p className="text-xs text-gray-500 font-medium">Quản lý kho mật ong</p>
-            </div>
-          </div>
-        </div>
+      <InventoryHeader
+        showSidebar={showSidebar}
+        onToggleSidebar={() => setShowSidebar(!showSidebar)}
+        searchTerm={searchTerm}
+        onChangeSearchTerm={setSearchTerm}
+        isSearchPending={searchTerm !== deferredSearchTerm}
+      />
 
-        <div className="flex items-center space-x-4">
-          <div className="relative hidden md:block group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2.5 w-80 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-            />
-          </div>
-          <button className="p-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl">
-            <Filter className="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile overlay - phải đặt trước sidebar */}
+        {showSidebar && (
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+            onClick={() => setShowSidebar(false)}
+            aria-hidden="true"
+          />
+        )}
+        
         {/* Sidebar */}
-        <aside className={`${showSidebar ? 'w-64' : 'w-0'} bg-white border-r border-gray-200 overflow-hidden transition-all duration-300 flex flex-col`}>
-          <div className="p-4 space-y-1 flex-1">
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-4">Bộ lọc</div>
-            {[
-              { id: 'all', label: 'Tất cả sản phẩm', count: inventory.length },
-              { id: 'low', label: 'Cảnh báo tồn kho', count: stats.lowStock },
-              { id: 'premium', label: 'Sản phẩm cao cấp', count: inventory.filter(i => ['Cao cấp', 'Premium'].includes(i.category)).length }
-            ].map(item => (
-              <button
-                key={item.id}
-                onClick={() => setActiveView(item.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                  activeView === item.id ? 'bg-amber-50 text-amber-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <span>{item.label}</span>
-                <span className={`text-xs px-2 py-1 rounded-md ${activeView === item.id ? 'bg-amber-100' : 'bg-gray-100'}`}>
-                  {item.count}
-                </span>
-              </button>
-            ))}
-
-            <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-4">Nhật ký</div>
-                <button
-                    onClick={() => setActiveView('history')}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                    activeView === 'history' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                >
-                    <History className="w-5 h-5" />
-                    <span>Lịch sử Xuất/Nhập</span>
-                </button>
-            </div>
-          </div>
-          <div className="p-6 border-t border-gray-100 bg-gray-50/50">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase mb-4">Tổng quan</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-end">
-                <div><p className="text-xs text-gray-500 mb-1">Tổng số lọ</p><p className="text-xl font-bold text-gray-900">{stats.totalJars} lọ</p></div>
-                <div className="h-1 w-12 bg-green-500 rounded-full mb-1.5"></div>
-              </div>
-              <div className="flex justify-between items-end">
-                <div><p className="text-xs text-gray-500 mb-1">Tổng khối lượng (Quy đổi)</p><p className="text-xl font-bold text-gray-900">{stats.totalWeightKg} kg</p></div>
-                <div className="h-1 w-12 bg-amber-500 rounded-full mb-1.5"></div>
-              </div>
-              <div className="flex justify-between items-end">
-                <div><p className="text-xs text-gray-500 mb-1">Tổng giá trị</p><p className="text-xl font-bold text-gray-900">{(stats.totalValue / 1000000).toFixed(1)}M</p></div>
-                <div className="h-1 w-12 bg-blue-500 rounded-full mb-1.5"></div>
-              </div>
-            </div>
-          </div>
-        </aside>
+        <InventorySidebar
+          showSidebar={showSidebar}
+          activeView={activeView as 'all' | 'low' | 'premium' | 'history'}
+          onChangeView={(view) => {
+            setActiveView(view);
+            if (typeof window !== 'undefined' && window.innerWidth < 1024) setShowSidebar(false);
+          }}
+          onCloseMobile={() => setShowSidebar(false)}
+          rawInventory={rawInventory}
+          premiumCount={premiumCount}
+          stats={stats}
+        />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-gray-50 p-6">
-          <div className="mb-6 md:hidden">
+        <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6">
+          <div className="mb-4 sm:mb-6 md:hidden sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-sm pb-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input type="text" placeholder="Tìm kiếm..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-3 w-full border border-gray-200 rounded-xl" />
+              <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none transition-opacity ${searchTerm !== deferredSearchTerm ? 'opacity-50' : ''}`} />
+              {searchTerm !== deferredSearchTerm && (
+                <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500 animate-spin" />
+              )}
+              <input 
+                type="text" 
+                placeholder="Tìm kiếm sản phẩm..." 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                className="pl-11 pr-11 py-3 w-full bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-400 transition-all text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm"
+                aria-label="Tìm kiếm sản phẩm"
+              />
             </div>
           </div>
 
@@ -550,9 +717,9 @@ export default function HoneyInventoryManager() {
                 
                 {historyLoading ? (
                   // Skeleton UI for History
-                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
                     <table className="w-full">
-                      <thead className="bg-gray-50/50 border-b border-gray-200">
+                      <thead className="bg-slate-50/70 dark:bg-slate-900/70 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Thời gian</th>
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Loại giao dịch</th>
@@ -561,7 +728,7 @@ export default function HoneyInventoryManager() {
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Đối tác / Nơi nhận</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                         {[...Array(5)].map((_, idx) => (
                           <tr key={idx} className="animate-pulse">
                             <td className="px-6 py-4">
@@ -587,10 +754,10 @@ export default function HoneyInventoryManager() {
                 ) : historyError ? (
                   // Error State for History
                   <div className="flex flex-col items-center justify-center py-16">
-                    <div className="bg-white border border-red-200 rounded-2xl shadow-sm p-8 max-w-md w-full text-center">
+                    <div className="bg-white dark:bg-slate-900 border border-red-200/70 dark:border-red-700 rounded-2xl shadow-sm p-8 max-w-md w-full text-center">
                       <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Lỗi khi tải lịch sử</h3>
-                      <p className="text-gray-600 mb-6">
+                      <h3 className="text-xl font-bold mb-2">Lỗi khi tải lịch sử</h3>
+                      <p className="text-slate-600 dark:text-slate-300 mb-6">
                         {historyError instanceof Error 
                           ? historyError.message 
                           : 'Đã xảy ra lỗi khi tải lịch sử giao dịch. Vui lòng thử lại.'}
@@ -606,60 +773,69 @@ export default function HoneyInventoryManager() {
                   </div>
                 ) : formattedHistory.length === 0 ? (
                   // Empty State for History
-                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 text-center">
-                    <History className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Chưa có lịch sử giao dịch</h3>
-                    <p className="text-gray-600">Chưa có giao dịch nhập/xuất kho nào được ghi nhận.</p>
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-12 text-center">
+                    <History className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold mb-2">Chưa có lịch sử giao dịch</h3>
+                    <p className="text-slate-600 dark:text-slate-300">Chưa có giao dịch nhập/xuất kho nào được ghi nhận.</p>
                   </div>
                 ) : (
-                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-                      <table className="w-full">
-                          <thead className="bg-gray-50/50 border-b border-gray-200">
-                              <tr>
-                                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Thời gian</th>
-                                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Loại giao dịch</th>
-                                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Sản phẩm</th>
-                                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Số lượng</th>
-                                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Đối tác / Nơi nhận</th>
-                              </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-200">
-                              {formattedHistory.length > 0 ? (
-                                  formattedHistory.map((item) => (
-                                      <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                                          <td className="px-6 py-4">
-                                              <div className="flex items-center text-sm text-gray-900 font-medium">
-                                                  <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                                                  {item.date}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-slate-50/70 dark:bg-slate-900/70 border-b border-slate-200 dark:border-slate-800">
+                                <tr>
+                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-500 uppercase">Thời gian</th>
+                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-500 uppercase">Loại giao dịch</th>
+                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-500 uppercase">Sản phẩm</th>
+                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-500 uppercase">Số lượng</th>
+                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Đối tác / Nơi nhận</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                {formattedHistory.length > 0 ? (
+                                    formattedHistory.map((item) => (
+                                        <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                                <div className="flex items-center text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-50">
+                                                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-slate-400 dark:text-slate-500 shrink-0" />
+                                                    <span className="break-words">{item.date}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                                <span className={`inline-flex items-center px-2 sm:px-2.5 py-1 rounded-full text-xs font-medium border ${
+                                                    item.type === 'import' 
+                                                    ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800' 
+                                                    : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800'
+                                                }`}>
+                                                    {item.type === 'import' ? <ArrowDownCircle className="w-3 h-3 mr-1 shrink-0" /> : <ArrowUpCircle className="w-3 h-3 mr-1 shrink-0" />}
+                                                    <span className="hidden sm:inline">{item.type === 'import' ? 'Nhập kho' : 'Xuất kho'}</span>
+                                                    <span className="sm:hidden">{item.type === 'import' ? 'Nhập' : 'Xuất'}</span>
+                                                </span>
+                                            </td>
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                              <div className="text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-50 break-words">{item.itemName}</div>
+                                              <div className="sm:hidden text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                <User className="w-3 h-3 inline mr-1 text-slate-400 dark:text-slate-500" />
+                                                {item.partner}
                                               </div>
-                                          </td>
-                                          <td className="px-6 py-4">
-                                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                                                  item.type === 'import' 
-                                                  ? 'bg-green-50 text-green-700 border-green-200' 
-                                                  : 'bg-red-50 text-red-700 border-red-200'
-                                              }`}>
-                                                  {item.type === 'import' ? <ArrowDownCircle className="w-3 h-3 mr-1" /> : <ArrowUpCircle className="w-3 h-3 mr-1" />}
-                                                  {item.type === 'import' ? 'Nhập kho' : 'Xuất kho'}
-                                              </span>
-                                          </td>
-                                          <td className="px-6 py-4 text-sm text-gray-900 font-medium">{item.itemName}</td>
-                                          <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                                              {item.amount} {item.unit}
-                                          </td>
-                                          <td className="px-6 py-4">
-                                              <div className="flex items-center text-sm text-gray-600">
-                                                  <User className="w-4 h-4 mr-2 text-gray-400" />
-                                                  {item.partner}
-                                              </div>
-                                          </td>
-                                      </tr>
-                                  ))
-                              ) : (
-                                  <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-500">Chưa có lịch sử giao dịch nào</td></tr>
-                              )}
-                          </tbody>
-                      </table>
+                                            </td>
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-50">
+                                                {item.amount.toLocaleString('vi-VN')} {item.unit}
+                                            </td>
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 hidden sm:table-cell">
+                                                <div className="flex items-center text-sm text-slate-600 dark:text-slate-300">
+                                                    <User className="w-4 h-4 mr-2 text-slate-400 dark:text-slate-500 shrink-0" />
+                                                    <span className="break-words">{item.partner}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-500">Chưa có lịch sử giao dịch nào</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                      </div>
                   </div>
                 )}
             </div>
@@ -669,13 +845,13 @@ export default function HoneyInventoryManager() {
               // Skeleton UI
               <div className="animate-fade-in">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                  <div className="h-10 w-48 bg-gray-200 rounded-lg animate-pulse"></div>
-                  <div className="h-10 w-40 bg-gray-200 rounded-lg animate-pulse"></div>
+                  <div className="h-10 w-48 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+                  <div className="h-10 w-40 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50/50 border-b border-gray-200">
+                      <thead className="bg-slate-50/70 dark:bg-slate-900/70 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                           <th className="px-6 py-4 text-left w-4"></th>
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Sản phẩm</th>
@@ -686,39 +862,39 @@ export default function HoneyInventoryManager() {
                           <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Thao tác</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                         {[...Array(5)].map((_, idx) => (
                           <tr key={idx} className="animate-pulse">
                             <td className="px-6 py-4">
-                              <div className="w-4 h-4 bg-gray-200 rounded"></div>
+                              <div className="w-4 h-4 bg-slate-200 dark:bg-slate-700 rounded"></div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center">
-                                <div className="w-10 h-10 bg-gray-200 rounded-lg mr-4"></div>
+                                <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-lg mr-4"></div>
                                 <div>
-                                  <div className="h-4 w-32 bg-gray-200 rounded mb-2"></div>
-                                  <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                                  <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+                                  <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                              <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded"></div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="h-4 w-20 bg-gray-200 rounded mb-2"></div>
-                              <div className="h-3 w-24 bg-gray-200 rounded"></div>
+                              <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+                              <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                              <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                              <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded"></div>
                             </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex items-center justify-end space-x-2">
-                                <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
-                                <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
-                                <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+                                <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                                <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                                <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
                               </div>
                             </td>
                           </tr>
@@ -731,10 +907,10 @@ export default function HoneyInventoryManager() {
             ) : inventoryError ? (
               // Error State
               <div className="flex flex-col items-center justify-center py-16">
-                <div className="bg-white border border-red-200 rounded-2xl shadow-sm p-8 max-w-md w-full text-center">
+                <div className="bg-white dark:bg-slate-900 border border-red-200/70 dark:border-red-700 rounded-2xl shadow-sm p-8 max-w-md w-full text-center">
                   <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Lỗi khi tải dữ liệu</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-xl font-bold mb-2">Lỗi khi tải dữ liệu</h3>
+                  <p className="text-slate-600 dark:text-slate-300 mb-6">
                     {inventoryError instanceof Error 
                       ? inventoryError.message 
                       : 'Đã xảy ra lỗi khi tải danh sách kho. Vui lòng thử lại.'}
@@ -751,10 +927,10 @@ export default function HoneyInventoryManager() {
             ) : inventory.length === 0 ? (
               // Empty State
               <div className="flex flex-col items-center justify-center py-16">
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-8 max-w-md w-full text-center">
-                  <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Chưa có sản phẩm nào</h3>
-                  <p className="text-gray-600 mb-6">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-8 max-w-md w-full text-center">
+                  <Package className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-2">Chưa có sản phẩm nào</h3>
+                  <p className="text-slate-600 dark:text-slate-300 mb-6">
                     {activeView === 'low' 
                       ? 'Không có sản phẩm nào sắp hết hàng.'
                       : activeView === 'premium'
@@ -772,43 +948,103 @@ export default function HoneyInventoryManager() {
               </div>
             ) : (
               <>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                    <div className="flex items-center space-x-3 h-10">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-5 sm:mb-6">
+                    <div className="flex items-center space-x-3 min-h-10">
                     {selectedItems.length > 0 ? (
-                        <div className="animate-fade-in flex items-center space-x-3 bg-white border border-blue-100 px-4 py-2 rounded-xl shadow-sm">
-                        <span className="text-sm font-medium text-blue-700">{selectedItems.length} đã chọn</span>
-                        <div className="h-4 w-px bg-gray-200"></div>
-                        <button onClick={confirmDeleteMultiple} className="flex items-center space-x-1 text-sm text-red-600 hover:text-red-700 font-medium">
-                            <Trash2 className="w-4 h-4" /> <span>Xóa</span>
+                        <div className="animate-fade-in flex items-center space-x-2 sm:space-x-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200/60 dark:border-blue-800 px-4 sm:px-5 py-2.5 rounded-2xl shadow-sm">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">{selectedItems.length} đã chọn</span>
+                        <div className="h-4 w-px bg-blue-200 dark:bg-blue-800"></div>
+                        <button 
+                          onClick={confirmDeleteMultiple} 
+                          className="flex items-center space-x-1.5 text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-semibold transition-colors hover:bg-red-50 dark:hover:bg-red-900/30 px-2 py-1 rounded-lg"
+                          aria-label={`Xóa ${selectedItems.length} sản phẩm đã chọn`}
+                        >
+                            <Trash2 className="w-4 h-4" /> <span className="hidden sm:inline">Xóa</span>
                         </button>
-                        <button onClick={() => setSelectedItems([])} className="p-1 hover:bg-gray-100 rounded-full"><X className="w-4 h-4 text-gray-400" /></button>
+                        <button 
+                          onClick={() => setSelectedItems([])} 
+                          className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                          aria-label="Bỏ chọn tất cả"
+                        >
+                          <X className="w-4 h-4 text-gray-500" />
+                        </button>
                         </div>
                     ) : (
-                        <div className="text-gray-500 text-sm">Hiển thị <span className="font-semibold text-gray-900">{inventory.length}</span> kết quả</div>
+                        <div className="text-slate-600 dark:text-slate-300 text-sm font-medium">
+                          Hiển thị <span className="font-bold text-slate-900 dark:text-slate-50 bg-white/70 dark:bg-slate-900/70 px-2 py-1 rounded-lg">{inventory.length}</span> kết quả
+                          {deferredSearchTerm && (
+                            <span className="ml-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-lg">
+                              &ldquo;{deferredSearchTerm}&rdquo;
+                            </span>
+                          )}
+                        </div>
                     )}
                     </div>
-                    <button onClick={handleAddNew} className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5">
-                    <Plus className="w-5 h-5" /> <span className="font-medium">Thêm Lọ Mới</span>
+                    <button 
+                      onClick={handleAddNew} 
+                      className="flex items-center justify-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white px-5 sm:px-6 py-3 rounded-2xl shadow-md shadow-amber-500/30 transition-transform hover:-translate-y-0.5 active:translate-y-0 font-semibold text-sm sm:text-base"
+                      aria-label="Thêm sản phẩm mới"
+                    >
+                      <Plus className="w-5 h-5" /> 
+                      <span>Thêm Lọ Mới</span>
                     </button>
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                {/* Desktop Table View */}
+                <div className="hidden md:block bg-white dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/80 rounded-3xl shadow-md overflow-hidden">
                     <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-50/50 border-b border-gray-200">
+                        <thead className="bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200/60 dark:border-slate-800/80">
                         <tr>
-                            <th className="px-6 py-4 text-left w-4">
-                            <input type="checkbox" checked={selectedItems.length === inventory.length && inventory.length > 0} onChange={toggleSelectAll} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+                            <th className="px-4 sm:px-6 py-4 text-left w-4">
+                            <input 
+                              type="checkbox" 
+                              checked={selectedItems.length === inventory.length && inventory.length > 0} 
+                              onChange={toggleSelectAll} 
+                              className="w-4 h-4 text-amber-600 rounded border-gray-300 focus:ring-amber-500 cursor-pointer" 
+                              aria-label="Chọn tất cả"
+                            />
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Sản phẩm</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Loại Lọ</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Tồn kho / Min</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Giá (Lọ)</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Vị trí</th>
-                            <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Thao tác</th>
+                            <th 
+                              className="px-4 sm:px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase cursor-pointer hover:bg-amber-50/40 dark:hover:bg-amber-900/20 transition-colors select-none"
+                              onClick={() => handleSort('name')}
+                            >
+                              <div className="flex items-center space-x-1.5">
+                                <span>Sản phẩm</span>
+                                {sortConfig?.key === 'name' && (
+                                  sortConfig.direction === 'asc' ? <ChevronUp className="w-3.5 h-3.5 text-amber-600" /> : <ChevronDown className="w-3.5 h-3.5 text-amber-600" />
+                                )}
+                              </div>
+                            </th>
+                            <th className="px-4 sm:px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Loại Lọ</th>
+                            <th 
+                              className="px-4 sm:px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase cursor-pointer hover:bg-amber-50/40 dark:hover:bg-amber-900/20 transition-colors select-none"
+                              onClick={() => handleSort('quantity')}
+                            >
+                              <div className="flex items-center space-x-1.5">
+                                <span>Tồn kho / Min</span>
+                                {sortConfig?.key === 'quantity' && (
+                                  sortConfig.direction === 'asc' ? <ChevronUp className="w-3.5 h-3.5 text-amber-600" /> : <ChevronDown className="w-3.5 h-3.5 text-amber-600" />
+                                )}
+                              </div>
+                            </th>
+                            <th 
+                              className="px-4 sm:px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase cursor-pointer hover:bg-amber-50/40 dark:hover:bg-amber-900/20 transition-colors select-none"
+                              onClick={() => handleSort('price')}
+                            >
+                              <div className="flex items-center space-x-1.5">
+                                <span>Giá (Lọ)</span>
+                                {sortConfig?.key === 'price' && (
+                                  sortConfig.direction === 'asc' ? <ChevronUp className="w-3.5 h-3.5 text-amber-600" /> : <ChevronDown className="w-3.5 h-3.5 text-amber-600" />
+                                )}
+                              </div>
+                            </th>
+                            <th className="px-4 sm:px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase hidden sm:table-cell">Vị trí</th>
+                            <th className="px-4 sm:px-6 py-4 text-right text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Thao tác</th>
                         </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80">
                         {inventory.length > 0 ? (
                             inventory.map((item) => {
                             const status = getStockStatus(item.quantity, item.minStock);
@@ -816,49 +1052,78 @@ export default function HoneyInventoryManager() {
                             const isLarge = item.netWeight >= 435;
                             
                             return (
-                                <tr key={item.id} className={`group hover:bg-blue-50/30 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/50' : ''}`}>
-                                <td className="px-6 py-4">
-                                    <input type="checkbox" checked={selectedItems.includes(item.id)} onChange={() => toggleSelectItem(item.id)} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer" />
+                                <tr key={item.id} className={`group transition-all border-b border-slate-100/50 dark:border-slate-800/60 ${selectedItems.includes(item.id) ? 'bg-blue-50/60 dark:bg-blue-900/30' : 'bg-white/40 dark:bg-slate-900/40 hover:bg-amber-50/40 dark:hover:bg-amber-900/20'}`}>
+                                <td className="px-4 sm:px-6 py-4">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={selectedItems.includes(item.id)} 
+                                      onChange={() => toggleSelectItem(item.id)} 
+                                      className="w-4 h-4 text-amber-600 rounded border-gray-300 focus:ring-amber-500 cursor-pointer" 
+                                      aria-label={`Chọn ${item.name}`}
+                                    />
                                 </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm mr-4 shrink-0 bg-gradient-to-br ${isLarge ? 'from-amber-500 to-amber-700' : 'from-yellow-300 to-amber-400'}`}>
-                                        {item.name.charAt(0)}
+                                <td className="px-4 sm:px-6 py-4">
+                                    <div className="flex items-center min-w-0">
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-md mr-3 sm:mr-4 shrink-0 ${isLarge ? 'bg-amber-600' : 'bg-amber-500'}`}>
+                                        {(item.name || "?").charAt(0)}
                                     </div>
-                                    <div>
-                                        <div className="text-sm font-semibold text-gray-900">{item.name}</div>
-                                        <div className="text-xs text-gray-500">{item.category}</div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-50 truncate">{item.name}</div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{item.category}</div>
                                     </div>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4">
-                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${
-                                    isLarge ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-blue-50 text-blue-700 border-blue-200'
+                                <td className="px-4 sm:px-6 py-4">
+                                    <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold border shadow-sm ${
+                                    isLarge 
+                                      ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800' 
+                                      : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
                                     }`}>
-                                    <Scale className="w-3 h-3 mr-1" />
+                                    <Scale className="w-3.5 h-3.5 mr-1.5 shrink-0" />
                                     {item.netWeight}g
                                     </span>
                                 </td>
-                                <td className="px-6 py-4">
-                                    <div className="text-sm font-medium text-gray-900">{item.quantity} <span className="text-gray-500 text-xs">lọ</span></div>
-                                    <div className="flex items-center space-x-2 mt-1">
-                                        <span className="text-xs text-gray-400">Min: {item.minStock}</span>
-                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${status.color} ${status.bg}`}>
+                                <td className="px-4 sm:px-6 py-4">
+                                    <div className="text-base font-bold text-slate-900 dark:text-slate-50">{item.quantity.toLocaleString('vi-VN')} <span className="text-slate-500 dark:text-slate-400 text-xs font-normal">lọ</span></div>
+                                    <div className="flex items-center space-x-2 mt-1.5 flex-wrap">
+                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">Min: {item.minStock}</span>
+                                        <span className={`inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm ${status.color} ${status.bg} border`}>
+                                            <StatusIcon className="w-3 h-3 mr-1" />
                                             {status.label}
                                         </span>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-sm font-medium text-gray-900">{Number(item.price).toLocaleString('vi-VN')} ₫</td>
-                                <td className="px-6 py-4"><span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">{item.location}</span></td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex items-center justify-end space-x-2 opacity-100 sm:opacity-60 sm:group-hover:opacity-100 transition-opacity">
-                                    <button onClick={() => openStockModal(item)} className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg" title="Nhập/Xuất kho">
+                                <td className="px-4 sm:px-6 py-4">
+                                  <div className="text-base font-bold text-slate-900 dark:text-slate-50">{Number(item.price).toLocaleString('vi-VN')} <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">₫</span></div>
+                                </td>
+                                <td className="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                                  <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100/70 dark:bg-slate-800/70 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm">{item.location}</span>
+                                </td>
+                                <td className="px-4 sm:px-6 py-4 text-right">
+                                    <div className="flex items-center justify-end space-x-1.5 opacity-100 sm:opacity-70 sm:group-hover:opacity-100 transition-opacity">
+                                    <button 
+                                      onClick={() => openStockModal(item)} 
+                                      className="p-2 text-slate-600 dark:text-slate-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl transition-transform hover:scale-110 active:scale-95 shadow-sm" 
+                                      title="Nhập/Xuất kho"
+                                      aria-label={`Nhập/Xuất kho cho ${item.name}`}
+                                    >
                                         <ArrowRightLeft className="w-4 h-4" />
                                     </button>
-                                    <button onClick={() => handleEdit(item)} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg" title="Chỉnh sửa">
+                                    <button 
+                                      onClick={() => handleEdit(item)} 
+                                      className="p-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-transform hover:scale-110 active:scale-95 shadow-sm" 
+                                      title="Chỉnh sửa"
+                                      aria-label={`Chỉnh sửa ${item.name}`}
+                                    >
                                         <Edit2 className="w-4 h-4" />
                                     </button>
-                                    <button onClick={() => confirmDeleteSingle(item.id)} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg" title="Xóa" disabled={deleteMutation.isPending}>
+                                    <button 
+                                      onClick={() => confirmDeleteSingle(item.id)} 
+                                      className="p-2 text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-transform hover:scale-110 active:scale-95 shadow-sm" 
+                                      title="Xóa" 
+                                      disabled={deleteMutation.isPending}
+                                      aria-label={`Xóa ${item.name}`}
+                                    >
                                         {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                                     </button>
                                     </div>
@@ -873,6 +1138,116 @@ export default function HoneyInventoryManager() {
                     </table>
                     </div>
                 </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-3">
+                  {inventory.length > 0 ? (
+                    inventory.map((item) => {
+                      const status = getStockStatus(item.quantity, item.minStock);
+                      const StatusIcon = status.icon;
+                      const isLarge = item.netWeight >= 435;
+                      
+                      return (
+                        <div 
+                          key={item.id} 
+                          className={`bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border rounded-2xl p-4 shadow-md transition-all ${
+                            selectedItems.includes(item.id) 
+                              ? 'border-blue-400 bg-blue-50/60 dark:bg-blue-900/30' 
+                              : 'border-slate-200/60 dark:border-slate-700/80 hover:border-amber-400 hover:shadow-lg'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center space-x-3 flex-1 min-w-0">
+                              <input 
+                                type="checkbox" 
+                                checked={selectedItems.includes(item.id)} 
+                                onChange={() => toggleSelectItem(item.id)} 
+                                className="w-5 h-5 text-amber-600 rounded border-slate-300 dark:border-slate-600 focus:ring-amber-500 cursor-pointer shrink-0 mt-1" 
+                                aria-label={`Chọn ${item.name}`}
+                              />
+                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md shrink-0 ${isLarge ? 'bg-amber-600' : 'bg-amber-500'}`}>
+                                {(item.name || "?").charAt(0)}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-base font-bold text-slate-900 dark:text-slate-50 truncate">{item.name}</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{item.category}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-3 border border-slate-200/60 dark:border-slate-700/80">
+                              <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Loại Lọ</div>
+                              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border ${
+                                isLarge 
+                                  ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800' 
+                                  : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+                              }`}>
+                                <Scale className="w-3 h-3 mr-1" />
+                                {item.netWeight}g
+                              </span>
+                            </div>
+                            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-3 border border-slate-200/60 dark:border-slate-700/80">
+                              <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Vị trí</div>
+                              <div className="text-sm font-semibold text-slate-900 dark:text-slate-50">{item.location}</div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 border border-amber-200/60 dark:border-amber-800/60">
+                              <div className="text-xs text-slate-500 dark:text-slate-300 mb-1">Tồn kho</div>
+                              <div className="text-lg font-bold text-slate-900 dark:text-slate-50">{item.quantity.toLocaleString('vi-VN')} <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">lọ</span></div>
+                              <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">Min: {item.minStock}</div>
+                            </div>
+                            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-green-200/60 dark:border-emerald-800/60">
+                              <div className="text-xs text-slate-500 dark:text-slate-300 mb-1">Giá bán</div>
+                              <div className="text-lg font-bold text-slate-900 dark:text-slate-50">{Number(item.price).toLocaleString('vi-VN')} <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">₫</span></div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-200/60 dark:border-slate-700/80">
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm ${status.color} ${status.bg} border`}>
+                              <StatusIcon className="w-3.5 h-3.5 mr-1.5" />
+                              {status.label}
+                            </span>
+                            <div className="flex items-center space-x-2">
+                              <button 
+                                onClick={() => openStockModal(item)} 
+                                className="p-2.5 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-xl transition-transform active:scale-95 shadow-sm" 
+                                title="Nhập/Xuất kho"
+                                aria-label={`Nhập/Xuất kho cho ${item.name}`}
+                              >
+                                <ArrowRightLeft className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => handleEdit(item)} 
+                                className="p-2.5 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-xl transition-transform active:scale-95 shadow-sm" 
+                                title="Chỉnh sửa"
+                                aria-label={`Chỉnh sửa ${item.name}`}
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => confirmDeleteSingle(item.id)} 
+                                className="p-2.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl transition-transform active:scale-95 shadow-sm" 
+                                title="Xóa" 
+                                disabled={deleteMutation.isPending}
+                                aria-label={`Xóa ${item.name}`}
+                              >
+                                {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/80 rounded-2xl p-8 text-center">
+                      <Package className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                      <p className="text-slate-500 dark:text-slate-300">Không tìm thấy sản phẩm nào</p>
+                    </div>
+                  )}
+                </div>
               </>
             )
           )}
@@ -881,30 +1256,46 @@ export default function HoneyInventoryManager() {
 
       {/* --- MODAL ADD/EDIT --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="text-lg font-bold text-gray-900">{isEditMode ? 'Cập nhật thông tin' : 'Thêm sản phẩm mới'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full"><X className="w-5 h-5 text-gray-500" /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="bg-white dark:bg-slate-950 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-lg my-auto overflow-hidden border border-slate-200 dark:border-slate-800">
+            <div className="px-5 sm:px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-amber-50/60 dark:bg-amber-900/20 backdrop-blur-sm sticky top-0">
+              <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                {isEditMode ? 'Cập nhật thông tin' : 'Thêm sản phẩm mới'}
+              </h3>
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-transform hover:scale-110 active:scale-95"
+                aria-label="Đóng"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
             </div>
-            <form onSubmit={handleSaveItem} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tên mật ong</label>
-                  <input required type="text" value={currentItem.name} onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="VD: Mật ong hoa nhãn" />
+            <form onSubmit={handleSaveItem} className="p-5 sm:p-6 space-y-5 max-h-[calc(100vh-200px)] overflow-y-auto bg-white dark:bg-slate-950">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="col-span-1 sm:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Tên mật ong <span className="text-red-500">*</span></label>
+                  <input 
+                    required 
+                    type="text" 
+                    value={currentItem.name} 
+                    onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})} 
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 outline-none transition-all text-sm bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm shadow-sm" 
+                    placeholder="VD: Mật ong hoa nhãn"
+                    aria-label="Tên mật ong"
+                  />
                 </div>
 
                 {/* --- PHẦN CHỌN LOẠI LỌ --- */}
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Loại Lọ (Trọng lượng)</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Loại Lọ (Trọng lượng)</label>
                   <div className="grid grid-cols-3 gap-3">
                     <button 
                         type="button" 
                         onClick={() => setCurrentItem({...currentItem, netWeight: 165})}
                         className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
                             Number(currentItem.netWeight) === 165 
-                            ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500' 
-                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                            ? 'bg-blue-50 border-blue-500 text-blue-700 dark:bg-blue-900/30 dark:border-blue-400 dark:text-blue-200' 
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                         }`}
                     >
                         <span className="text-sm font-bold">Lọ Nhỏ</span>
@@ -915,8 +1306,8 @@ export default function HoneyInventoryManager() {
                         onClick={() => setCurrentItem({...currentItem, netWeight: 435})}
                         className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
                             Number(currentItem.netWeight) === 435 
-                            ? 'bg-purple-50 border-purple-500 text-purple-700 ring-1 ring-purple-500' 
-                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                            ? 'bg-purple-50 border-purple-500 text-purple-700 dark:bg-purple-900/30 dark:border-purple-400 dark:text-purple-200' 
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                         }`}
                     >
                         <span className="text-sm font-bold">Lọ To</span>
@@ -929,52 +1320,98 @@ export default function HoneyInventoryManager() {
                             onChange={(e) => setCurrentItem({...currentItem, netWeight: Number(e.target.value)})}
                             className={`w-full h-full text-center px-1 rounded-xl border focus:outline-none focus:ring-2 ${
                                 [165, 435].includes(Number(currentItem.netWeight)) 
-                                ? 'border-gray-200 text-gray-500' 
-                                : 'border-green-500 text-green-700 ring-1 ring-green-500 bg-green-50'
+                                ? 'border-slate-200 text-slate-500 dark:border-slate-700 dark:text-slate-300' 
+                                : 'border-green-500 text-green-700 dark:text-green-300 dark:border-green-400 ring-1 ring-green-500/60 bg-green-50 dark:bg-green-900/20'
                             }`}
                             placeholder="Khác" 
                          />
-                         <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 pointer-events-none">Tự nhập (g)</span>
+                         <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 dark:text-slate-500 pointer-events-none">Tự nhập (g)</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng (Lọ)</label>
-                  <input required type="number" min="0" value={currentItem.quantity} onChange={(e) => setCurrentItem({...currentItem, quantity: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Số lượng (Lọ) <span className="text-red-500">*</span></label>
+                  <input 
+                    required 
+                    type="number" 
+                    min="0" 
+                    value={currentItem.quantity} 
+                    onChange={(e) => setCurrentItem({...currentItem, quantity: e.target.value})} 
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 outline-none transition-all text-sm bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm shadow-sm" 
+                    aria-label="Số lượng"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Min Stock</label>
-                  <input required type="number" min="0" value={currentItem.minStock} onChange={(e) => setCurrentItem({...currentItem, minStock: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Min Stock <span className="text-red-500">*</span></label>
+                  <input 
+                    required 
+                    type="number" 
+                    min="0" 
+                    value={currentItem.minStock} 
+                    onChange={(e) => setCurrentItem({...currentItem, minStock: e.target.value})} 
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 outline-none transition-all text-sm bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm shadow-sm" 
+                    aria-label="Tồn kho tối thiểu"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Giá bán (đ/Lọ)</label>
-                  <input required type="number" min="0" value={currentItem.price} onChange={(e) => setCurrentItem({...currentItem, price: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Giá bán (₫/Lọ) <span className="text-red-500">*</span></label>
+                  <input 
+                    required 
+                    type="number" 
+                    min="0" 
+                    value={currentItem.price} 
+                    onChange={(e) => setCurrentItem({...currentItem, price: e.target.value})} 
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 outline-none transition-all text-sm bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm shadow-sm" 
+                    aria-label="Giá bán"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
-                  <select value={currentItem.category} onChange={(e) => setCurrentItem({...currentItem, category: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Danh mục</label>
+                  <select 
+                    value={currentItem.category} 
+                    onChange={(e) => setCurrentItem({...currentItem, category: e.target.value})} 
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 outline-none bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm transition-all text-sm shadow-sm"
+                    aria-label="Danh mục"
+                  >
                     <option value="Thường">Thường</option>
                     <option value="Cao cấp">Cao cấp</option>
                     <option value="Premium">Premium</option>
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vị trí kho</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vị trí kho</label>
                   <div className="flex space-x-4">
                     {['Kho A', 'Kho B', 'Kho C'].map(loc => (
                       <label key={loc} className="flex items-center space-x-2 cursor-pointer">
-                        <input type="radio" name="location" checked={currentItem.location === loc} onChange={() => setCurrentItem({...currentItem, location: loc})} className="text-blue-600 focus:ring-blue-500" />
-                        <span className="text-sm text-gray-700">{loc}</span>
+                        <input type="radio" name="location" checked={currentItem.location === loc} onChange={() => setCurrentItem({...currentItem, location: loc})} className="text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400" />
+                        <span className="text-sm text-slate-700 dark:text-slate-300">{loc}</span>
                       </label>
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-100">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Hủy</button>
-                <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center space-x-2 shadow-lg shadow-blue-500/30 disabled:opacity-50" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {(createMutation.isPending || updateMutation.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} <span>Lưu</span>
+              <div className="flex justify-end space-x-3 mt-6 pt-5 border-t border-slate-200 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-950/95 pb-2">
+                <button 
+                  type="button" 
+                  onClick={() => setIsModalOpen(false)} 
+                  className="px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
+                  aria-label="Hủy"
+                >
+                  Hủy
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-5 py-2.5 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-2xl flex items-center space-x-2 shadow-md shadow-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-transform hover:-translate-y-0.5 active:translate-y-0" 
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                  aria-label={isEditMode ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
+                >
+                  {(createMutation.isPending || updateMutation.isPending) ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )} 
+                  <span>Lưu</span>
                 </button>
               </div>
             </form>
@@ -984,53 +1421,117 @@ export default function HoneyInventoryManager() {
 
       {/* --- MODAL STOCK --- */}
       {isStockModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="text-lg font-bold text-gray-900">Điều chỉnh kho</h3>
-              <button onClick={() => setIsStockModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full"><X className="w-5 h-5 text-gray-500" /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="bg-white dark:bg-slate-950 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md my-auto overflow-hidden border border-slate-200 dark:border-slate-800">
+            <div className={`px-5 sm:px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center backdrop-blur-sm ${
+              stockAction.type === 'import' 
+                ? 'bg-green-50/60 dark:bg-green-900/20' 
+                : 'bg-rose-50/60 dark:bg-rose-900/20'
+            }`}>
+              <h3 className={`text-lg sm:text-xl font-bold ${
+                stockAction.type === 'import' 
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent' 
+                  : 'bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent'
+              }`}>
+                Điều chỉnh kho
+              </h3>
+              <button 
+                onClick={() => setIsStockModalOpen(false)} 
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-transform hover:scale-110 active:scale-95"
+                aria-label="Đóng"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
             </div>
-            <form onSubmit={handleSaveStock} className="p-6">
-              <div className="mb-4 text-center">
-                <div className="text-sm text-gray-500">Sản phẩm</div>
-                <div className="text-lg font-bold text-gray-900">{stockAction.itemName}</div>
-                <div className="text-sm text-gray-500">Hiện có: <span className="font-medium text-gray-900">{stockAction.currentQty} Lọ</span></div>
+            <form onSubmit={handleSaveStock} className="p-5 sm:p-6 bg-white dark:bg-slate-950">
+              <div className="mb-6 text-center">
+                <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Sản phẩm</div>
+                <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-50 break-words mb-3">{stockAction.itemName}</div>
+                <div className="inline-flex items-center space-x-2 px-4 py-2 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/80">
+                  <Package className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                  <span className="text-sm text-slate-600 dark:text-slate-300">Hiện có: <span className="font-bold text-slate-900 dark:text-slate-50">{stockAction.currentQty.toLocaleString('vi-VN')} {stockAction.unit}</span></span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mb-6 bg-gray-100 p-1 rounded-xl">
-                <button type="button" onClick={() => setStockAction({ ...stockAction, type: 'import' })} className={`flex items-center justify-center space-x-2 py-2 rounded-lg text-sm font-medium transition-all ${stockAction.type === 'import' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-500'}`}>
-                  <ArrowDownCircle className="w-4 h-4" /> <span>Nhập thêm</span>
+              <div className="grid grid-cols-2 gap-3 mb-6 bg-slate-50 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700/80">
+                <button 
+                  type="button" 
+                  onClick={() => setStockAction({ ...stockAction, type: 'import' })} 
+                  className={`flex items-center justify-center space-x-2 py-3 rounded-xl text-sm font-semibold transition-all ${
+                    stockAction.type === 'import' 
+                      ? 'bg-green-500 text-white shadow-md shadow-green-500/30' 
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <ArrowDownCircle className="w-5 h-5" /> <span>Nhập thêm</span>
                 </button>
-                <button type="button" onClick={() => setStockAction({ ...stockAction, type: 'export' })} className={`flex items-center justify-center space-x-2 py-2 rounded-lg text-sm font-medium transition-all ${stockAction.type === 'export' ? 'bg-white text-red-700 shadow-sm' : 'text-gray-500'}`}>
-                  <ArrowUpCircle className="w-4 h-4" /> <span>Xuất đi</span>
+                <button 
+                  type="button" 
+                  onClick={() => setStockAction({ ...stockAction, type: 'export' })} 
+                  className={`flex items-center justify-center space-x-2 py-3 rounded-xl text-sm font-semibold transition-all ${
+                    stockAction.type === 'export' 
+                      ? 'bg-rose-500 text-white shadow-md shadow-rose-500/30' 
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <ArrowUpCircle className="w-5 h-5" /> <span>Xuất đi</span>
                 </button>
               </div>
 
-              <div className="space-y-4 mb-6">
+              <div className="space-y-5 mb-6">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Số lượng (Lọ)</label>
-                    <input required type="number" min="1" max={stockAction.type === 'export' ? stockAction.currentQty : undefined} value={stockAction.amount} onChange={(e) => setStockAction({...stockAction, amount: e.target.value})} className={`w-full px-4 py-3 border rounded-xl text-center text-2xl font-bold outline-none ring-2 ${stockAction.type === 'import' ? 'border-green-200 ring-green-100 text-green-700' : 'border-red-200 ring-red-100 text-red-700'}`} placeholder="0" />
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Số lượng (Lọ) <span className="text-red-500">*</span></label>
+                    <input 
+                      required 
+                      type="number" 
+                      min="1" 
+                      max={stockAction.type === 'export' ? stockAction.currentQty : undefined} 
+                      value={stockAction.amount} 
+                      onChange={(e) => setStockAction({...stockAction, amount: e.target.value})} 
+                      className={`w-full px-4 py-4 border-2 rounded-2xl text-center text-3xl font-bold outline-none ring-2 transition-all shadow-md ${
+                        stockAction.type === 'import' 
+                          ? 'border-green-300 ring-green-100 text-green-700 bg-green-50/40 dark:border-green-500 dark:ring-green-900/40 dark:text-green-300 dark:bg-green-900/20' 
+                          : 'border-red-300 ring-red-100 text-red-700 bg-red-50/40 dark:border-red-500 dark:ring-red-900/40 dark:text-red-300 dark:bg-red-900/20'
+                      }`} 
+                      placeholder="0" 
+                    />
                 </div>
                 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                         {stockAction.type === 'import' ? 'Nguồn nhập (Tùy chọn)' : 'Khách hàng / Nơi nhận (Tùy chọn)'}
                     </label>
                     <input 
                         type="text" 
                         value={stockAction.partner} 
                         onChange={(e) => setStockAction({...stockAction, partner: e.target.value})} 
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm" 
+                        className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 outline-none text-sm bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm shadow-sm transition-all" 
                         placeholder={stockAction.type === 'import' ? 'VD: Trại ong Ba Vì...' : 'VD: Chị Lan - Hà Nội...'} 
                     />
                 </div>
               </div>
 
               <div className="flex justify-end space-x-3">
-                <button type="button" onClick={() => setIsStockModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Hủy</button>
-                <button type="submit" className={`px-4 py-2 text-sm font-medium text-white rounded-lg shadow-lg disabled:opacity-50 ${stockAction.type === 'import' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`} disabled={adjustStockMutation.isPending}>
-                  {adjustStockMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin inline mr-2" /> : null}
-                  Xác nhận
+                <button 
+                  type="button" 
+                  onClick={() => setIsStockModalOpen(false)} 
+                  className="px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
+                  aria-label="Hủy"
+                >
+                  Hủy
+                </button>
+                <button 
+                  type="submit" 
+                  className={`px-5 py-2.5 text-sm font-semibold text-white rounded-2xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-transform flex items-center space-x-2 hover:-translate-y-0.5 active:translate-y-0 ${
+                    stockAction.type === 'import' 
+                      ? 'bg-green-500 hover:bg-green-600 shadow-green-500/30' 
+                      : 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/30'
+                  }`} 
+                  disabled={adjustStockMutation.isPending}
+                  aria-label={`Xác nhận ${stockAction.type === 'import' ? 'nhập' : 'xuất'} kho`}
+                >
+                  {adjustStockMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>Xác nhận</span>
                 </button>
               </div>
             </form>
@@ -1041,21 +1542,21 @@ export default function HoneyInventoryManager() {
       {/* --- MODAL CONFIRM DELETE --- */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center border border-slate-200 dark:border-slate-800">
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Xác nhận xóa?</h3>
-            <p className="text-sm text-gray-500 mb-6">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-2">Xác nhận xóa?</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-300 mb-6">
               {deleteTarget?.type === 'single' 
                 ? 'Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác.' 
                 : `Bạn có chắc chắn muốn xóa ${selectedItems.length} sản phẩm đã chọn không?`}
             </p>
             <div className="flex justify-center space-x-3">
-              <button onClick={() => setIsDeleteModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+              <button onClick={() => setIsDeleteModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
                 Không, giữ lại
               </button>
-              <button onClick={executeDelete} className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-lg shadow-red-500/30 disabled:opacity-50" disabled={deleteMutation.isPending}>
+              <button onClick={executeDelete} className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-md shadow-red-500/30 disabled:opacity-50" disabled={deleteMutation.isPending}>
                 {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin inline mr-2" /> : null}
                 Có, xóa ngay
               </button>
@@ -1067,12 +1568,12 @@ export default function HoneyInventoryManager() {
       {/* --- MODAL PERMISSION ERROR --- */}
       {isPermissionErrorModalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden p-6 text-center">
-            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden p-6 text-center border border-slate-200 dark:border-slate-800">
+            <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-8 h-8 text-orange-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Không có quyền thực hiện</h3>
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-3">Không có quyền thực hiện</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
               {permissionErrorMessage || 'Bạn không có quyền thực hiện thao tác này. Chỉ quản trị viên mới có thể xóa sản phẩm trong kho.'}
             </p>
             <div className="flex justify-center">
@@ -1081,7 +1582,7 @@ export default function HoneyInventoryManager() {
                   setIsPermissionErrorModalOpen(false);
                   setPermissionErrorMessage('');
                 }} 
-                className="px-6 py-2.5 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 shadow-lg shadow-orange-500/30 transition-colors"
+                className="px-6 py-2.5 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 shadow-md shadow-orange-500/30 transition-colors"
               >
                 Đã hiểu
               </button>

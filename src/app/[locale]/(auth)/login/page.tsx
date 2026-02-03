@@ -11,9 +11,17 @@ const LoginPage = () => {
 
   useEffect(() => {
     const reason = searchParams.get("reason");
+    const hasEmail = !!searchParams.get("email");
+    const hasPassword = !!searchParams.get("password");
 
     // Chỉ hiển thị toast yêu cầu đăng nhập nếu chưa đăng nhập
-    if (!isLoading && !isAuthenticated && reason === "login_required") {
+    // và KHÔNG ở chế độ auto-login (có sẵn email + password trên URL)
+    if (
+      !isLoading &&
+      !isAuthenticated &&
+      reason === "login_required" &&
+      !(hasEmail && hasPassword)
+    ) {
       toast.error("Vui lòng đăng nhập để tiếp tục");
     }
   }, [searchParams, isAuthenticated, isLoading]);

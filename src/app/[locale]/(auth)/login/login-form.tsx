@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Mail, Lock, Globe, AlertCircle } from "lucide-react";
@@ -40,12 +40,89 @@ function LoginForm() {
 
   // Get redirect URL from query params
   const redirectUrl = searchParams.get("redirect");
+  const emailFromUrl = searchParams.get("email") || "";
+  const passwordFromUrl = searchParams.get("password") || "";
+  const [autoLoginTried, setAutoLoginTried] = useState(false);
 
   const {
     register,
     formState: { errors },
     handleSubmit,
-  } = useForm<LoginBodyType>({ resolver: zodResolver(authSchema) });
+  } = useForm<LoginBodyType>({
+    resolver: zodResolver(authSchema),
+    defaultValues: {
+      email: emailFromUrl,
+      password: passwordFromUrl,
+    },
+  });
+
+  // Auto-login khi URL có đủ email & password
+  useEffect(() => {
+    if (!emailFromUrl || !passwordFromUrl || autoLoginTried) return;
+
+    setAutoLoginTried(true);
+    setIsSubmitting(true);
+    setAuthError(null);
+
+    (async () => {
+      try {
+        // Ở auto-login, dùng basic login cho đơn giản
+        const result = await login(emailFromUrl, passwordFromUrl);
+        if (result?.success) {
+          setShowSuccessLoader(true);
+          setTimeout(() => {
+            const targetUrl = redirectUrl || `/${locale}/me`;
+            router.replace(targetUrl);
+          }, 500);
+          return;
+        }
+        setIsSubmitting(false);
+      } catch (error: any) {
+        console.error("Auto login error:", error);
+
+        let errorMessage = t("auth.login_failed");
+
+        const translatedInvalid = t("auth.invalid_credentials");
+        const invalidCredentialMessage =
+          translatedInvalid && translatedInvalid !== "auth.invalid_credentials"
+            ? translatedInvalid
+            : "Email hoặc mật khẩu không đúng";
+
+        const statusCode =
+          typeof error?.statusCode === "number"
+            ? error.statusCode
+            : error?.payload?.statusCode;
+
+        if (statusCode === 401) {
+          errorMessage = invalidCredentialMessage;
+        } else if (error?.payload?.error) {
+          errorMessage = error.payload.error;
+        } else if (error?.message) {
+          errorMessage = error.message;
+        } else if (error?.error) {
+          errorMessage = error.error;
+        }
+
+        if (
+          typeof errorMessage === "string" &&
+          /401/.test(errorMessage.toLowerCase())
+        ) {
+          errorMessage = invalidCredentialMessage;
+        }
+        setAuthError(errorMessage);
+        setIsSubmitting(false);
+      }
+    })();
+  }, [
+    emailFromUrl,
+    passwordFromUrl,
+    autoLoginTried,
+    login,
+    redirectUrl,
+    locale,
+    router,
+    t,
+  ]);
 
   // Khi login thành công, token và user data sẽ được lưu vào cookie (httpOnly cho token, non-httpOnly cho user data)
 
