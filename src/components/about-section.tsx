@@ -198,7 +198,7 @@ Từ khát vọng đó, tôi bắt đầu hành trình đưa trái vải – tin
             <p className="text-slate-700 leading-relaxed">
               Mang vải thiều Vĩnh Lập – tinh hoa của đất trời Thanh Hà – vươn ra thế giới, 
               tạo thêm công ăn việc làm bền vững cho bà con nông dân, để thế hệ trẻ 
-              Vĩnh Lập có thể tự hào nói: <strong className="text-rose-600">"Tôi sinh ra ở Vĩnh Lập."</strong>
+              Vĩnh Lập có thể tự hào nói: <strong className="text-rose-600">&quot;Tôi sinh ra ở Vĩnh Lập.&quot;</strong>
             </p>
           </motion.div>
 

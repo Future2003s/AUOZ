@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import { HomePageClient } from "@/components/pages/homepage-client";
 import { defaultHomepageSettings } from "@/lib/homepage-default";
 import { HomepageSettings } from "@/types/homepage";
@@ -143,18 +142,16 @@ function transformBackendToFrontend(backendData: any): HomepageSettings {
 
 async function fetchHomepageSettings(): Promise<HomepageSettings> {
   try {
-    const headersList = await headers();
-    const host = headersList.get("host") || "localhost:3000";
-    const protocol =
-      process.env.VERCEL_ENV || process.env.NODE_ENV === "production"
-        ? "https"
-        : "http";
-    const baseUrl =
-      process.env.NEXT_PUBLIC_URL ||
-      `${protocol}://${host.replace(/\/$/, "")}`;
+    // Use environment variable or relative URL for internal API call
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "";
+    const apiUrl = baseUrl 
+      ? `${baseUrl.replace(/\/$/, "")}/api/homepage`
+      : "/api/homepage";
 
-    const response = await fetch(`${baseUrl}/api/homepage`, {
-      cache: "no-store", // Always fetch fresh data to see latest changes
+    // Use revalidate for ISR (Incremental Static Regeneration) instead of no-store
+    // This allows static generation while still updating periodically
+    const response = await fetch(apiUrl, {
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
     });
 
     if (!response.ok) {
