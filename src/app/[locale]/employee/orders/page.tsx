@@ -58,6 +58,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
   const [deleteConfirmOrder, setDeleteConfirmOrder] = useState<{ id: string; orderNumber: string } | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
   const limit = 20;
 
   const fetchOrders = async () => {
@@ -108,7 +109,14 @@ export default function OrdersPage() {
       }
     } catch (err) {
       console.error("Error fetching orders:", err);
-      const errorMessage = err instanceof Error ? err.message : "Không thể tải dữ liệu. Vui lòng thử lại sau.";
+      let errorMessage = "Không thể tải dữ liệu. Vui lòng thử lại sau.";
+      
+      if (err instanceof TypeError && err.message.includes("fetch")) {
+        errorMessage = "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc đảm bảo backend đang chạy.";
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -286,6 +294,53 @@ export default function OrdersPage() {
     return labels[status] || status;
   };
 
+  const handleUpdateStatus = async (orderId: string, newStatus: string, orderType: "order" | "delivery") => {
+    try {
+      setUpdatingStatusId(orderId);
+      
+      // Only update regular orders, delivery orders might have different status flow
+      if (orderType === "delivery") {
+        alert("Chức năng cập nhật trạng thái cho đơn giao hàng đang được phát triển");
+        setUpdatingStatusId(null);
+        return;
+      }
+
+      const res = await fetch(`/api/employee/orders/${orderId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        // Handle validation errors
+        if (data.errors && Array.isArray(data.errors)) {
+          const errorMessages = data.errors.map((e: any) => e.message || e).join(", ");
+          throw new Error(errorMessages || data.message || "Validation failed");
+        }
+        throw new Error(data?.message || data?.error || `Không thể cập nhật trạng thái (HTTP ${res.status})`);
+      }
+
+      if (!data.success) {
+        throw new Error(data.message || "Cập nhật trạng thái thất bại");
+      }
+
+      // Refresh orders list
+      await fetchOrders();
+      await fetchDeliveryOrders();
+    } catch (err) {
+      console.error("Error updating order status:", err);
+      const errorMessage = err instanceof Error ? err.message : "Không thể cập nhật trạng thái";
+      alert(errorMessage);
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  };
+
   const handleDeleteOrder = async (orderId: string, orderType: "order" | "delivery") => {
     try {
       setDeletingOrderId(orderId);
@@ -442,13 +497,49 @@ export default function OrdersPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusColor(
-                          order.status
-                        )}`}
-                      >
-                        {getStatusLabel(order.status)}
-                      </span>
+                      {order.type === "order" && (
+                        <div className="flex items-center gap-1">
+                          <select
+                            value={order.status}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleUpdateStatus(order.id, e.target.value, order.type);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled={updatingStatusId === order.id}
+                            className={`text-xs px-2 py-1 rounded-full font-medium border-0 outline-none cursor-pointer bg-transparent ${getStatusColor(
+                              order.status
+                            )} ${updatingStatusId === order.id ? "opacity-50 cursor-not-allowed" : ""}`}
+                            title="Chuyển trạng thái đơn hàng"
+                            style={{ 
+                              appearance: "none",
+                              backgroundImage: updatingStatusId !== order.id ? "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")" : "none",
+                              backgroundRepeat: "no-repeat",
+                              backgroundPosition: "right 4px center",
+                              paddingRight: updatingStatusId !== order.id ? "20px" : "8px"
+                            }}
+                          >
+                            <option value="pending">Chờ xử lý</option>
+                            <option value="confirmed">Đã xác nhận</option>
+                            <option value="processing">Đang xử lý</option>
+                            <option value="shipped">Đã gửi hàng</option>
+                            <option value="delivered">Đã giao hàng</option>
+                            <option value="cancelled">Đã hủy</option>
+                          </select>
+                          {updatingStatusId === order.id && (
+                            <Loader2 className="w-3 h-3 animate-spin text-gray-500" />
+                          )}
+                        </div>
+                      )}
+                      {order.type === "delivery" && (
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full font-medium ${getStatusColor(
+                            order.status
+                          )}`}
+                        >
+                          {getStatusLabel(order.status)}
+                        </span>
+                      )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

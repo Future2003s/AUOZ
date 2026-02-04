@@ -35,14 +35,29 @@ export async function GET(request: NextRequest) {
     
     console.log(`[Employee Orders API] Calling backend: ${url}`);
     
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      cache: "no-store",
-    });
+    // Add timeout to fetch request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    let response;
+    try {
+      response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        throw new Error("Request timeout: Backend server không phản hồi trong 10 giây");
+      }
+      throw fetchError;
+    }
 
     let data;
     try {
@@ -67,10 +82,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching employee orders:", error);
+    
+    // Handle network errors
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: "Không thể kết nối đến backend server. Vui lòng kiểm tra xem backend có đang chạy không.",
+          error: "Network error"
+        },
+        { status: 503 }
+      );
+    }
+    
     return NextResponse.json(
       { 
         success: false, 
-        message: error instanceof Error ? error.message : "Internal server error" 
+        message: error instanceof Error ? error.message : "Internal server error",
+        error: error instanceof Error ? error.stack : "Unknown error"
       },
       { status: 500 }
     );

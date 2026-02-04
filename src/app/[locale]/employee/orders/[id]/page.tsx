@@ -64,6 +64,7 @@ export default function OrderDetailPage() {
   const [proofImage, setProofImage] = useState<string | null>(null);
   const [proofLoading, setProofLoading] = useState(false);
   const [proofUploading, setProofUploading] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -270,6 +271,48 @@ export default function OrderDetailPage() {
     uploadProof(file);
   };
 
+  const handleUpdateStatus = async (newStatus: string) => {
+    if (!orderId || !order) return;
+    
+    try {
+      setUpdatingStatus(true);
+      setError(null);
+
+      const res = await fetch(`/api/employee/orders/${orderId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        // Handle validation errors
+        if (data.errors && Array.isArray(data.errors)) {
+          const errorMessages = data.errors.map((e: any) => e.message || e).join(", ");
+          throw new Error(errorMessages || data.message || "Validation failed");
+        }
+        throw new Error(data?.message || data?.error || `Không thể cập nhật trạng thái (HTTP ${res.status})`);
+      }
+
+      if (!data.success) {
+        throw new Error(data.message || "Cập nhật trạng thái thất bại");
+      }
+
+      // Update order status - use the status from response if available
+      const updatedStatus = data.data?.status || newStatus;
+      setOrder((prev) => prev ? { ...prev, status: updatedStatus } : null);
+    } catch (err) {
+      console.error("Error updating order status:", err);
+      setError(err instanceof Error ? err.message : "Không thể cập nhật trạng thái");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   const items = useMemo(() => order?.items || [], [order]);
   const totalAmount = useMemo(
     () =>
@@ -301,11 +344,23 @@ export default function OrderDetailPage() {
           Chi tiết đơn hàng
         </h1>
         {order?.status && (
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-            <ListChecks size={16} />
-            <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-              {order.status}
-            </span>
+          <div className="flex items-center gap-2">
+            <select
+              value={order.status}
+              onChange={(e) => handleUpdateStatus(e.target.value)}
+              disabled={updatingStatus}
+              className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="pending">Chờ xử lý</option>
+              <option value="confirmed">Đã xác nhận</option>
+              <option value="processing">Đang xử lý</option>
+              <option value="shipped">Đã gửi hàng</option>
+              <option value="delivered">Đã giao hàng</option>
+              <option value="cancelled">Đã hủy</option>
+            </select>
+            {updatingStatus && (
+              <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+            )}
           </div>
         )}
       </header>
