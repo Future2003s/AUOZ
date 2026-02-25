@@ -61,9 +61,8 @@ export const ProductCard = ({
             src={product.image}
             alt={product.name}
             sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 280px"
-            className={`object-cover transition-transform duration-700 group-hover:scale-110 ${
-              imageLoading ? "opacity-0" : "opacity-100"
-            }`}
+            className={`object-cover transition-transform duration-700 group-hover:scale-110 ${imageLoading ? "opacity-0" : "opacity-100"
+              }`}
             priority={false}
             onLoad={() => setImageLoading(false)}
             onError={() => {
@@ -86,11 +85,10 @@ export const ProductCard = ({
         {/* Badge Mới / Bán chạy */}
         {badge && (
           <span
-            className={`absolute top-4 right-4 ${
-              badge === "Mới"
+            className={`absolute top-4 right-4 ${badge === "Mới"
                 ? "bg-green-500 text-white"
                 : "bg-rose-600 text-white"
-            } text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm`}
+              } text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm`}
           >
             {badge}
           </span>
@@ -125,7 +123,7 @@ export const ProductCard = ({
         >
           {product.name}
         </h3>
-        <p className="font-body text-rose-600 font-semibold">
+        <p className="font-body text-gray-900 font-bold">
           {new Intl.NumberFormat("vi-VN", {
             style: "currency",
             currency: "VND",

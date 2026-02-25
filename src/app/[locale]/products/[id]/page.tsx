@@ -354,24 +354,46 @@ export default function ProductDetailPage() {
   const isOutOfStock = typeof item.quantity === "number" && item.quantity === 0;
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5] pt-25">
+    <div className="min-h-screen bg-[#f5f5f5] pt-25 product-detail-page">
       {productStructuredData && <StructuredData type="Product" data={productStructuredData} />}
 
       {/* Breadcrumb */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-2">
-          <nav className="flex items-center gap-1 text-xs text-gray-500 flex-wrap">
-            <button onClick={() => router.push(`/${locale}`)} className="hover:text-orange-500 transition-colors">Trang chủ</button>
-            <span>›</span>
-            <button onClick={() => router.push(`/${locale}/products`)} className="hover:text-orange-500 transition-colors">Sản phẩm</button>
+      <div className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="container mx-auto px-4 py-3">
+          <nav className="flex items-center gap-1.5 flex-wrap" aria-label="Breadcrumb">
+            {/* Trang chủ */}
+            <button
+              onClick={() => router.push(`/${locale}`)}
+              className="group flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-orange-600 transition-all duration-200 px-3 py-1.5 rounded-full hover:bg-orange-50 hover:shadow-sm"
+            >
+              <svg className="w-3.5 h-3.5 flex-shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              Trang chủ
+            </button>
+            {/* Separator */}
+            <ArrowRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+            {/* Sản phẩm */}
+            <button
+              onClick={() => router.push(`/${locale}/products`)}
+              className="text-sm font-medium text-gray-500 hover:text-orange-600 transition-all duration-200 px-3 py-1.5 rounded-full hover:bg-orange-50 hover:shadow-sm"
+            >
+              Sản phẩm
+            </button>
+            {/* Category */}
             {item.category && (
               <>
-                <span>›</span>
-                <span className="text-gray-600">{typeof item.category === "object" ? item.category.name : item.category}</span>
+                <ArrowRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-400 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100">
+                  {typeof item.category === "object" ? item.category.name : item.category}
+                </span>
               </>
             )}
-            <span>›</span>
-            <span className="text-gray-800 font-medium truncate max-w-[200px]">{item.name}</span>
+            {/* Current page — tên sản phẩm */}
+            <ArrowRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+            <span className="text-sm font-semibold text-orange-700 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-full truncate max-w-[220px]">
+              {item.name}
+            </span>
           </nav>
         </div>
       </div>
@@ -830,11 +852,11 @@ export default function ProductDetailPage() {
         {(item.description || (item.tags?.length ?? 0) > 0) && (
           <div className="bg-white rounded-2xl shadow-sm mt-4 overflow-hidden">
             <div className="border-b border-gray-100 px-6 py-4">
-              <h2 className="text-base font-semibold text-gray-800">Mô tả sản phẩm</h2>
+              <h2 className="font-semibold text-gray-900">Mô tả sản phẩm</h2>
             </div>
             <div className="px-6 py-5 space-y-5">
               {item.description && (
-                <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{item.description}</div>
+                <div className="product-description whitespace-pre-line">{item.description}</div>
               )}
               {(item.tags?.length ?? 0) > 0 && (
                 <div>

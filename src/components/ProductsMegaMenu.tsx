@@ -5,6 +5,9 @@ import Image from "next/image";
 import { Product } from "@/apiRequests/products";
 import { envConfig } from "@/config";
 
+// ─── Module-level cache: tồn tại suốt phiên trình duyệt, không mất khi component unmount ───
+const _globalProductsCache = new Map<string, PreviewData>();
+
 interface ProductMenuItem {
   href: string;
   label: string;
@@ -38,8 +41,6 @@ export default function ProductsMegaMenu({
   const [imageOpacity, setImageOpacity] = useState(1);
   const preloadedImages = useRef<Set<string>>(new Set());
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Cache để lưu sản phẩm đã fetch, tránh fetch lại khi hover vào cùng item
-  const productsCache = useRef<Map<string, PreviewData>>(new Map());
   const currentFetchKey = useRef<string | null>(null);
 
   // Fetch product data for preview - Gọi trực tiếp từ API backend
@@ -50,13 +51,10 @@ export default function ProductsMegaMenu({
 
     // Tạo cache key dựa trên categoryId hoặc href
     const cacheKey = item.categoryId || item.categorySlug || item.href || item.label;
-    
-    // Kiểm tra cache trước - nếu đã có thì dùng ngay, không cần fetch lại
-    if (productsCache.current.has(cacheKey)) {
-      const cachedData = productsCache.current.get(cacheKey)!;
-      if (process.env.NODE_ENV === "development") {
-        console.log("✅ Sử dụng cache cho:", item.label);
-      }
+
+    // Kiểm tra module-level cache — tồn tại ngay cả khi component unmount/remount
+    if (_globalProductsCache.has(cacheKey)) {
+      const cachedData = _globalProductsCache.get(cacheKey)!;
       setPreviewData(cachedData);
       setImageOpacity(1);
       setIsLoading(false);
@@ -67,7 +65,7 @@ export default function ProductsMegaMenu({
     timeoutRef.current = setTimeout(async () => {
       // Đánh dấu đang fetch item này
       currentFetchKey.current = cacheKey;
-      
+
       // KHÔNG reset preview data ngay - giữ lại data cũ để tránh chớp
       setIsLoading(true);
       // Chỉ fade out một chút, không set opacity = 0
@@ -120,16 +118,16 @@ export default function ProductsMegaMenu({
               console.log(`📦 Fetching trang ${currentPage} - Tất cả sản phẩm`);
             }
           }
-          
+
           try {
             const response = await fetch(`/api/products/public?${pageParams.toString()}`, {
               next: { revalidate: 180 }, // Cache 3 phút cho mega menu preview
             });
-            
+
             if (response.ok) {
               const data = await response.json();
               const list: Product[] = Array.isArray(data?.data) ? data.data : [];
-              
+
               // Lấy thông tin pagination từ trang đầu tiên
               if (currentPage === 1 && data?.pagination) {
                 totalPages = data.pagination.totalPages || data.pagination.pages || 1;
@@ -221,10 +219,10 @@ export default function ProductsMegaMenu({
                 products: previewProducts,
                 categoryHref: item.href,
               };
-              
-              // Lưu vào cache
-              productsCache.current.set(cacheKey, newPreviewData);
-              
+
+              // Lưu vào module-level cache
+              _globalProductsCache.set(cacheKey, newPreviewData);
+
               // Update preview với smooth transition
               setPreviewData(newPreviewData);
               setImageOpacity(1);
@@ -240,10 +238,10 @@ export default function ProductsMegaMenu({
             products: [],
             categoryHref: item.href,
           };
-          
-          // Lưu vào cache để tránh fetch lại
-          productsCache.current.set(cacheKey, emptyPreviewData);
-          
+
+          // Lưu vào module-level cache để tránh fetch lại
+          _globalProductsCache.set(cacheKey, emptyPreviewData);
+
           // Chỉ update nếu vẫn đang fetch item này
           if (currentFetchKey.current === cacheKey) {
             setPreviewData(emptyPreviewData);
@@ -257,10 +255,10 @@ export default function ProductsMegaMenu({
           products: [],
           categoryHref: item.href,
         };
-        
-        // Lưu vào cache để tránh fetch lại khi lỗi
-        productsCache.current.set(cacheKey, errorPreviewData);
-        
+
+        // Lưu vào module-level cache để tránh fetch lại khi lỗi
+        _globalProductsCache.set(cacheKey, errorPreviewData);
+
         // Chỉ update nếu vẫn đang fetch item này
         if (currentFetchKey.current === cacheKey) {
           setPreviewData(errorPreviewData);
@@ -297,51 +295,37 @@ export default function ProductsMegaMenu({
   const smallProducts = previewData?.products.slice(1, 7) || [];
 
   return (
-    <div className="grid grid-cols-[240px_1fr] gap-6 p-6 min-w-[900px] max-w-[1100px] bg-gradient-to-br from-white via-rose-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-2xl shadow-2xl border border-rose-200 dark:border-gray-700">
+    <div className="grid grid-cols-[220px_1fr] gap-0 min-w-[840px] max-w-[1000px] bg-white dark:bg-gray-900 rounded-2xl shadow-[0_8px_32px_-8px_rgba(0,0,0,0.18)] border border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Left Column - Category Links */}
-      <div className="space-y-1">
-        <div className="mb-4 pb-3 border-b border-rose-200 dark:border-gray-700">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-            Danh mục
+      <div className="border-r border-gray-100 dark:border-gray-800 py-4 px-3">
+        <div className="mb-3 px-3 pb-3 border-b border-gray-100 dark:border-gray-800">
+          <h3 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            DANH MỤC
           </h3>
         </div>
-        {items.map((item, index) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            onMouseEnter={() => handleMouseEnter(item)}
-            className="group relative flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-all duration-300 hover:bg-gradient-to-r hover:from-rose-100 hover:to-pink-100 dark:hover:from-rose-950/40 dark:hover:to-pink-950/40"
-            style={{
-              animationDelay: `${index * 30}ms`,
-            }}
-          >
-            {/* Active indicator */}
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-gradient-to-b from-rose-500 to-pink-500 rounded-r-full group-hover:h-full transition-all duration-300" />
-            
-            <span className="relative z-10 flex-1 transition-all duration-300 group-hover:translate-x-1">
-              {item.label}
-            </span>
-            
-            {/* Arrow icon */}
-            <svg
-              className="w-3.5 h-3.5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-rose-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        <div className="space-y-0.5">
+          {items.map((item, index) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onMouseEnter={() => handleMouseEnter(item)}
+              className="group flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition-colors duration-150 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+              style={{ animationDelay: `${index * 30}ms` }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </Link>
-        ))}
+              <span>{item.label}</span>
+              <svg
+                className="w-3.5 h-3.5 text-gray-300 group-hover:text-rose-400 transition-colors"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          ))}
+        </div>
       </div>
 
-      {/* Right Column - Bento Grid */}
-      <div className="relative">
+      {/* Right Column — Product bento grid */}
+      <div className="relative p-5">
         {isLoading && (
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/30 rounded-full">
             <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-rose-600 border-t-transparent"></div>
@@ -350,7 +334,7 @@ export default function ProductsMegaMenu({
         )}
 
         {previewData && previewData.products.length > 0 ? (
-          <div 
+          <div
             className="relative"
             style={{ opacity: imageOpacity }}
           >
@@ -391,16 +375,14 @@ export default function ProductsMegaMenu({
                     </h3>
 
                     {featureProduct.price > 0 && (
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <p className="text-lg font-bold text-rose-600 dark:text-rose-400">
-                          {new Intl.NumberFormat("vi-VN", {
-                            style: "currency",
-                            currency: "VND",
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          }).format(featureProduct.price)}
-                        </p>
-                      </div>
+                      <p className="text-base font-bold text-gray-900 dark:text-white">
+                        {new Intl.NumberFormat("vi-VN", {
+                          style: "currency",
+                          currency: "VND",
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        }).format(featureProduct.price)}
+                      </p>
                     )}
 
                     {/* CTA Button */}
@@ -446,7 +428,7 @@ export default function ProductsMegaMenu({
                       />
                       {/* Gradient overlay on hover */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      
+
                       {/* Quick view badge */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <span className="px-2.5 py-1 bg-white/95 dark:bg-gray-900/95 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
@@ -461,7 +443,7 @@ export default function ProductsMegaMenu({
                         {product.title}
                       </h4>
                       {product.price > 0 ? (
-                        <p className="text-sm font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent dark:from-rose-400 dark:to-pink-400">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">
                           {new Intl.NumberFormat("vi-VN", {
                             style: "currency",
                             currency: "VND",
@@ -483,24 +465,12 @@ export default function ProductsMegaMenu({
             {previewData.products.length >= 7 && (
               <Link
                 href={previewData.categoryHref}
-                className="mt-4 group relative flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white rounded-xl transition-all duration-300 text-sm font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] overflow-hidden"
+                className="mt-4 flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition-colors duration-150 text-sm font-semibold"
               >
-                <span className="relative z-10">Xem tất cả sản phẩm</span>
-                <svg
-                  className="w-4 h-4 relative z-10 transform group-hover:translate-x-1 transition-transform"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
+                Xem tất cả sản phẩm
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                {/* Animated background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-rose-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Link>
             )}
           </div>

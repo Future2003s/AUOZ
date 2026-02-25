@@ -32,9 +32,8 @@ const ProductCard = React.memo<ProductCardProps>(
       <Link href={`/${locale}/products/${product._id}`}>
         <Card className="group overflow-hidden transition-all duration-300 border-0 shadow-md hover:shadow-xl hover:-translate-y-1 h-full">
           <div
-            className={`${
-              viewMode === "grid" ? "aspect-square" : "h-48"
-            } bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative`}
+            className={`${viewMode === "grid" ? "aspect-square" : "h-48"
+              } bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden relative`}
           >
             <Image
               src={mainImage}
@@ -94,7 +93,7 @@ const ProductCard = React.memo<ProductCardProps>(
     if (!prevProps.product?._id || !nextProps.product?._id) {
       return false;
     }
-    
+
     return (
       prevProps.product._id === nextProps.product._id &&
       prevProps.product.price === nextProps.product.price &&

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Henny+Penny&family=Kablammo&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Great+Vibes&family=Henny+Penny&family=Kablammo&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -53,13 +53,15 @@
   --card-foreground: oklch(0.13 0.028 261.692);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.13 0.028 261.692);
-  --primary: oklch(0.55 0.18 15); /* #E11D48 rose-600 - màu vải thiều chín */
+  --primary: oklch(0.55 0.18 15);
+  /* #E11D48 rose-600 - màu vải thiều chín */
   --primary-foreground: oklch(0.985 0.002 247.839);
   --secondary: oklch(0.967 0.003 264.542);
   --secondary-foreground: oklch(0.21 0.034 264.665);
   --muted: oklch(0.967 0.003 264.542);
   --muted-foreground: oklch(0.551 0.027 264.364);
-  --accent: oklch(0.75 0.15 50); /* #FB923C orange-400 - màu cam đào (vải chín) */
+  --accent: oklch(0.75 0.15 50);
+  /* #FB923C orange-400 - màu cam đào (vải chín) */
   --accent-foreground: oklch(0.21 0.034 264.665);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.928 0.006 264.531);
@@ -72,7 +74,8 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0.002 247.839);
   --sidebar-foreground: oklch(0.13 0.028 261.692);
-  --sidebar-primary: oklch(0.55 0.18 15); /* rose-600 */
+  --sidebar-primary: oklch(0.55 0.18 15);
+  /* rose-600 */
   --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
   --sidebar-accent: oklch(0.967 0.003 264.542);
   --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
@@ -111,7 +114,8 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.21 0.034 264.665);
   --sidebar-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-primary: oklch(0.55 0.18 15); /* rose-600 */
+  --sidebar-primary: oklch(0.55 0.18 15);
+  /* rose-600 */
   --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
   --sidebar-accent: oklch(0.278 0.033 256.848);
   --sidebar-accent-foreground: oklch(0.985 0.002 247.839);
@@ -123,6 +127,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -135,18 +140,21 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 1;
   }
+
   .line-clamp-2 {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
+
   .line-clamp-3 {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
+
   .line-clamp-none {
     overflow: visible;
     display: block;
@@ -162,6 +170,7 @@
 
   /* Prevent zoom on iOS when focusing inputs */
   @media screen and (max-width: 768px) {
+
     input[type="email"],
     input[type="password"],
     input[type="text"],
@@ -183,13 +192,14 @@
   .force-desktop-view {
     min-width: 1024px;
   }
-  
+
   .force-desktop-view body {
     min-width: 1024px;
   }
 
   /* Better touch targets on mobile */
   @media (hover: none) and (pointer: coarse) {
+
     button,
     [role="button"],
     input[type="submit"],
@@ -204,26 +214,32 @@
     0% {
       transform: scale(1.05) translateY(0);
     }
+
     50% {
       transform: scale(1.08) translateY(-2%);
     }
+
     100% {
       transform: scale(1.05) translateY(0);
     }
   }
+
   @keyframes fade-in-down {
     from {
       opacity: 0;
       transform: translateY(-10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
+
   .animate-slow-pan {
     animation: slow-pan 28s ease-in-out infinite alternate;
   }
+
   .animate-fade-in-down {
     animation: fade-in-down 0.6s ease-out both;
   }
@@ -231,131 +247,168 @@
 
 /* Loader keyframes (moved from component) */
 @keyframes crack-effect {
+
   0%,
   100% {
     transform: scale(0) rotate(0deg);
     opacity: 0;
   }
+
   40% {
     transform: scale(1.1) rotate(0deg);
     opacity: 1;
   }
+
   60% {
     transform: scale(1.2) rotate(15deg);
     opacity: 0;
   }
 }
+
 @keyframes container-wobble {
+
   0%,
   100% {
     transform: rotate(0);
   }
+
   25% {
     transform: rotate(-8deg);
   }
+
   75% {
     transform: rotate(8deg);
   }
 }
+
 @keyframes split-top-left {
+
   0%,
   100% {
     transform: translate(0, 0) scale(1);
   }
+
   48% {
     transform: translate(-14px, -16px) scale(0.9) rotate(-3deg);
   }
+
   50% {
     transform: translate(-15px, -15px) scale(0.9) rotate(-4deg);
     opacity: 0.85;
   }
+
   52% {
     transform: translate(-16px, -14px) scale(0.9) rotate(-5deg);
   }
 }
+
 @keyframes split-top-right {
+
   0%,
   100% {
     transform: translate(0, 0) scale(1);
   }
+
   48% {
     transform: translate(14px, -16px) scale(0.9) rotate(3deg);
   }
+
   50% {
     transform: translate(15px, -15px) scale(0.9) rotate(4deg);
     opacity: 0.85;
   }
+
   52% {
     transform: translate(16px, -14px) scale(0.9) rotate(5deg);
   }
 }
+
 @keyframes split-bottom-left {
+
   0%,
   100% {
     transform: translate(0, 0) scale(1);
   }
+
   48% {
     transform: translate(-16px, 14px) scale(0.9) rotate(5deg);
   }
+
   50% {
     transform: translate(-15px, 15px) scale(0.9) rotate(4deg);
     opacity: 0.85;
   }
+
   52% {
     transform: translate(-14px, 16px) scale(0.9) rotate(3deg);
   }
 }
+
 @keyframes split-bottom-right {
+
   0%,
   100% {
     transform: translate(0, 0) scale(1);
   }
+
   48% {
     transform: translate(16px, 14px) scale(0.9) rotate(-5deg);
   }
+
   50% {
     transform: translate(15px, 15px) scale(0.9) rotate(-4deg);
     opacity: 0.85;
   }
+
   52% {
     transform: translate(14px, 16px) scale(0.9) rotate(-3deg);
   }
 }
+
 @keyframes loading-dots-bounce {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
 }
+
 .animate-split-top-left {
   animation: split-top-left 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
 }
+
 .animate-split-top-right {
   animation: split-top-right 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
 }
+
 .animate-split-bottom-left {
-  animation: split-bottom-left 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)
-    infinite;
+  animation: split-bottom-left 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
 }
+
 .animate-split-bottom-right {
-  animation: split-bottom-right 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)
-    infinite;
+  animation: split-bottom-right 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
 }
+
 .crack-effect {
   animation: crack-effect 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
 }
+
 .animate-container-wobble {
   animation: container-wobble 2.5s ease-in-out infinite;
 }
+
 .animate-dot-1 {
   animation: loading-dots-bounce 1.5s ease-in-out infinite;
 }
+
 .animate-dot-2 {
   animation: loading-dots-bounce 1.5s ease-in-out 0.2s infinite;
 }
+
 .animate-dot-3 {
   animation: loading-dots-bounce 1.5s ease-in-out 0.4s infinite;
 }
@@ -365,21 +418,26 @@
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
 }
+
 @keyframes shimmer-slide {
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
 }
+
 .animate-shimmer {
   animation: shimmer 2s infinite;
 }
+
 .animate-shimmer-slide {
   animation: shimmer-slide 2s infinite;
 }
@@ -389,10 +447,107 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
 .touch-manipulation {
   touch-action: manipulation;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PRODUCT DETAIL PAGE — Lora serif typography system
+═══════════════════════════════════════════════════════ */
+.product-detail-page {
+  font-family: 'Lora', Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+  color: #1a1a2e;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings */
+.product-detail-page h1 {
+  font-family: 'Lora', serif;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: #0f0a1e;
+}
+
+.product-detail-page h2 {
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  letter-spacing: -0.01em;
+  color: #1a1a2e;
+}
+
+.product-detail-page h3 {
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  color: #1a1a2e;
+}
+
+/* Body text */
+.product-detail-page p,
+.product-detail-page label,
+.product-detail-page span:not(.badge) {
+  font-family: 'Lora', serif;
+}
+
+/* Description text — đặc biệt dễ đọc */
+.product-detail-page .product-description {
+  font-family: 'Lora', serif;
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: #2d2d3d;
+  max-width: 72ch;
+}
+
+/* Price text — to, nổi bật */
+.product-detail-page .price-text {
+  font-family: 'Lora', serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* Form inputs — dùng sans-serif để nhập liệu dễ hơn */
+.product-detail-page input,
+.product-detail-page textarea,
+.product-detail-page select {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  color: #1a1a2e;
+}
+
+/* Buttons — dùng Lora cho đồng nhất nhưng không italic */
+.product-detail-page button {
+  font-family: 'Lora', serif;
+  font-style: normal;
+  letter-spacing: 0.01em;
+}
+
+/* Badges và tags — sans-serif cho compact text */
+.product-detail-page .badge,
+.product-detail-page [class*='text-xs'],
+.product-detail-page [class*='text-[10px]'],
+.product-detail-page [class*='text-[11px]'] {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* Navigation breadcrumb */
+.product-detail-page nav {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #4a4a6a;
+  letter-spacing: 0.01em;
 }

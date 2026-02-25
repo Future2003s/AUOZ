@@ -14,7 +14,7 @@ const values: ValueItem[] = [
     icon: <Leaf className="w-8 h-8" />,
     title: "100% Vải Tươi Vĩnh Lập",
     description: "Nguồn gốc rõ ràng từ vùng đất Vĩnh Lập - Thanh Hà, nơi có hương vị độc bản không nơi nào có.",
-    color: "from-green-500 to-emerald-600",
+    color: "from-emerald-500 to-green-600",
   },
   {
     icon: <Award className="w-8 h-8" />,
@@ -26,25 +26,25 @@ const values: ValueItem[] = [
     icon: <Package className="w-8 h-8" />,
     title: "Đóng Gói Sang Trọng",
     description: "Mỗi sản phẩm được đóng gói tinh xảo, phù hợp làm quà tặng cao cấp.",
-    color: "from-orange-500 to-amber-600",
+    color: "from-amber-500 to-orange-500",
   },
   {
     icon: <Heart className="w-8 h-8" />,
     title: "Tâm Huyết Với Quê Hương",
     description: "Mang lại công ăn việc làm bền vững cho người nông dân, góp phần phát triển địa phương.",
-    color: "from-red-500 to-rose-600",
+    color: "from-rose-600 to-rose-700",
   },
   {
     icon: <Globe className="w-8 h-8" />,
     title: "Xuất Khẩu Nhật Bản",
     description: "Được tin dùng tại thị trường Nhật Bản - minh chứng cho chất lượng và uy tín.",
-    color: "from-blue-500 to-indigo-600",
+    color: "from-rose-400 to-pink-500",
   },
   {
     icon: <Shield className="w-8 h-8" />,
     title: "Dịch Vụ Tận Tâm",
     description: "Hỗ trợ khách hàng 24/7, giao hàng nhanh chóng, đảm bảo hài lòng 100%.",
-    color: "from-purple-500 to-violet-600",
+    color: "from-emerald-600 to-teal-600",
   },
 ];
 
