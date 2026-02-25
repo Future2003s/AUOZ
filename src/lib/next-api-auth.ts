@@ -20,44 +20,54 @@ export async function getAuthHeaderOrRefresh(
   const refreshToken = request.cookies.get("refreshToken")?.value;
   if (!refreshToken) return { authHeader: null };
   try {
-    // Forward the refresh token explicitly as a Cookie header. "credentials" does not
-    // include cross-origin cookies in Node fetch.
-    // Sử dụng envConfig thay vì process.env
     const baseUrl =
       envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
-    
-    const res = await fetch(
-      `${baseUrl}/auth/refresh-token`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ refreshToken }),
-      }
-    );
+
+    const res = await fetch(`${baseUrl}/auth/refresh-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
     if (!res.ok) return { authHeader: null };
-    const contentType = res.headers.get("content-type") || "";
+
     let data: any;
     try {
+      const contentType = res.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
         const text = await res.text();
         data = text ? JSON.parse(text) : {};
       } else {
         data = {};
       }
-    } catch (error) {
-      console.error("JSON parse error:", error);
+    } catch {
       data = {};
     }
-    const newAccess = data?.accessToken || data?.data?.accessToken;
-    const setCookie = res.headers.get("set-cookie");
+
+    // Backend trả về { success: true, data: { token, refreshToken } }
+    const newAccess =
+      data?.data?.token ||
+      data?.data?.accessToken ||
+      data?.accessToken ||
+      data?.token;
+
     if (!newAccess) return { authHeader: null };
-    return { authHeader: `Bearer ${newAccess}`, setCookie };
+
+    // Build set-cookie headers để cập nhật sessionToken (và refreshToken nếu có)
+    const isProd = process.env.NODE_ENV === "production";
+    const securePart = isProd ? "; Secure" : "";
+    let setCookieHeader = `sessionToken=${newAccess}; Path=/; HttpOnly; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${securePart}`;
+
+    const newRefreshToken = data?.data?.refreshToken;
+    if (newRefreshToken) {
+      setCookieHeader += `, refreshToken=${newRefreshToken}; Path=/; HttpOnly; Max-Age=${60 * 60 * 24 * 365}; SameSite=Strict${securePart}`;
+    }
+
+    return { authHeader: `Bearer ${newAccess}`, setCookie: setCookieHeader };
   } catch {
     return { authHeader: null };
   }
 }
+
 
 export async function proxyJson<ResponseBody = any>(
   backendUrl: string,
@@ -82,20 +92,52 @@ export async function proxyJson<ResponseBody = any>(
       cache: "no-store",
     });
 
-    // If unauthorized, try refreshing once then retry
+    // Track cookie to set from refresh (may be updated below)
+    let finalSetCookie = setCookie;
+
+    // If 401, try silent refresh once then retry with new token
     if (res.status === 401 && init.requireAuth) {
-      const refresh = await getAuthHeaderOrRefresh(request);
-      if (refresh.authHeader) {
-        res = await fetch(backendUrl, {
-          ...init,
-          headers: {
-            ...(init.headers || {}),
-            Authorization: refresh.authHeader,
-          },
-          cache: "no-store",
-        });
-        if (refresh.setCookie) {
-          // Attach new cookie to response if we succeed
+      // Force a refresh by passing a fake request without sessionToken cookie
+      // so getAuthHeaderOrRefresh skips the "has sessionToken" branch
+      const refreshToken = request.cookies.get("refreshToken")?.value;
+      if (refreshToken) {
+        const baseUrl =
+          envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
+        try {
+          const refreshRes = await fetch(`${baseUrl}/auth/refresh-token`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refreshToken }),
+          });
+          if (refreshRes.ok) {
+            const text = await refreshRes.text();
+            const refreshData = text ? JSON.parse(text) : {};
+            const newToken =
+              refreshData?.data?.token ||
+              refreshData?.data?.accessToken ||
+              refreshData?.accessToken;
+            if (newToken) {
+              // Retry original request with fresh token
+              res = await fetch(backendUrl, {
+                ...init,
+                headers: {
+                  ...(init.headers || {}),
+                  Authorization: `Bearer ${newToken}`,
+                },
+                cache: "no-store",
+              });
+              // Build set-cookie for new tokens
+              const isProd = process.env.NODE_ENV === "production";
+              const securePart = isProd ? "; Secure" : "";
+              finalSetCookie = `sessionToken=${newToken}; Path=/; HttpOnly; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${securePart}`;
+              const newRefreshToken = refreshData?.data?.refreshToken;
+              if (newRefreshToken) {
+                finalSetCookie += `, refreshToken=${newRefreshToken}; Path=/; HttpOnly; Max-Age=${60 * 60 * 24 * 365}; SameSite=Strict${securePart}`;
+              }
+            }
+          }
+        } catch {
+          // refresh failed, continue with original 401 response
         }
       }
     }
@@ -139,20 +181,34 @@ export async function proxyJson<ResponseBody = any>(
       }
     );
 
-    if (setCookie) {
-      response.headers.set("set-cookie", setCookie);
+    // Apply refreshed cookies to response
+    if (finalSetCookie) {
+      // Split multiple cookies if needed
+      const cookies = finalSetCookie.split(/, (?=[a-zA-Z_]+=)/);
+      cookies.forEach((cookie, i) => {
+        if (i === 0) {
+          response.headers.set("set-cookie", cookie);
+        } else {
+          response.headers.append("set-cookie", cookie);
+        }
+      });
     }
 
+    // Only clear cookies if both accessToken AND refreshToken are gone (truly logged out)
+    // Do NOT clear on every 401 — this caused the premature logout bug
     if (res.status === 401 && init.requireAuth) {
-      // force client logout: clear cookies
-      response.headers.append(
-        "set-cookie",
-        "sessionToken=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax"
-      );
-      response.headers.append(
-        "set-cookie",
-        "refreshToken=; Path=/; HttpOnly; Max-Age=0; SameSite=Strict"
-      );
+      const hasRefreshToken = request.cookies.get("refreshToken")?.value;
+      if (!hasRefreshToken) {
+        // No refresh token left → truly expired, safe to clear
+        response.headers.append(
+          "set-cookie",
+          "sessionToken=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax"
+        );
+        response.headers.append(
+          "set-cookie",
+          "refreshToken=; Path=/; HttpOnly; Max-Age=0; SameSite=Strict"
+        );
+      }
     }
 
     return response;
@@ -170,3 +226,4 @@ export async function proxyJson<ResponseBody = any>(
     );
   }
 }
+

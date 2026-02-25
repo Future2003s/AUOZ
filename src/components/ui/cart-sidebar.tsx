@@ -97,7 +97,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     if (items.length === 0) {
       return;
     }
-    const checkoutPath = `/${locale}/payment`;
+    const checkoutPath = `/${locale}/checkout`;
     router.push(checkoutPath);
     onClose();
   };
@@ -120,17 +120,15 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={onClose}
       />
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
@@ -178,9 +176,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             <>
               {/* Items list */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {items.map((item, index) => (
+                {items.map((item, index) => (
                   <div
-                  key={`${item.id}-${item.variantId || "no-variant"}-${index}`}
+                    key={`${item.id}-${item.variantId || "no-variant"}-${index}`}
                     className="flex gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
                   >
                     {/* Product image */}
@@ -339,13 +337,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     </div>
                   )}
                   <Separator className="my-2" />
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-semibold text-gray-900 dark:text-white">
                       Thành tiền
-                  </span>
-                  <span className="text-xl font-bold text-rose-600 dark:text-rose-400">
+                    </span>
+                    <span className="text-xl font-bold text-rose-600 dark:text-rose-400">
                       {formatCurrency(grandTotal)}
-                  </span>
+                    </span>
                   </div>
                 </div>
 

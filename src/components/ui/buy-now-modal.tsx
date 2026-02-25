@@ -11,6 +11,8 @@ export interface BuyNowItem {
   name: string;
   price: number;
   quantity: number;
+  productId?: string;
+  variantId?: string | null;
 }
 
 interface BuyNowModalProps {
@@ -41,7 +43,7 @@ const formatAddress = (addr?: Address | null) => {
     [addr.city, addr.state].filter(Boolean).join(", "),
     [addr.zipCode, addr.country].filter(Boolean).join(", "),
     [addr.wardOld, addr.districtOld, addr.provinceOld].filter(Boolean).join(", ") ||
-      [addr.wardNew, addr.provinceNew].filter(Boolean).join(", "),
+    [addr.wardNew, addr.provinceNew].filter(Boolean).join(", "),
   ];
 
   return parts
@@ -107,7 +109,7 @@ export default function BuyNowModal({
   useEffect(() => {
     // Wait for auth to finish loading before checking
     if (!open || authLoading) return;
-    
+
     // If not authenticated, don't populate user data
     if (!isAuthenticated || !user) {
       return;
@@ -167,8 +169,8 @@ export default function BuyNowModal({
       if (!res.ok) {
         throw new Error(
           payload?.message ||
-            payload?.data?.message ||
-            "Không thể áp dụng voucher"
+          payload?.data?.message ||
+          "Không thể áp dụng voucher"
         );
       }
       const data = payload?.data ?? payload;
@@ -257,7 +259,13 @@ export default function BuyNowModal({
 
     const orderItems = items
       .filter((it) => it.quantity > 0)
-      .map((it) => ({ name: it.name, quantity: it.quantity, price: it.price }));
+      .map((it) => ({
+        name: it.name,
+        quantity: it.quantity,
+        price: it.price,
+        ...(it.productId ? { productId: it.productId } : {}),
+        ...(it.variantId ? { variantId: it.variantId } : {}),
+      }));
 
     const descriptionParts = [
       `${totalQty} sản phẩm - Người mua: ${fullName} - ĐT: ${phone}`,
@@ -280,10 +288,10 @@ export default function BuyNowModal({
       paymentMethod,
       voucher: appliedVoucher
         ? {
-            code: appliedVoucher.code,
-            description: appliedVoucher.description,
-            discountAmount,
-          }
+          code: appliedVoucher.code,
+          description: appliedVoucher.description,
+          discountAmount,
+        }
         : undefined,
     };
 
@@ -325,23 +333,51 @@ export default function BuyNowModal({
           );
         }
       } else {
-        // Use isAuthenticated as primary check since we're using cookies
-        const isLoggedIn = Boolean(isAuthenticated);
-        const endpoint = isLoggedIn ? "/api/orders" : "/api/orders/create";
+        // Luôn dùng /api/orders vì backend /orders/create cũng map về cùng createOrder controller
+        // Backend createOrder chấp nhận cả có user lẫn không có user
+        const endpoint = "/api/orders";
 
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
         };
 
-        // With cookie-based auth, we don't need Authorization header
-        // The cookie will be sent automatically with credentials: "include"
+        // Backend createOrder (d:\BeLLLC\src\controllers\orderController.ts) yêu cầu:
+        // - items[]: { productId?, name (required), sku (required), quantity, price }
+        // - customer: { fullName, phone, address, note } (nếu không có shippingAddress)
+        // - paymentMethod: "cod" (KHÔNG phải paymentInfo.method)
+        // - notes, couponCode, amount (optional)
+        // Khi không truyền shippingAddress, backend tự build từ customer
+
+        const bodyToSend = {
+          items: orderItems.map((it) => ({
+            ...(it.productId ? { productId: it.productId } : {}),
+            name: it.name,                              // REQUIRED
+            sku: it.productId || `SKU-${Date.now()}`,   // REQUIRED - dùng productId hoặc generate
+            quantity: it.quantity,
+            price: it.price,
+          })),
+          customer: {
+            fullName,
+            phone,
+            email,
+            address,
+            note,
+          },
+          paymentMethod: "cod",   // Backend tự map sang "cash_on_delivery"
+          notes: note || undefined,
+          couponCode: appliedVoucher?.code || undefined,
+          amount: grandTotal,
+          description: `${totalQty} sản phẩm - ${fullName} - ${phone}`,
+        };
 
         const response = await fetch(endpoint, {
           method: "POST",
           headers,
-          body: JSON.stringify(orderPayload),
+          body: JSON.stringify(bodyToSend),
           credentials: "include",
         });
+
+
         if (!response.ok) {
           let errorData;
           try {
@@ -546,11 +582,10 @@ export default function BuyNowModal({
                         }
                       }}
                       placeholder="Nguyễn Văn A"
-                      className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${
-                        fieldErrors.fullName
-                          ? "border-red-500 focus:ring-red-500"
-                          : "focus:ring-pink-500"
-                      }`}
+                      className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${fieldErrors.fullName
+                        ? "border-red-500 focus:ring-red-500"
+                        : "focus:ring-pink-500"
+                        }`}
                     />
                     {fieldErrors.fullName && (
                       <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
@@ -574,11 +609,10 @@ export default function BuyNowModal({
                         }
                       }}
                       placeholder="09xxxxxxxx"
-                      className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${
-                        fieldErrors.phone
-                          ? "border-red-500 focus:ring-red-500"
-                          : "focus:ring-pink-500"
-                      }`}
+                      className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${fieldErrors.phone
+                        ? "border-red-500 focus:ring-red-500"
+                        : "focus:ring-pink-500"
+                        }`}
                     />
                     {fieldErrors.phone && (
                       <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
@@ -613,11 +647,10 @@ export default function BuyNowModal({
                         }
                       }}
                       placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"
-                      className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${
-                        fieldErrors.address
-                          ? "border-red-500 focus:ring-red-500"
-                          : "focus:ring-pink-500"
-                      }`}
+                      className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${fieldErrors.address
+                        ? "border-red-500 focus:ring-red-500"
+                        : "focus:ring-pink-500"
+                        }`}
                     />
                     {fieldErrors.address && (
                       <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
@@ -647,11 +680,10 @@ export default function BuyNowModal({
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label
-                    className={`border rounded-md p-3 cursor-pointer flex items-start gap-3 ${
-                      paymentMethod === "cod"
-                        ? "border-pink-500 ring-1 ring-pink-200"
-                        : "border-gray-200"
-                    }`}
+                    className={`border rounded-md p-3 cursor-pointer flex items-start gap-3 ${paymentMethod === "cod"
+                      ? "border-pink-500 ring-1 ring-pink-200"
+                      : "border-gray-200"
+                      }`}
                   >
                     <input
                       type="radio"
@@ -669,11 +701,10 @@ export default function BuyNowModal({
                     </div>
                   </label>
                   <label
-                    className={`border rounded-md p-3 cursor-pointer flex items-start gap-3 ${
-                      paymentMethod === "bank"
-                        ? "border-pink-500 ring-1 ring-pink-200"
-                        : "border-gray-200"
-                    }`}
+                    className={`border rounded-md p-3 cursor-pointer flex items-start gap-3 ${paymentMethod === "bank"
+                      ? "border-pink-500 ring-1 ring-pink-200"
+                      : "border-gray-200"
+                      }`}
                   >
                     <input
                       type="radio"

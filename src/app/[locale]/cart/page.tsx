@@ -351,10 +351,10 @@ export default function CartPage() {
 
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                    <span className="text-gray-700 dark:text-gray-300">
-                      Tạm tính ({totalQuantity} sản phẩm):
-                    </span>
-                    <span className="font-medium text-gray-900 dark:text-white">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Tạm tính ({totalQuantity} sản phẩm):
+                      </span>
+                      <span className="font-medium text-gray-900 dark:text-white">
                         {formatCurrency(subtotal)}
                       </span>
                     </div>
@@ -366,24 +366,24 @@ export default function CartPage() {
                         {discountAmount > 0
                           ? `- ${formatCurrency(discountAmount)}`
                           : "Không áp dụng"}
-                    </span>
-                  </div>
+                      </span>
+                    </div>
                     <div className="flex justify-between">
-                    <span className="text-gray-700 dark:text-gray-300">
-                      Phí vận chuyển:
-                    </span>
-                    <span className="text-green-600 dark:text-green-400 font-medium">
-                      Miễn phí
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-lg font-bold">
-                    <span className="text-gray-900 dark:text-white">
-                      Tổng cộng:
-                    </span>
-                    <span className="text-rose-600 dark:text-rose-400">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Phí vận chuyển:
+                      </span>
+                      <span className="text-green-600 dark:text-green-400 font-medium">
+                        Miễn phí
+                      </span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between text-lg font-bold">
+                      <span className="text-gray-900 dark:text-white">
+                        Tổng cộng:
+                      </span>
+                      <span className="text-rose-600 dark:text-rose-400">
                         {formatCurrency(grandTotal)}
-                    </span>
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -406,7 +406,7 @@ export default function CartPage() {
                   className="w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700"
                   onClick={() => {
                     if (items.length === 0) return;
-                    router.push(`/${locale}/payment`);
+                    router.push(`/${locale}/checkout`);
                   }}
                 >
                   <CreditCard className="h-5 w-5 mr-2" />
