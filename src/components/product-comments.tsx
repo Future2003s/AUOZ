@@ -110,9 +110,8 @@ export default function ProductCommentsSection({ productId }: { productId: strin
           <Star
             key={star}
             size={size}
-            className={`${interactive ? "cursor-pointer transition-transform hover:scale-110" : ""} ${
-              star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-            }`}
+            className={`${interactive ? "cursor-pointer transition-transform hover:scale-110" : ""} ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+              }`}
             onClick={() => interactive && setRating && setRating(star)}
           />
         ))}
@@ -202,8 +201,8 @@ export default function ProductCommentsSection({ productId }: { productId: strin
           err?.message?.includes("403") || err?.message?.includes("authorized")
             ? "Bạn không có quyền xoá bình luận này"
             : err instanceof Error
-            ? err.message
-            : "Không thể xoá bình luận";
+              ? err.message
+              : "Không thể xoá bình luận";
         toast.error(message);
       } finally {
         setDeletingId(null);
@@ -250,8 +249,8 @@ export default function ProductCommentsSection({ productId }: { productId: strin
         err?.message?.includes("401") || err?.message?.includes("authorized")
           ? "Vui lòng đăng nhập để bình luận"
           : err instanceof Error
-          ? err.message
-          : "Không thể gửi bình luận";
+            ? err.message
+            : "Không thể gửi bình luận";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -275,11 +274,23 @@ export default function ProductCommentsSection({ productId }: { productId: strin
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             {/* Left: Overview (use comments count) */}
             <div className="md:col-span-4 flex flex-col items-center justify-center p-6 bg-yellow-50 rounded-xl border border-yellow-100">
-              <div className="text-5xl font-extrabold text-yellow-500 mb-2">
-                {totalComments > 0 ? "5.0" : "0.0"}
-              </div>
-              <div className="mb-2">{renderStars(totalComments > 0 ? 5 : 0, 24)}</div>
-              <div className="text-gray-600 text-sm font-medium">{totalComments} phản hồi</div>
+              {totalComments > 0 ? (
+                <>
+                  <div className="text-5xl font-extrabold text-yellow-500 mb-2">5.0</div>
+                  <div className="mb-2">{renderStars(5, 24)}</div>
+                  <div className="text-gray-600 text-sm font-medium">{totalComments} phản hồi</div>
+                </>
+              ) : (
+                <>
+                  <div className="mb-3">{renderStars(0, 28)}</div>
+                  <div className="text-gray-500 text-sm font-medium text-center">
+                    Chưa có đánh giá
+                  </div>
+                  <div className="text-gray-400 text-xs text-center mt-1">
+                    Hãy là người đầu tiên đánh giá!
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Right: Stats */}
@@ -313,21 +324,19 @@ export default function ProductCommentsSection({ productId }: { productId: strin
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilter("all")}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                filter === "all"
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === "all"
                   ? "bg-indigo-600 text-white shadow-md"
                   : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
-              }`}
+                }`}
             >
               Tất cả
             </button>
             <button
               onClick={() => setFilter("with-replies")}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                filter === "with-replies"
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === "with-replies"
                   ? "bg-indigo-600 text-white shadow-md"
                   : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
-              }`}
+                }`}
             >
               Có phản hồi
             </button>
@@ -434,11 +443,11 @@ export default function ProductCommentsSection({ productId }: { productId: strin
                         <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
                           <span>{formatTimeAgo(comment.createdAt)}</span>
                           {comment.isEdited && <span className="italic text-gray-400">(đã chỉnh sửa)</span>}
-                        {comment.rating ? (
-                          <span className="flex items-center gap-1 text-amber-500">
-                            {renderStars(comment.rating, 12)}
-                          </span>
-                        ) : null}
+                          {comment.rating ? (
+                            <span className="flex items-center gap-1 text-amber-500">
+                              {renderStars(comment.rating, 12)}
+                            </span>
+                          ) : null}
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-green-600 text-xs font-medium bg-green-50 px-2 py-1 rounded-full mt-2 sm:mt-0 w-fit">
