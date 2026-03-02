@@ -76,17 +76,17 @@ const deleteCookie = (name: string) => {
 export const useAuth = (): UseAuthReturn => {
   const { setSessionToken } = useAppContextProvider();
   const queryClient = useQueryClient();
-  
+
   // Sử dụng React Query để cache và tránh duplicate calls
   const { data: meData, isLoading: meLoading, error: meError } = useQuery({
     queryKey: meQueryKey,
     queryFn: fetchMe,
     enabled: typeof window !== 'undefined', // Chỉ chạy ở client
-    staleTime: 10 * 60 * 1000, // Cache 10 phút để giảm API calls
-    gcTime: 15 * 60 * 1000, // Giữ cache 15 phút
+    staleTime: 5 * 60 * 1000, // Cache 5 phút (giảm để phát hiện session hết hạn sớm hơn)
+    gcTime: 10 * 60 * 1000, // Giữ cache 10 phút
     retry: 1,
     refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Kiểm tra session khi user quay lại tab (phát hiện JWT hết hạn)
   });
 
   // State management
@@ -122,15 +122,15 @@ export const useAuth = (): UseAuthReturn => {
       const user = meData.user;
       const rememberMe = getCookie(COOKIE_KEYS.REMEMBER_ME) === "true";
 
-          setAuthState({
-            user,
+      setAuthState({
+        user,
         token: null,
         refreshToken: null,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-        } else {
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } else {
       setAuthState({
         user: null,
         token: null,
@@ -227,11 +227,11 @@ export const useAuth = (): UseAuthReturn => {
         return response;
       } catch (error) {
         let errorMessage = "Đăng nhập thất bại";
-        
+
         if (error instanceof HttpError) {
           const payload = error.payload as any;
           errorMessage = payload?.error || payload?.message || errorMessage;
-          
+
           // Handle specific error cases
           if (error.statusCode === 401) {
             if (payload?.error?.includes("deactivated") || payload?.error?.includes("inactive")) {
@@ -275,11 +275,11 @@ export const useAuth = (): UseAuthReturn => {
         return response;
       } catch (error) {
         let errorMessage = "Đăng nhập thất bại";
-        
+
         if (error instanceof HttpError) {
           const payload = error.payload as any;
           errorMessage = payload?.error || payload?.message || errorMessage;
-          
+
           // Handle specific error cases
           if (error.statusCode === 401) {
             if (payload?.error?.includes("deactivated") || payload?.error?.includes("inactive")) {
@@ -354,7 +354,7 @@ export const useAuth = (): UseAuthReturn => {
   const logout = useCallback(async () => {
     try {
       // Call Next API to clear httpOnly cookies and notify backend
-      await fetch("/api/auth/logout", { 
+      await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -391,8 +391,8 @@ export const useAuth = (): UseAuthReturn => {
         if (data?.success) {
           // Token đã được set trong cookie httpOnly bởi API, không cần lưu ở client
           // Chỉ cập nhật state để đánh dấu đã refresh
-      setAuthState((prev) => ({
-        ...prev,
+          setAuthState((prev) => ({
+            ...prev,
             // Token không lưu ở client state vì đã trong cookie
           }));
         } else {
@@ -425,7 +425,7 @@ export const useAuth = (): UseAuthReturn => {
             setCookie(COOKIE_KEYS.USER, userDataStr, 30); // Tăng từ 7 ngày lên 30 ngày
           }
         }
-        
+
         return {
           ...prev,
           user: updatedUser,
