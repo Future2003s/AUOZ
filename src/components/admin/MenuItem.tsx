@@ -30,45 +30,45 @@ const MenuItem = memo(({ id, label, icon: Icon, href, isActive, onClick }: MenuI
   };
 
   const content = (
-    <>
+    <div className={`flex items-center w-full relative z-10 transition-colors duration-200 ${isActive ? "text-[#0b57d0] dark:text-[#a8c7fa]" : "text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100"}`}>
       <Icon
-        size={18}
-        className={`mr-3 transition-colors ${
-          isActive
-            ? "text-indigo-600"
-            : "text-gray-400 group-hover:text-gray-600"
-        } ${isNavigating ? "animate-pulse" : ""}`}
+        size={20}
+        className={`mr-3 flex-shrink-0 transition-all ${isNavigating ? "animate-pulse" : ""}`}
       />
-      <span className={isNavigating ? "opacity-70" : ""}>{label}</span>
+      <span className={`text-[14px] font-[500] leading-5 truncate ${isNavigating ? "opacity-70" : ""}`}>
+        {label}
+      </span>
       {isActive && (
         <ChevronRight
-          size={14}
-          className="ml-auto text-indigo-400"
+          size={16}
+          className="ml-auto opacity-70"
         />
       )}
       {isNavigating && (
-        <div className="ml-auto h-4 w-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="ml-auto h-4 w-4 border-2 border-[#0b57d0] dark:border-[#a8c7fa] border-t-transparent rounded-full animate-spin" />
       )}
-    </>
+    </div>
   );
+
+  // Material 3 style completely rounded pill active state
+  const containerClasses = `
+    relative w-full flex items-center px-4 py-[10px] my-[2px] rounded-full transition-all duration-200 group overflow-hidden
+    ${isActive
+      ? "bg-[#d3e3fd] dark:bg-[#004a77]"
+      : "hover:bg-gray-100/80 dark:hover:bg-gray-800"
+    }
+    ${isNavigating ? "opacity-75" : ""}
+  `;
 
   if (href) {
     return (
-      <li>
+      <li className="list-none">
         <Link
           href={href}
           onClick={handleClick}
           prefetch={true}
           scroll={true}
-          className={`
-            w-full flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group
-            ${
-              isActive
-                ? "bg-indigo-50 text-indigo-700"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-            }
-            ${isNavigating ? "opacity-75" : ""}
-          `}
+          className={containerClasses}
         >
           {content}
         </Link>
@@ -77,19 +77,11 @@ const MenuItem = memo(({ id, label, icon: Icon, href, isActive, onClick }: MenuI
   }
 
   return (
-    <li>
+    <li className="list-none">
       <button
         onClick={handleClick}
         disabled={isNavigating}
-        className={`
-          w-full flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group
-          ${
-            isActive
-              ? "bg-indigo-50 text-indigo-700"
-              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-          }
-          ${isNavigating ? "opacity-75 cursor-wait" : ""}
-        `}
+        className={`${containerClasses} ${isNavigating ? "cursor-wait" : ""}`}
       >
         {content}
       </button>
@@ -100,4 +92,3 @@ const MenuItem = memo(({ id, label, icon: Icon, href, isActive, onClick }: MenuI
 MenuItem.displayName = "MenuItem";
 
 export default MenuItem;
-

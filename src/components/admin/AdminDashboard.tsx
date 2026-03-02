@@ -66,9 +66,8 @@ const StatusBadge = memo(({ status }: { status: string }) => {
 
   return (
     <span
-      className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-        styles[status] || "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-      }`}
+      className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] || "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+        }`}
     >
       {status}
     </span>
@@ -271,7 +270,7 @@ export default function AdminDashboard({
   }, []);
 
   return (
-    <div className="flex h-screen bg-gray-50 font-sans text-gray-900">
+    <div className="flex h-screen bg-[#f8f9fa] dark:bg-[#111] font-sans text-gray-900 transition-colors duration-200">
       <AdminPWAManifest />
       <NavigationOptimizer />
       {/* PWA Components */}
@@ -280,17 +279,17 @@ export default function AdminDashboard({
       {/* SIDEBAR NAVIGATION */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out
-          lg:relative lg:translate-x-0
+          fixed inset-y-0 left-0 z-50 w-[260px] bg-white dark:bg-[#1f1f1f] border-r border-[#f1f3f4] dark:border-gray-800 transform transition-transform duration-300 ease-in-out
+          lg:relative lg:translate-x-0 flex flex-col
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">L</span>
+        <div className="flex items-center justify-between h-[64px] px-6 border-b border-[#f1f3f4] dark:border-gray-800">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-[#0b57d0] dark:bg-[#a8c7fa] rounded-[8px] flex items-center justify-center shadow-sm">
+              <span className="text-white dark:text-[#041e49] font-bold text-lg">L</span>
             </div>
-            <span className="text-xl font-bold tracking-tight text-gray-900">
+            <span className="text-[18px] font-bold tracking-tight text-gray-900 dark:text-gray-100">
               LALA-LYCHEEE
             </span>
           </div>
@@ -301,27 +300,27 @@ export default function AdminDashboard({
             <X size={20} />
           </button>
         </div>
-        <div className="p-4 overflow-y-auto h-[calc(100vh-4rem)]">
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1 custom-scrollbar">
           {/* Quick Action: Back to Homepage */}
-          <div className="mb-4 pb-4 border-b border-gray-100">
+          <div className="mb-4 pb-4 border-b border-gray-100 dark:border-gray-800">
             <Link
               href={`/${locale}`}
-              className="flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors group"
+              className="flex items-center px-4 py-[10px] my-[2px] text-[14px] font-[500] rounded-full text-gray-600 dark:text-gray-400 hover:bg-gray-100/80 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
             >
               <Home
-                size={18}
-                className="mr-3 text-gray-400 group-hover:text-indigo-600"
+                size={20}
+                className="mr-3 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"
               />
-              <span>Quay lại trang chủ</span>
+              <span>Trang chủ cửa hàng</span>
             </Link>
           </div>
 
           {SIDEBAR_MENU.map((section, idx) => (
-            <div key={idx} className="mb-6">
-              <h3 className="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <div key={idx} className="mb-4">
+              <h3 className="px-4 mb-1 mt-2 text-[11px] font-[600] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 {section.category}
               </h3>
-              <ul className="space-y-1">
+              <ul className="space-y-0.5">
                 {section.items.map((item) => (
                   <MenuItem
                     key={item.id}
@@ -365,8 +364,8 @@ export default function AdminDashboard({
         />
 
         {/* SCROLLABLE CONTENT */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto bg-[#f8f9fa] dark:bg-[#111]">
+          <div className="max-w-[1440px] mx-auto p-4 sm:p-6 lg:p-8">
             <Suspense
               fallback={
                 <div className="flex items-center justify-center min-h-[400px]">

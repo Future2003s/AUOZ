@@ -170,13 +170,13 @@ export default function DashboardView() {
 
         const revenue = Number(extractData(summary, "totalRevenue", "monthRevenue", "revenue", "revenueTotal")) || 0;
         const revenueChange = Number(extractData(summary, "revenueChange", "revenueGrowth", "revenueChangePercent")) || 0;
-        
+
         const orders = Number(extractData(summary, "totalOrders", "newOrders", "orders", "ordersTotal")) || 0;
         const ordersChange = Number(extractData(summary, "ordersChange", "ordersGrowth", "ordersChangePercent")) || 0;
-        
+
         const customers = Number(extractData(summary, "totalCustomers", "newCustomers", "customers", "customersTotal")) || 0;
         const customersChange = Number(extractData(summary, "customersChange", "customersGrowth", "customersChangePercent")) || 0;
-        
+
         const vouchers = Number(extractData(summary, "vouchersUsed", "usedVouchers", "totalVouchersUsed", "voucherUsage")) || 0;
         const vouchersChange = Number(extractData(summary, "vouchersChange", "voucherUsageChange", "voucherChangePercent")) || 0;
 
@@ -265,7 +265,7 @@ export default function DashboardView() {
       setError(errorMessage);
       setSummaryStats(FALLBACK_STATS);
       setRecentOrders([]);
-      
+
       if (process.env.NODE_ENV === "development") {
         console.error("Error fetching dashboard data:", err);
       }
@@ -291,7 +291,7 @@ export default function DashboardView() {
       if (response.ok) {
         const data = await response.json();
         const summary = data?.data || data?.result || data;
-        
+
         const csvRows = [
           ["Báo cáo Dashboard", new Date().toLocaleDateString("vi-VN")],
           [],
@@ -312,7 +312,7 @@ export default function DashboardView() {
             summary?.customersChange ? `${summary.customersChange > 0 ? "+" : ""}${summary.customersChange.toFixed(1)}%` : "N/A",
           ],
         ];
-        
+
         const csvContent = csvRows.map((row) => row.join(",")).join("\n");
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
         const link = document.createElement("a");
@@ -360,36 +360,36 @@ export default function DashboardView() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Tổng quan</h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            Báo cáo hoạt động kinh doanh ngày hôm nay.
+          <h1 className="text-[24px] font-[400] text-gray-900 dark:text-white leading-tight">Tổng quan hoạt động</h1>
+          <p className="mt-1 text-[14px] text-gray-500 dark:text-gray-400">
+            Dữ liệu tổng hợp từ 30 ngày gần nhất
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <Button
             variant="outline"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="inline-flex items-center px-4 py-2 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="inline-flex items-center px-4 py-2 h-10 rounded-full border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-[14px] font-[500] text-gray-700 dark:text-gray-300 transition-colors"
           >
             <RefreshCw
               size={16}
               className={`mr-2 ${refreshing ? "animate-spin" : ""}`}
             />
-            {refreshing ? "Đang tải..." : "Làm mới"}
+            {refreshing ? "Đang tải" : "Làm mới"}
           </Button>
           <Button
             variant="outline"
             onClick={handleExportReport}
-            className="inline-flex items-center px-4 py-2 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="inline-flex items-center px-4 py-2 h-10 rounded-full border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-[14px] font-[500] text-gray-700 dark:text-gray-300 transition-colors"
           >
             <Download size={16} className="mr-2" /> Xuất báo cáo
           </Button>
           <Link href={`/${locale}/admin/orders/create`}>
-            <Button className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white">
-              <Plus size={16} className="mr-2" /> Tạo đơn hàng
+            <Button className="inline-flex items-center px-5 py-2 h-10 rounded-full bg-[#0b57d0] dark:bg-[#a8c7fa] hover:bg-[#0b57d0]/90 dark:hover:bg-[#a8c7fa]/90 text-white dark:text-[#041e49] text-[14px] font-[500] transition-colors shadow-sm">
+              <Plus size={18} className="mr-2" /> Tạo đơn hàng
             </Button>
           </Link>
         </div>
@@ -411,62 +411,64 @@ export default function DashboardView() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
         {/* Recent Orders - Chiếm 2/3 */}
-        <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md lg:col-span-2">
-          <CardHeader className="px-6 py-5 border-b border-slate-200 dark:border-slate-700">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-medium text-slate-900 dark:text-white">
-                Đơn hàng gần đây
-              </CardTitle>
-              <Link
-                href={`/${locale}/admin/orders`}
-                className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 font-medium transition-colors"
-              >
-                Xem tất cả
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
+        <div className="xl:col-span-2 bg-white dark:bg-[#1f1f1f] rounded-[24px] border border-[#f1f3f4] dark:border-gray-800 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] overflow-hidden">
+          <div className="px-6 py-5 border-b border-[#f1f3f4] dark:border-gray-800 flex justify-between items-center">
+            <h2 className="text-[18px] font-[500] text-gray-900 dark:text-gray-100">
+              Đơn hàng gần đây
+            </h2>
+            <Link
+              href={`/${locale}/admin/orders`}
+              className="text-[14px] font-[500] text-[#0b57d0] dark:text-[#a8c7fa] hover:bg-[#d3e3fd]/50 dark:hover:bg-[#004a77]/50 px-4 py-2 rounded-full transition-colors"
+            >
+              Xem tất cả
+            </Link>
+          </div>
+          <div className="p-0">
             <div className="overflow-x-auto">
               {recentOrders.length > 0 ? (
-                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                  <thead className="bg-slate-50 dark:bg-slate-900/50">
+                <table className="min-w-full">
+                  <thead className="border-b border-[#f1f3f4] dark:border-gray-800">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-[12px] font-[600] text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-[#f8f9fa]/50 dark:bg-gray-800/20">
                         Mã đơn
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-[12px] font-[600] text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-[#f8f9fa]/50 dark:bg-gray-800/20">
                         Khách hàng
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-[12px] font-[600] text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-[#f8f9fa]/50 dark:bg-gray-800/20">
                         Tổng tiền
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-[12px] font-[600] text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-[#f8f9fa]/50 dark:bg-gray-800/20">
                         Trạng thái
                       </th>
-                      <th className="relative px-6 py-3">
-                        <span className="sr-only">Edit</span>
+                      <th className="px-6 py-4 bg-[#f8f9fa]/50 dark:bg-gray-800/20">
+                        <span className="sr-only">Tùy chọn</span>
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                  <tbody className="bg-white dark:bg-[#1f1f1f]">
                     {recentOrders.map((order) => (
                       <OrderRow key={order.id} order={order} />
                     ))}
                   </tbody>
                 </table>
               ) : (
-                <div className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
-                  <p>Chưa có đơn hàng nào</p>
+                <div className="px-6 py-16 flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                    <ShoppingBag className="text-gray-400 dark:text-gray-500 w-8 h-8" />
+                  </div>
+                  <h3 className="text-gray-900 dark:text-gray-100 font-[500] text-[16px] mb-1">Chưa có đơn hàng nào</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-[14px]">Các đơn hàng mới sẽ xuất hiện tại đây.</p>
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* PWA Status - Chiếm 1/3 */}
-        <div className="lg:col-span-1">
+        <div className="xl:col-span-1">
           <PWAStatus />
         </div>
       </div>

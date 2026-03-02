@@ -57,15 +57,19 @@ export const useTasks = (): UseTasksReturn => {
         setTaskState((prev) => ({ ...prev, isLoading: true, error: null }));
 
         // Calculate date range for current month if not provided
+        // Dùng local date để tránh lỗi timezone: toISOString() dùng UTC,
+        // khiến ngày cuối tháng bị lệch (-1 ngày) ở múi giờ +7.
         const now = new Date();
         const year = now.getFullYear();
         const month = now.getMonth();
+        const pad = (n: number) => String(n).padStart(2, '0');
         const startDate =
           params?.startDate ||
-          new Date(year, month, 1).toISOString().split("T")[0];
+          `${year}-${pad(month + 1)}-01`;
+        const lastDay = new Date(year, month + 1, 0).getDate();
         const endDate =
           params?.endDate ||
-          new Date(year, month + 1, 0).toISOString().split("T")[0];
+          `${year}-${pad(month + 1)}-${pad(lastDay)}`;
 
         const response = await tasksApi.list({
           startDate,

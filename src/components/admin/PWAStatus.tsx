@@ -29,12 +29,12 @@ export function PWAStatus() {
       setError("Trình duyệt không hỗ trợ Service Worker");
       return;
     }
-    
+
     setIsChecking(true);
     try {
       // Wait for service worker to be ready (Serwist auto-registers)
       let registration = await navigator.serviceWorker.getRegistration();
-      
+
       // If no registration, wait a bit and try again (Serwist might still be registering)
       if (!registration) {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -88,45 +88,42 @@ export function PWAStatus() {
   };
 
   return (
-    <Card className="border-2">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Download className="w-5 h-5" />
-          Trạng thái PWA
-        </CardTitle>
-        <CardDescription>Thông tin về Progressive Web App</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="bg-white dark:bg-[#1f1f1f] rounded-[24px] border border-[#f1f3f4] dark:border-gray-800 p-6 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] h-full">
+      <div className="flex flex-col gap-1 mb-6">
+        <h2 className="text-[18px] font-[500] flex items-center gap-2 text-gray-900 dark:text-gray-100">
+          <Download className="w-5 h-5 text-[#0b57d0] dark:text-[#a8c7fa]" />
+          Bộ đệm ứng dụng
+        </h2>
+        <p className="text-[14px] text-gray-500 dark:text-gray-400">Quản lý tải trước và PWA.</p>
+      </div>
+      <div className="space-y-6">
         {/* Service Worker Status */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {swStatus === "active" ? (
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <CheckCircle2 className="w-[18px] h-[18px] text-[#146c2e] dark:text-[#c4eed0]" />
               ) : swStatus === "installing" || swStatus === "waiting" || isChecking ? (
-                <Loader2 className="w-5 h-5 text-yellow-600 animate-spin" />
+                <Loader2 className="w-[18px] h-[18px] text-orange-500 animate-spin" />
               ) : (
-                <XCircle className="w-5 h-5 text-red-600" />
+                <AlertCircle className="w-[18px] h-[18px] text-gray-400" />
               )}
-              <span className="text-sm font-medium">Service Worker</span>
+              <span className="text-[14px] font-[500] text-gray-700 dark:text-gray-300">Nền tảng Service Worker</span>
             </div>
-            <Badge
-              variant={
-                swStatus === "active"
-                  ? "default"
-                  : swStatus === "installing" || swStatus === "waiting"
-                  ? "secondary"
-                  : "destructive"
-              }
-            >
+            <div className={`px-2.5 py-1 rounded-full text-[11px] font-[600] uppercase tracking-wider ${swStatus === "active"
+                ? "bg-[#c4eed0]/50 text-[#146c2e] dark:bg-[#0f5223]/50 dark:text-[#c4eed0]"
+                : swStatus === "installing" || swStatus === "waiting"
+                  ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                  : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+              }`}>
               {swStatus === "active"
-                ? "Hoạt động"
+                ? "Bật"
                 : swStatus === "installing"
-                ? "Đang cài đặt"
-                : swStatus === "waiting"
-                ? "Đang chờ"
-                : "Chưa kích hoạt"}
-            </Badge>
+                  ? "Đang cài đặt"
+                  : swStatus === "waiting"
+                    ? "Đang tải"
+                    : "Chờ kích hoạt"}
+            </div>
           </div>
           {swStatus === "none" && (
             <Button
@@ -217,12 +214,12 @@ export function PWAStatus() {
         )}
 
         {/* Info */}
-        <div className="pt-2 border-t">
-          <p className="text-xs text-muted-foreground">
-            PWA cho phép bạn nhận thông báo và truy cập nhanh hơn.
+        <div className="pt-4 border-t border-[#f1f3f4] dark:border-gray-800">
+          <p className="text-[12px] text-gray-500 dark:text-gray-400 leading-relaxed">
+            PWA (Progressive Web App) giúp trải nghiệm app nhanh mượt hơn ngay trên desktop và mobile web.
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
