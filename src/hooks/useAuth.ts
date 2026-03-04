@@ -1,26 +1,21 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import {
-  authService,
   BackendAuthResponse,
   BackendUserProfile,
 } from "@/services/auth.service";
 import { ExtendedLoginBodyType } from "@/shemaValidation/auth.schema";
 import { HttpError } from "@/lib/http";
-import { useAppContextProvider } from "@/context/app-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchMe, meQueryKey } from "@/app/[locale]/me/query";
 
-// Auth state interface
+// ─── Auth state interface ────────────────────────────────────────────
 interface AuthState {
   user: BackendUserProfile | null;
-  token: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
 }
 
-// Auth actions interface
 interface AuthActions {
   login: (
     email: string,
@@ -28,332 +23,109 @@ interface AuthActions {
     rememberMe?: boolean
   ) => Promise<BackendAuthResponse>;
   loginExtended: (data: ExtendedLoginBodyType) => Promise<BackendAuthResponse>;
-  register: (userData: any) => Promise<void>;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
   clearError: () => void;
-  updateUser: (userData: Partial<BackendUserProfile>) => void;
-  testConnection: () => Promise<{ success: boolean; message: string }>;
-  testApi: () => Promise<{ success: boolean; message: string }>;
 }
 
-// Combined auth hook return type
 type UseAuthReturn = AuthState & AuthActions;
 
-// Cookie keys - tất cả auth data lưu trong cookie
-const COOKIE_KEYS = {
-  USER: "auth_user",
-  REMEMBER_ME: "auth_remember_me",
-} as const;
-
-// Helper để đọc cookie từ client-side
-const getCookie = (name: string): string | null => {
-  if (typeof document === 'undefined') return null;
-  const nameEQ = name + "=";
-  const ca = document.cookie.split(';');
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+// ─── Helper: login via Next API to set httpOnly cookies ──────────────
+async function loginViaNextApi(body: {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+  deviceInfo?: any;
+}): Promise<BackendAuthResponse> {
+  const res = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok || !data?.success) {
+    const message = data?.error || data?.message || "Login failed";
+    throw new HttpError({
+      statusCode: res.status,
+      payload: { message },
+      url: "/api/auth/login",
+    });
   }
-  return null;
-};
+  return data as BackendAuthResponse;
+}
 
-// Helper để set cookie từ client-side (chỉ cho remember_me, user data được set bởi API)
-const setCookie = (name: string, value: string, days: number = 30) => {
-  if (typeof document === 'undefined') return;
-  const expires = new Date();
-  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
-};
+// ─── Error message mapping ───────────────────────────────────────────
+function mapLoginError(error: unknown): string {
+  if (!(error instanceof HttpError)) return "Đăng nhập thất bại";
+  const payload = error.payload as any;
+  const msg = payload?.error || payload?.message;
+  if (error.statusCode === 401) {
+    if (msg?.includes("deactivated") || msg?.includes("inactive")) {
+      return "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên";
+    }
+    return msg || "Email hoặc mật khẩu không đúng";
+  }
+  if (error.statusCode === 429)
+    return "Quá nhiều lần đăng nhập sai. Vui lòng thử lại sau 15 phút";
+  if (error.statusCode === 403)
+    return "Tài khoản của bạn không có quyền truy cập";
+  return msg || "Đăng nhập thất bại";
+}
 
-// Helper để xóa cookie
-const deleteCookie = (name: string) => {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
-};
-
+// ─── Main hook ───────────────────────────────────────────────────────
 export const useAuth = (): UseAuthReturn => {
-  const { setSessionToken } = useAppContextProvider();
   const queryClient = useQueryClient();
 
-  // Sử dụng React Query để cache và tránh duplicate calls
-  const { data: meData, isLoading: meLoading, error: meError } = useQuery({
+  // Single source of truth: React Query for /api/auth/me
+  const {
+    data: meData,
+    isLoading: meLoading,
+    error: meError,
+  } = useQuery({
     queryKey: meQueryKey,
     queryFn: fetchMe,
-    enabled: typeof window !== 'undefined', // Chỉ chạy ở client
-    staleTime: 5 * 60 * 1000, // Cache 5 phút (giảm để phát hiện session hết hạn sớm hơn)
-    gcTime: 10 * 60 * 1000, // Giữ cache 10 phút
+    enabled: typeof window !== "undefined",
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 1,
     refetchOnMount: false,
-    refetchOnWindowFocus: true, // Kiểm tra session khi user quay lại tab (phát hiện JWT hết hạn)
+    refetchOnWindowFocus: true,
   });
 
-  // State management
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    token: null,
-    refreshToken: null,
-    isAuthenticated: false,
-    isLoading: true,
-    error: null,
-  });
+  // ─── Derived state (no useState!) ──────────────────────────────────
+  const user: BackendUserProfile | null =
+    meData?.success && meData?.user ? meData.user : null;
+  const isAuthenticated = !!user;
+  const isLoading = meLoading;
+  const error = meError
+    ? meError instanceof Error
+      ? meError.message
+      : "Authentication failed"
+    : null;
 
-  // Sync state với React Query data
-  useEffect(() => {
-    if (meLoading) {
-      setAuthState((prev) => ({ ...prev, isLoading: true }));
-      return;
-    }
-
-    if (meError) {
-      setAuthState({
-        user: null,
-        token: null,
-        refreshToken: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: meError instanceof Error ? meError.message : "Authentication failed",
-      });
-      return;
-    }
-
-    if (meData?.success && meData?.user) {
-      const user = meData.user;
-      const rememberMe = getCookie(COOKIE_KEYS.REMEMBER_ME) === "true";
-
-      setAuthState({
-        user,
-        token: null,
-        refreshToken: null,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
-      });
-    } else {
-      setAuthState({
-        user: null,
-        token: null,
-        refreshToken: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-      });
-    }
-  }, [meData, meLoading, meError]);
-
-  // Validate and refresh token
-  const validateAndRefreshToken = useCallback(
-    async (token: string, refreshToken: string | null) => {
-      try {
-        const isValid = await authService.validateToken(token);
-        if (!isValid.valid && refreshToken) {
-          await refreshAuth();
-        }
-      } catch (error) {
-        console.error("Token validation failed:", error);
-        await logout();
-      }
-    },
-    []
-  );
-
-  // Save auth data - tất cả đã được lưu trong cookie bởi API route
-  // Chỉ cần set remember_me cookie nếu cần (user data đã được set bởi API)
-  const saveAuthData = useCallback(
-    (data: BackendAuthResponse, rememberMe: boolean = false) => {
-      // Token và user data đã được set trong cookie bởi /api/auth/login
-      // Chỉ set remember_me cookie nếu cần
-      if (rememberMe) {
-        setCookie(COOKIE_KEYS.REMEMBER_ME, "true", 365); // Tăng từ 30 ngày lên 365 ngày (1 năm)
-      } else {
-        deleteCookie(COOKIE_KEYS.REMEMBER_ME);
-      }
-    },
-    []
-  );
-
-  // Clear auth data - xóa tất cả cookies (token cookies sẽ được xóa bởi API)
-  const clearAuthData = useCallback(() => {
-    deleteCookie(COOKIE_KEYS.USER);
-    deleteCookie(COOKIE_KEYS.REMEMBER_ME);
-  }, []);
-
-  // Helper: login via Next API to set httpOnly cookies for middleware
-  const loginViaNextApi = useCallback(
-    async (body: {
-      email: string;
-      password: string;
-      rememberMe?: boolean;
-      deviceInfo?: any;
-    }) => {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json; charset=utf-8" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.success) {
-        const message = data?.error || data?.message || "Login failed";
-        throw new HttpError({
-          statusCode: res.status,
-          payload: { message },
-          url: "/api/auth/login",
-        });
-      }
-      return data as BackendAuthResponse;
-    },
-    []
-  );
-
-  // Login function
+  // ─── Login ─────────────────────────────────────────────────────────
   const login = useCallback(
     async (email: string, password: string, rememberMe: boolean = false) => {
-      try {
-        setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-        const response = await loginViaNextApi({
-          email,
-          password,
-          rememberMe,
-        });
-
-        saveAuthData(response, rememberMe);
-        // Token đã được set trong cookie httpOnly bởi /api/auth/login, không cần set ở đây
-
-        // Invalidate React Query cache để fetch lại user data
-        await queryClient.invalidateQueries({ queryKey: meQueryKey });
-
-        return response;
-      } catch (error) {
-        let errorMessage = "Đăng nhập thất bại";
-
-        if (error instanceof HttpError) {
-          const payload = error.payload as any;
-          errorMessage = payload?.error || payload?.message || errorMessage;
-
-          // Handle specific error cases
-          if (error.statusCode === 401) {
-            if (payload?.error?.includes("deactivated") || payload?.error?.includes("inactive")) {
-              errorMessage = "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên";
-            } else {
-              errorMessage = payload?.error || "Email hoặc mật khẩu không đúng";
-            }
-          } else if (error.statusCode === 429) {
-            errorMessage = "Quá nhiều lần đăng nhập sai. Vui lòng thử lại sau 15 phút";
-          } else if (error.statusCode === 403) {
-            errorMessage = "Tài khoản của bạn không có quyền truy cập";
-          }
-        }
-
-        setAuthState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: errorMessage,
-        }));
-
-        throw error;
-      }
+      const response = await loginViaNextApi({ email, password, rememberMe });
+      // Invalidate React Query cache to refetch user data with new cookies
+      await queryClient.invalidateQueries({ queryKey: meQueryKey });
+      return response;
     },
-    [saveAuthData, loginViaNextApi]
+    [queryClient]
   );
 
-  // Login with extended data (rememberMe/deviceInfo)
   const loginExtended = useCallback(
     async (data: ExtendedLoginBodyType) => {
-      try {
-        setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-        const response = await loginViaNextApi(data);
-
-        saveAuthData(response, Boolean(data.rememberMe));
-        // Token đã được set trong cookie httpOnly bởi /api/auth/login, không cần set ở đây
-
-        // Invalidate React Query cache để fetch lại user data
-        await queryClient.invalidateQueries({ queryKey: meQueryKey });
-
-        return response;
-      } catch (error) {
-        let errorMessage = "Đăng nhập thất bại";
-
-        if (error instanceof HttpError) {
-          const payload = error.payload as any;
-          errorMessage = payload?.error || payload?.message || errorMessage;
-
-          // Handle specific error cases
-          if (error.statusCode === 401) {
-            if (payload?.error?.includes("deactivated") || payload?.error?.includes("inactive")) {
-              errorMessage = "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên";
-            } else {
-              errorMessage = payload?.error || "Email hoặc mật khẩu không đúng";
-            }
-          } else if (error.statusCode === 429) {
-            errorMessage = "Quá nhiều lần đăng nhập sai. Vui lòng thử lại sau 15 phút";
-          } else if (error.statusCode === 403) {
-            errorMessage = "Tài khoản của bạn không có quyền truy cập";
-          }
-        }
-
-        setAuthState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: errorMessage,
-        }));
-
-        throw error;
-      }
+      const response = await loginViaNextApi(data);
+      await queryClient.invalidateQueries({ queryKey: meQueryKey });
+      return response;
     },
-    [saveAuthData, loginViaNextApi]
+    [queryClient]
   );
 
-  // Register function - sử dụng endpoint /auth/register từ API_DOCUMENTATION.md
-  const register = useCallback(
-    async (userData: any) => {
-      try {
-        setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-        const response = await authService.register(userData);
-
-        saveAuthData(response, false);
-
-        setAuthState({
-          user: {
-            ...response.data.user,
-            addresses: [],
-            preferences: {
-              language: "en",
-              currency: "USD",
-              notifications: { email: true, sms: false, push: true },
-            },
-          },
-          token: response.data.token,
-          refreshToken: response.data.refreshToken,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-      } catch (error) {
-        const errorMessage =
-          error instanceof HttpError
-            ? error.payload?.message || "Registration failed"
-            : "An unexpected error occurred";
-
-        setAuthState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: errorMessage,
-        }));
-
-        throw error;
-      }
-    },
-    [saveAuthData]
-  );
-
-  // Logout function
+  // ─── Logout ────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
     try {
-      // Call Next API to clear httpOnly cookies and notify backend
       await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
@@ -361,110 +133,46 @@ export const useAuth = (): UseAuthReturn => {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      clearAuthData();
-      // Clear React Query cache
-      queryClient.setQueryData(meQueryKey, null);
+      // Clear React Query cache immediately
+      queryClient.setQueryData(meQueryKey, { success: true, user: null });
       queryClient.removeQueries({ queryKey: meQueryKey });
-      setAuthState({
-        user: null,
-        token: null,
-        refreshToken: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-      });
     }
-  }, [clearAuthData, queryClient]);
+  }, [queryClient]);
 
-  // Refresh auth token - token được refresh và set trong cookie bởi API
+  // ─── Refresh ───────────────────────────────────────────────────────
   const refreshAuth = useCallback(async () => {
     try {
-      // Gọi API để refresh token (refreshToken từ cookie httpOnly)
       const res = await fetch("/api/auth/refresh", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
-
       if (res.ok) {
-        const data = await res.json();
-        if (data?.success) {
-          // Token đã được set trong cookie httpOnly bởi API, không cần lưu ở client
-          // Chỉ cập nhật state để đánh dấu đã refresh
-          setAuthState((prev) => ({
-            ...prev,
-            // Token không lưu ở client state vì đã trong cookie
-          }));
-        } else {
-          throw new Error("Token refresh failed");
-        }
+        // Refetch user data with fresh token
+        await queryClient.invalidateQueries({ queryKey: meQueryKey });
       } else {
-        throw new Error("Token refresh failed");
+        await logout();
       }
     } catch (error) {
       console.error("Token refresh failed:", error);
       await logout();
     }
-  }, [logout]);
+  }, [queryClient, logout]);
 
-  // Clear error
+  // ─── Clear error ───────────────────────────────────────────────────
   const clearError = useCallback(() => {
-    setAuthState((prev) => ({ ...prev, error: null }));
-  }, []);
-
-  // Update user data
-  const updateUser = useCallback(
-    (userData: Partial<BackendUserProfile>) => {
-      setAuthState((prev) => {
-        const updatedUser = prev.user ? { ...prev.user, ...userData } : null;
-
-        // Update cookie với user data mới (nếu không quá lớn)
-        if (updatedUser) {
-          const userDataStr = JSON.stringify(updatedUser);
-          if (userDataStr.length < 4000) {
-            setCookie(COOKIE_KEYS.USER, userDataStr, 30); // Tăng từ 7 ngày lên 30 ngày
-          }
-        }
-
-        return {
-          ...prev,
-          user: updatedUser,
-        };
-      });
-    },
-    []
-  );
-
-  // Test connection to backend
-  const testConnection = useCallback(async () => {
-    try {
-      const result = await authService.testConnection();
-      return result;
-    } catch (error) {
-      return { success: false, message: "Connection test failed" };
-    }
-  }, []);
-
-  // Test API endpoint
-  const testApi = useCallback(async () => {
-    try {
-      const result = await authService.testApi();
-      return result;
-    } catch (error) {
-      return { success: false, message: "API test failed" };
-    }
-  }, []);
+    queryClient.resetQueries({ queryKey: meQueryKey });
+  }, [queryClient]);
 
   return {
-    ...authState,
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
     login,
     loginExtended,
-    register,
     logout,
     refreshAuth,
     clearError,
-    updateUser,
-    testConnection,
-    testApi,
   };
 };

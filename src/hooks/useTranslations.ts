@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import {
   translationApi,
   TranslationData,
-  TranslationResponse,
   TranslationStats,
 } from "../apiRequests/translations";
 import { useAuth } from "./useAuth";
 
 export const useTranslations = () => {
-  const { token } = useAuth();
+  // Token is httpOnly — use isAuthenticated as guard, actual auth goes through cookies
+  const { isAuthenticated } = useAuth();
   const [translations, setTranslations] = useState<TranslationData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,14 +29,14 @@ export const useTranslations = () => {
       search?: string,
       isActive?: boolean
     ) => {
-      if (!token) return;
+      if (!isAuthenticated) return;
 
       setLoading(true);
       setError(null);
 
       try {
         const response = await translationApi.getPaginated(
-          token,
+          "", // token in httpOnly cookie
           page,
           limit,
           category,
@@ -63,7 +63,7 @@ export const useTranslations = () => {
         setLoading(false);
       }
     },
-    [token]
+    [isAuthenticated]
   );
 
   // Fetch translation statistics
@@ -89,16 +89,15 @@ export const useTranslations = () => {
   // Create translation
   const createTranslation = useCallback(
     async (data: TranslationData): Promise<boolean> => {
-      if (!token) return false;
+      if (!isAuthenticated) return false;
 
       setLoading(true);
       setError(null);
 
       try {
-        const response = await translationApi.create(data, token);
+        const response = await translationApi.create(data, ""); // token in httpOnly cookie
 
         if (response.success) {
-          // Refresh translations list
           await fetchTranslations(pagination.page, pagination.limit);
           return true;
         } else {
@@ -112,22 +111,21 @@ export const useTranslations = () => {
         setLoading(false);
       }
     },
-    [token, pagination.page, pagination.limit, fetchTranslations]
+    [isAuthenticated, pagination.page, pagination.limit, fetchTranslations]
   );
 
   // Update translation
   const updateTranslation = useCallback(
     async (key: string, data: Partial<TranslationData>): Promise<boolean> => {
-      if (!token) return false;
+      if (!isAuthenticated) return false;
 
       setLoading(true);
       setError(null);
 
       try {
-        const response = await translationApi.update(key, data, token);
+        const response = await translationApi.update(key, data, ""); // token in httpOnly cookie
 
         if (response.success) {
-          // Refresh translations list
           await fetchTranslations(pagination.page, pagination.limit);
           return true;
         } else {
@@ -141,22 +139,21 @@ export const useTranslations = () => {
         setLoading(false);
       }
     },
-    [token, pagination.page, pagination.limit, fetchTranslations]
+    [isAuthenticated, pagination.page, pagination.limit, fetchTranslations]
   );
 
   // Delete translation
   const deleteTranslation = useCallback(
     async (key: string): Promise<boolean> => {
-      if (!token) return false;
+      if (!isAuthenticated) return false;
 
       setLoading(true);
       setError(null);
 
       try {
-        const response = await translationApi.delete(key, token);
+        const response = await translationApi.delete(key, ""); // token in httpOnly cookie
 
         if (response.success) {
-          // Refresh translations list
           await fetchTranslations(pagination.page, pagination.limit);
           return true;
         } else {
@@ -170,22 +167,21 @@ export const useTranslations = () => {
         setLoading(false);
       }
     },
-    [token, pagination.page, pagination.limit, fetchTranslations]
+    [isAuthenticated, pagination.page, pagination.limit, fetchTranslations]
   );
 
   // Bulk import translations
   const bulkImport = useCallback(
     async (translations: TranslationData[]): Promise<boolean> => {
-      if (!token) return false;
+      if (!isAuthenticated) return false;
 
       setLoading(true);
       setError(null);
 
       try {
-        const response = await translationApi.bulkImport(translations, token);
+        const response = await translationApi.bulkImport(translations, ""); // token in httpOnly cookie
 
         if (response.success) {
-          // Refresh translations list
           await fetchTranslations(pagination.page, pagination.limit);
           return true;
         } else {
@@ -199,7 +195,7 @@ export const useTranslations = () => {
         setLoading(false);
       }
     },
-    [token, pagination.page, pagination.limit, fetchTranslations]
+    [isAuthenticated, pagination.page, pagination.limit, fetchTranslations]
   );
 
   // Search translations
@@ -238,15 +234,13 @@ export const useTranslations = () => {
         const response = await translationApi.export(category, language);
 
         if (response.success && response.data) {
-          // Create and download file
           const dataStr = JSON.stringify(response.data.data, null, 2);
           const dataBlob = new Blob([dataStr], { type: "application/json" });
           const url = URL.createObjectURL(dataBlob);
           const link = document.createElement("a");
           link.href = url;
-          link.download = `translations_${category || "all"}_${
-            language || "all"
-          }.json`;
+          link.download = `translations_${category || "all"}_${language || "all"
+            }.json`;
           link.click();
           URL.revokeObjectURL(url);
           return true;
@@ -269,11 +263,11 @@ export const useTranslations = () => {
 
   // Initial fetch
   useEffect(() => {
-    if (token) {
+    if (isAuthenticated) {
       fetchTranslations();
       fetchStats();
     }
-  }, [token, fetchTranslations, fetchStats]);
+  }, [isAuthenticated, fetchTranslations, fetchStats]);
 
   return {
     translations,

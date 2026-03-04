@@ -10,7 +10,35 @@ import { cacheService } from "@/lib/cache/cache-service";
 import { validator, commonSchemas } from "@/lib/validation/validator";
 import { ValidationError } from "@/lib/errors/types";
 import { z } from "zod";
-import { User, Address } from "@/lib/auth/auth-service";
+// Types previously from lib/auth/auth-service (now deleted)
+export interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  isActive: boolean;
+  isEmailVerified: boolean;
+  lastLogin?: string;
+  addresses?: Address[];
+  preferences?: {
+    language: string;
+    currency: string;
+    notifications: { email: boolean; sms: boolean; push: boolean };
+  };
+}
+
+export interface Address {
+  _id: string;
+  type: 'home' | 'work' | 'other';
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  isDefault: boolean;
+}
 
 // Extended user types for service layer
 export interface UserProfile extends User {

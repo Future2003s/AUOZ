@@ -3,8 +3,25 @@ import { useAuth } from "@/hooks/useAuth";
 import { authService } from "@/services/auth.service";
 
 const ApiTestComponent: React.FC = () => {
-  const { testConnection, testApi, register, login, error, isLoading } =
-    useAuth();
+  const { login, error, isLoading } = useAuth();
+
+  // Test functions use authService directly (not from useAuth)
+  const testConnection = async () => {
+    try {
+      const result = await authService.testConnection();
+      return result;
+    } catch {
+      return { success: false, message: "Connection test failed" };
+    }
+  };
+  const testApi = async () => {
+    try {
+      const result = await authService.testApi();
+      return result;
+    } catch {
+      return { success: false, message: "API test failed" };
+    }
+  };
   const [testResults, setTestResults] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     fullName: "John Doe",
@@ -24,8 +41,7 @@ const ApiTestComponent: React.FC = () => {
       addResult("Testing backend connection (health endpoint)...");
       const result = await testConnection();
       addResult(
-        `Backend connection: ${result.success ? "✅ SUCCESS" : "❌ FAILED"} - ${
-          result.message
+        `Backend connection: ${result.success ? "✅ SUCCESS" : "❌ FAILED"} - ${result.message
         }`
       );
     } catch (error) {
@@ -38,8 +54,7 @@ const ApiTestComponent: React.FC = () => {
       addResult("Testing API endpoint (/test)...");
       const result = await testApi();
       addResult(
-        `API test: ${result.success ? "✅ SUCCESS" : "❌ FAILED"} - ${
-          result.message
+        `API test: ${result.success ? "✅ SUCCESS" : "❌ FAILED"} - ${result.message
         }`
       );
     } catch (error) {

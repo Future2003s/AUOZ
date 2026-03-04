@@ -1053,8 +1053,8 @@ export default function TaskCalendar({
                 <div
                   key={idx}
                   className={`py-4 text-center font-semibold text-sm ${idx === 0
-                      ? "text-rose-500 dark:text-rose-400"
-                      : "text-slate-600 dark:text-slate-400"
+                    ? "text-rose-500 dark:text-rose-400"
+                    : "text-slate-600 dark:text-slate-400"
                     }`}
                 >
                   {day}
@@ -1352,8 +1352,8 @@ export default function TaskCalendar({
                               >
                                 <div className="flex items-center gap-2">
                                   <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${newTaskAssigneeIds.includes(employee.id)
-                                      ? 'bg-indigo-600 border-indigo-600'
-                                      : 'border-slate-300 dark:border-slate-600'
+                                    ? 'bg-indigo-600 border-indigo-600'
+                                    : 'border-slate-300 dark:border-slate-600'
                                     }`}>
                                     {newTaskAssigneeIds.includes(employee.id) && (
                                       <CheckCircle className="w-3 h-3 text-white" />
@@ -1403,14 +1403,14 @@ export default function TaskCalendar({
                                   type="button"
                                   onClick={() => toggleEmployeeSelection(employee.id, employee.fullName)}
                                   className={`min-h-[44px] w-full text-left px-3 py-2.5 rounded-lg transition-all touch-manipulation ${isSelected
-                                      ? 'bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-700 active:bg-indigo-200 dark:active:bg-indigo-900/50'
-                                      : 'hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 border border-transparent'
+                                    ? 'bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-700 active:bg-indigo-200 dark:active:bg-indigo-900/50'
+                                    : 'hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 border border-transparent'
                                     }`}
                                 >
                                   <div className="flex items-center gap-2">
                                     <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${isSelected
-                                        ? 'bg-indigo-600 border-indigo-600'
-                                        : 'border-slate-300 dark:border-slate-600'
+                                      ? 'bg-indigo-600 border-indigo-600'
+                                      : 'border-slate-300 dark:border-slate-600'
                                       }`}>
                                       {isSelected && (
                                         <CheckCircle className="w-3 h-3 text-white" />
@@ -1418,8 +1418,8 @@ export default function TaskCalendar({
                                     </div>
                                     <div className="flex flex-col flex-1 min-w-0">
                                       <span className={`font-medium text-sm truncate ${isSelected
-                                          ? 'text-indigo-700 dark:text-indigo-300'
-                                          : 'text-slate-800 dark:text-slate-200'
+                                        ? 'text-indigo-700 dark:text-indigo-300'
+                                        : 'text-slate-800 dark:text-slate-200'
                                         }`}>
                                         {employee.fullName}
                                       </span>

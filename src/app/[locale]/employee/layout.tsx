@@ -1,39 +1,32 @@
 import { ReactNode } from "react";
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { envConfig } from "@/config";
 import EmployeeLayoutClient from "./EmployeeLayoutClient";
 
 async function fetchMeServer() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("sessionToken")?.value;
-    
-    if (!token) {
-      return { success: true, user: null };
-    }
+    const h = await headers();
+    const host = h.get("host");
+    const proto = h.get("x-forwarded-proto") || "http";
+    const url = `${proto}://${host}/api/auth/me`;
+    const cookieHeader = h.get("cookie") || "";
 
-    const baseUrl =
-      envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
-    const res = await fetch(`${baseUrl}/auth/me`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
+    const res = await fetch(url, {
       cache: "no-store",
+      headers: { cookie: cookieHeader },
+      signal: AbortSignal.timeout(5000),
     });
 
-    const contentType = res.headers.get("content-type") || "application/json";
-    const text = await res.text();
-    const data =
-      contentType.includes("application/json") && text ? JSON.parse(text) : {};
-
-    if (!res.ok || !data?.success) {
-      return { success: true, user: null };
+    if (!res.ok) {
+      return { success: false, user: null };
     }
 
-    return { success: true, user: data.data };
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : {};
+    return { success: data?.success ?? false, user: data?.user || null };
   } catch (error) {
     console.error("fetchMeServer error:", error);
-    return { success: true, user: null };
+    return { success: false, user: null };
   }
 }
 
@@ -73,4 +66,5 @@ export default async function EmployeeLayout({ children, params }: EmployeeLayou
     </EmployeeLayoutClient>
   );
 }
+
 

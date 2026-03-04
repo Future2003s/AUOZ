@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import {
   translationV2Api,
   TranslationV2Data,
-  TranslationV2Response,
 } from "../apiRequests/translationsV2";
 import { useAuth } from "./useAuth";
 
 export const useTranslationsV2Admin = () => {
-  const { token } = useAuth();
+  // Token is httpOnly — use isAuthenticated as guard, actual auth goes through cookies
+  const { isAuthenticated } = useAuth();
   const [translations, setTranslations] = useState<TranslationV2Data[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,14 +28,14 @@ export const useTranslationsV2Admin = () => {
       search?: string,
       baseKey?: string
     ) => {
-      if (!token) return;
+      if (!isAuthenticated) return;
 
       setLoading(true);
       setError(null);
 
       try {
         const response = await translationV2Api.getPaginated(
-          token,
+          "", // token in httpOnly cookie
           page,
           limit,
           locale,
@@ -63,7 +63,7 @@ export const useTranslationsV2Admin = () => {
         setLoading(false);
       }
     },
-    [token]
+    [isAuthenticated]
   );
 
   // Create or update translation
@@ -74,20 +74,16 @@ export const useTranslationsV2Admin = () => {
       category: TranslationV2Data["category"];
       description?: string;
     }): Promise<boolean> => {
-      if (!token) return false;
+      if (!isAuthenticated) return false;
 
       setLoading(true);
       setError(null);
 
       try {
-        const response = await translationV2Api.upsert(data, token);
+        const response = await translationV2Api.upsert(data, ""); // token in httpOnly cookie
 
         if (response.success) {
-          // Refresh translations list
-          await fetchTranslations(
-            pagination.page,
-            pagination.limit
-          );
+          await fetchTranslations(pagination.page, pagination.limit);
           return true;
         } else {
           setError(response.message || "Failed to save translation");
@@ -100,7 +96,7 @@ export const useTranslationsV2Admin = () => {
         setLoading(false);
       }
     },
-    [token, pagination.page, pagination.limit, fetchTranslations]
+    [isAuthenticated, pagination.page, pagination.limit, fetchTranslations]
   );
 
   // Bulk import translations
@@ -113,26 +109,26 @@ export const useTranslationsV2Admin = () => {
         description?: string;
       }>
     ): Promise<{ success: number; failed: number; errors: string[] }> => {
-      if (!token) {
-        return { success: 0, failed: 0, errors: ["No token"] };
+      if (!isAuthenticated) {
+        return { success: 0, failed: 0, errors: ["Not authenticated"] };
       }
 
       setLoading(true);
       setError(null);
 
       try {
-        const response = await translationV2Api.bulkImport(translations, token);
+        const response = await translationV2Api.bulkImport(translations, ""); // token in httpOnly cookie
 
         if (response.success && response.data) {
-          // Refresh translations list
-          await fetchTranslations(
-            pagination.page,
-            pagination.limit
-          );
+          await fetchTranslations(pagination.page, pagination.limit);
           return response.data;
         } else {
           setError(response.message || "Failed to import translations");
-          return { success: 0, failed: 0, errors: [response.message || "Unknown error"] };
+          return {
+            success: 0,
+            failed: 0,
+            errors: [response.message || "Unknown error"],
+          };
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -145,7 +141,7 @@ export const useTranslationsV2Admin = () => {
         setLoading(false);
       }
     },
-    [token, pagination.page, pagination.limit, fetchTranslations]
+    [isAuthenticated, pagination.page, pagination.limit, fetchTranslations]
   );
 
   // Clear error
@@ -155,10 +151,10 @@ export const useTranslationsV2Admin = () => {
 
   // Initial fetch
   useEffect(() => {
-    if (token) {
+    if (isAuthenticated) {
       fetchTranslations();
     }
-  }, [token, fetchTranslations]);
+  }, [isAuthenticated, fetchTranslations]);
 
   return {
     translations,
@@ -171,4 +167,3 @@ export const useTranslationsV2Admin = () => {
     clearError,
   };
 };
-

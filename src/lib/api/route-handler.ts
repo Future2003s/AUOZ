@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { securityMiddleware } from "@/lib/security/security-middleware";
 import { handleError } from "@/lib/errors/error-handler";
 import { validator } from "@/lib/validation/validator";
-import { authService } from "@/lib/auth/auth-service";
+// Note: authService singleton removed — auth is now cookie-based via middleware
 import {
   BaseError,
   ErrorCode,
@@ -225,8 +225,17 @@ class ApiRouteHandler {
         };
       }
 
-      // Validate token and get user
-      const user = await authService.getCurrentUser();
+      // Decode token payload (validated by middleware, here we just read it)
+      let user: any = null;
+      try {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(
+            Buffer.from(parts[1], 'base64url').toString('utf-8')
+          );
+          user = { _id: payload.id, id: payload.id, role: payload.role };
+        }
+      } catch { }
 
       if (!user) {
         return {
