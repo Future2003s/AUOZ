@@ -85,9 +85,9 @@ export const useAuth = (): UseAuthReturn => {
     queryKey: meQueryKey,
     queryFn: fetchMe,
     enabled: typeof window !== "undefined",
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 1,
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    gcTime: 10 * 60 * 1000,  // 10 minutes
+    retry: 0,                 // No retry — auth failure = not logged in, fast feedback
     refetchOnMount: false,
     refetchOnWindowFocus: true,
   });

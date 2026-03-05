@@ -3,13 +3,14 @@ import { QueryClient } from "@tanstack/react-query";
 export const meQueryKey = ["me"] as const;
 
 // Timeout helper
-function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 8000): Promise<Response> {
+function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 6000): Promise<Response> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   return fetch(url, { ...options, signal: controller.signal }).finally(() =>
     clearTimeout(timeout)
   );
 }
+
 
 export async function fetchMe() {
   try {

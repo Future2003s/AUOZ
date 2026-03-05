@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { envConfig } from "@/config";
 
+// ─── Timeout helper ───────────────────────────────────────────────────
+function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs = 5000
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() =>
+    clearTimeout(timer)
+  );
+}
+
 type RefreshResult = {
   authHeader: string | null;
   setCookie?: string | null;
@@ -23,11 +36,16 @@ export async function getAuthHeaderOrRefresh(
     const baseUrl =
       envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
 
-    const res = await fetch(`${baseUrl}/auth/refresh-token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-    });
+    // 5s timeout — prevents hanging when backend is unreachable
+    const res = await fetchWithTimeout(
+      `${baseUrl}/auth/refresh-token`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      },
+      5000
+    );
     if (!res.ok) return { authHeader: null };
 
     let data: any;
@@ -83,32 +101,39 @@ export async function proxyJson<ResponseBody = any>(
       });
     }
 
-    let res = await fetch(backendUrl, {
-      ...init,
-      headers: {
-        ...(init.headers || {}),
-        ...(authHeader ? { Authorization: authHeader } : {}),
+    // 5s timeout on proxied backend request
+    let res = await fetchWithTimeout(
+      backendUrl,
+      {
+        ...init,
+        headers: {
+          ...(init.headers || {}),
+          ...(authHeader ? { Authorization: authHeader } : {}),
+        },
+        cache: "no-store",
       },
-      cache: "no-store",
-    });
+      5000
+    );
 
     // Track cookie to set from refresh (may be updated below)
     let finalSetCookie = setCookie;
 
     // If 401, try silent refresh once then retry with new token
     if (res.status === 401 && init.requireAuth) {
-      // Force a refresh by passing a fake request without sessionToken cookie
-      // so getAuthHeaderOrRefresh skips the "has sessionToken" branch
       const refreshToken = request.cookies.get("refreshToken")?.value;
       if (refreshToken) {
         const baseUrl =
           envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
         try {
-          const refreshRes = await fetch(`${baseUrl}/auth/refresh-token`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refreshToken }),
-          });
+          const refreshRes = await fetchWithTimeout(
+            `${baseUrl}/auth/refresh-token`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ refreshToken }),
+            },
+            5000
+          );
           if (refreshRes.ok) {
             const text = await refreshRes.text();
             const refreshData = text ? JSON.parse(text) : {};
@@ -117,15 +142,19 @@ export async function proxyJson<ResponseBody = any>(
               refreshData?.data?.accessToken ||
               refreshData?.accessToken;
             if (newToken) {
-              // Retry original request with fresh token
-              res = await fetch(backendUrl, {
-                ...init,
-                headers: {
-                  ...(init.headers || {}),
-                  Authorization: `Bearer ${newToken}`,
+              // Retry original request with fresh token (5s timeout)
+              res = await fetchWithTimeout(
+                backendUrl,
+                {
+                  ...init,
+                  headers: {
+                    ...(init.headers || {}),
+                    Authorization: `Bearer ${newToken}`,
+                  },
+                  cache: "no-store",
                 },
-                cache: "no-store",
-              });
+                5000
+              );
               // Build set-cookie for new tokens
               const isProd = process.env.NODE_ENV === "production";
               const securePart = isProd ? "; Secure" : "";
@@ -226,4 +255,3 @@ export async function proxyJson<ResponseBody = any>(
     );
   }
 }
-

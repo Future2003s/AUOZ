@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useMe } from "./useMe";
 import {
   useAddresses,
@@ -133,6 +133,7 @@ export default function ProfilePage() {
   const { isAuthenticated } = useAuth();
   const hasRedirectedRef = useRef(false);
   const hasShownToastRef = useRef(false);
+  const [authTimedOut, setAuthTimedOut] = useState(false);
   const { data: addresses = [], isLoading: addressesLoading } = useAddresses();
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("all");
   const {
@@ -176,62 +177,65 @@ export default function ProfilePage() {
     return null;
   }, [data]);
 
-  // Handle authentication errors
+  // Helper: redirect to login page (used in multiple places)
+  const redirectToLogin = useCallback((reason: string = 'login_required') => {
+    if (hasRedirectedRef.current) return;
+    hasRedirectedRef.current = true;
+    if (!hasShownToastRef.current) {
+      hasShownToastRef.current = true;
+      toast.error("Vui lòng đăng nhập để xem trang cá nhân");
+    }
+    const locale = pathname.split('/')[1] || 'vi';
+    const currentPath = pathname || `/${locale}/me`;
+    router.push(`/${locale}/login?reason=${reason}&redirect=${encodeURIComponent(currentPath)}`);
+  }, [pathname, router]);
+
+  // Safety timeout: if auth check takes > 8 seconds, force-resolve as unauthenticated
   useEffect(() => {
-    if (error && !hasShownToastRef.current) {
+    if (!isLoading) return;  // Only start timer when loading
+    const safetyTimer = setTimeout(() => {
+      setAuthTimedOut(true);
+    }, 8000);
+    return () => clearTimeout(safetyTimer);
+  }, [isLoading]);
+
+  // Unified redirect logic: handles errors, no-auth, and timeouts
+  useEffect(() => {
+    const isOnLoginPage = pathname?.includes('/login');
+    if (isOnLoginPage || hasRedirectedRef.current) return;
+
+    // Case 1: Auth timed out — treat as unauthenticated
+    if (authTimedOut && isLoading) {
+      redirectToLogin('timeout');
+      return;
+    }
+
+    // Case 2: Error from query (e.g., "No authentication token found")
+    if (error) {
       if (error.message === "No authentication token found") {
-        hasShownToastRef.current = true;
-        if (!hasRedirectedRef.current) {
-          hasRedirectedRef.current = true;
-        toast.error("Vui lòng đăng nhập để xem trang cá nhân");
-          // Extract locale from pathname
-          const locale = pathname.split('/')[1] || 'vi';
-          const currentPath = pathname || `/${locale}/me`;
-          router.push(`/${locale}/login?reason=login_required&redirect=${encodeURIComponent(currentPath)}`);
-        }
-      } else {
+        redirectToLogin('login_required');
+      } else if (!hasShownToastRef.current) {
         hasShownToastRef.current = true;
         toast.error("Có lỗi xảy ra khi tải thông tin cá nhân");
       }
+      return;
     }
-  }, [error, router, pathname]);
 
-  // Redirect to login if no user data and not loading
-  useEffect(() => {
-    // Only redirect if we're sure there's no user and not loading
-    // Also check that we're not already on login page
-    const isOnLoginPage = pathname?.includes('/login');
-    
-    if (!isLoading && !me && !error && !hasRedirectedRef.current && !isOnLoginPage) {
-      // Check if data exists but user is null (meaning no auth)
-      const hasNoAuth = data?.success && !data?.user;
-      
-      if (hasNoAuth) {
-      const timer = setTimeout(() => {
-          // Double check before redirecting
-          if (!me && !hasRedirectedRef.current && !pathname?.includes('/login')) {
-            hasRedirectedRef.current = true;
-            if (!hasShownToastRef.current) {
-              hasShownToastRef.current = true;
-          toast.error("Vui lòng đăng nhập để xem trang cá nhân");
-            }
-            const locale = pathname.split('/')[1] || 'vi';
-            const currentPath = pathname || `/${locale}/me`;
-            router.push(`/${locale}/login?reason=login_required&redirect=${encodeURIComponent(currentPath)}`);
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
+    // Case 3: Loading done, data available, but no user
+    if (!isLoading && data && !me) {
+      redirectToLogin('login_required');
+      return;
     }
-    }
-    
+
     // Reset refs if user becomes available (e.g., after login)
     if (me && (hasRedirectedRef.current || hasShownToastRef.current)) {
       hasRedirectedRef.current = false;
       hasShownToastRef.current = false;
     }
-  }, [isLoading, me, error, router, data, pathname]);
+  }, [isLoading, me, error, data, pathname, authTimedOut, redirectToLogin]);
 
-  if (isLoading) {
+  // Loading state — with safety timeout
+  if (isLoading && !authTimedOut) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
@@ -246,23 +250,18 @@ export default function ProfilePage() {
     );
   }
 
-  if (!me && !isLoading) {
+  // No user (auth finished or timed out) — redirect is handled by useEffect above
+  // Show a brief message while redirecting (not a spinner)
+  if (!me) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
-          </div>
-          <p className="mt-6 text-slate-600 font-medium">
-            Đang kiểm tra đăng nhập...
+          <p className="text-slate-600 font-medium">
+            Đang chuyển hướng đến trang đăng nhập...
           </p>
         </div>
       </div>
     );
-  }
-
-  if (!me) {
-    return null;
   }
 
   const fullName = `${me.firstName} ${me.lastName}`.trim();
@@ -660,11 +659,10 @@ export default function ProfilePage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${
-                          isActive
-                            ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
-                            : "text-slate-700 hover:bg-slate-100"
-                        }`}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${isActive
+                          ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
+                          : "text-slate-700 hover:bg-slate-100"
+                          }`}
                       >
                         <div className="flex items-center gap-3">
                           <Icon className="h-5 w-5" />
@@ -923,8 +921,8 @@ export default function ProfilePage() {
                             address.type === "home"
                               ? Home
                               : address.type === "work"
-                              ? Building2
-                              : MapPinned;
+                                ? Building2
+                                : MapPinned;
                           return (
                             <Card
                               key={addressId}
@@ -941,8 +939,8 @@ export default function ProfilePage() {
                                         {address.type === "home"
                                           ? "Nhà riêng"
                                           : address.type === "work"
-                                          ? "Cơ quan"
-                                          : "Khác"}
+                                            ? "Cơ quan"
+                                            : "Khác"}
                                       </p>
                                       {address.isDefault && (
                                         <Badge className="mt-1 bg-blue-600 text-white text-xs">
@@ -964,21 +962,21 @@ export default function ProfilePage() {
                                   {(address.provinceOld ||
                                     address.districtOld ||
                                     address.wardOld) && (
-                                    <div className="pt-2 mt-2 border-t border-slate-200">
-                                      <p className="text-xs font-medium text-slate-500 mb-1">
-                                        Địa chỉ hành chính cũ:
-                                      </p>
-                                      <p className="text-xs">
-                                        {[
-                                          address.wardOld,
-                                          address.districtOld,
-                                          address.provinceOld,
-                                        ]
-                                          .filter(Boolean)
-                                          .join(", ") || "Chưa có"}
-                                      </p>
-                                    </div>
-                                  )}
+                                      <div className="pt-2 mt-2 border-t border-slate-200">
+                                        <p className="text-xs font-medium text-slate-500 mb-1">
+                                          Địa chỉ hành chính cũ:
+                                        </p>
+                                        <p className="text-xs">
+                                          {[
+                                            address.wardOld,
+                                            address.districtOld,
+                                            address.provinceOld,
+                                          ]
+                                            .filter(Boolean)
+                                            .join(", ") || "Chưa có"}
+                                        </p>
+                                      </div>
+                                    )}
                                   {(address.provinceNew || address.wardNew) && (
                                     <div className="pt-2 mt-2 border-t border-slate-200">
                                       <p className="text-xs font-medium text-blue-600 mb-1">
@@ -1668,7 +1666,7 @@ export default function ProfilePage() {
               className="min-w-[100px] bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
             >
               {addAddressMutation.isPending ||
-              updateAddressMutation.isPending ? (
+                updateAddressMutation.isPending ? (
                 <>
                   <div className="mr-2">
                     <ButtonLoader size="sm" />
