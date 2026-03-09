@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { defaultLocale, isValidLocale, Locale } from "./config";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 type Messages = Record<string, any>;
 
@@ -40,7 +40,6 @@ export const I18nProvider: React.FC<{
   initialMessages?: Messages;
 }> = ({ children, initialLocale, initialMessages }) => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const router = useRouter();
 
   // Get initial locale with proper priority: URL > initialLocale > localStorage > default
@@ -114,7 +113,7 @@ export const I18nProvider: React.FC<{
     } else {
       segments.unshift(l);
     }
-    const search = searchParams ? `?${searchParams.toString()}` : "";
+    const search = typeof window !== "undefined" ? window.location.search : "";
     const newPath = `/${segments.join("/")}${search}`;
 
     // use Next router to navigate client-side

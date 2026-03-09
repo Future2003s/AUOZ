@@ -1,11 +1,11 @@
 "use client";
 import LoginForm from "./login-form";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
-const LoginPage = () => {
+function LoginPageContent() {
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -31,6 +31,12 @@ const LoginPage = () => {
       <LoginForm />
     </section>
   );
-};
+}
 
-export default LoginPage;
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" /></div>}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}

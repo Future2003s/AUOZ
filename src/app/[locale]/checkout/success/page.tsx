@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Package, Home, ShoppingBag } from "lucide-react";
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
     const searchParams = useSearchParams();
     const params = useParams<{ locale: string }>();
     const locale = (params?.locale as string) || "vi";
@@ -80,5 +81,13 @@ export default function CheckoutSuccessPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CheckoutSuccessPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-emerald-600 rounded-full" /></div>}>
+            <CheckoutSuccessContent />
+        </Suspense>
     );
 }
