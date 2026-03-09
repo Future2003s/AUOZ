@@ -1,32 +1,21 @@
 import { ReactNode } from "react";
-import { headers } from "next/headers";
 import { dehydrate, QueryClient } from "@tanstack/react-query";
 import HydrateClient from "@/providers/hydrate-client";
 import { meQueryKey } from "./query";
-
-async function fetchMeServer() {
-  const h = await headers();
-  const host = h.get("host");
-  const proto = h.get("x-forwarded-proto") || "http";
-  const url = `${proto}://${host}/api/auth/me`;
-
-  const res = await fetch(url, {
-    cache: "no-store",
-    headers: { cookie: h.get("cookie") || "" },
-  });
-
-  if (!res.ok) {
-    return null;
-  }
-
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
-  return data;
-}
+import { getServerUser } from "@/lib/server-auth";
 
 export default async function MeLayout({ children }: { children: ReactNode }) {
   const qc = new QueryClient();
-  await qc.prefetchQuery({ queryKey: meQueryKey, queryFn: fetchMeServer });
+
+  // Direct cookie-based auth — no self-fetch to /api/auth/me
+  const { user } = await getServerUser();
+
+  // Prefetch React Query with the result so client doesn't re-fetch
+  await qc.prefetchQuery({
+    queryKey: meQueryKey,
+    queryFn: async () => ({ success: true, user: user || null }),
+  });
+
   const dehydratedState = dehydrate(qc);
   return <HydrateClient state={dehydratedState}>{children}</HydrateClient>;
 }
