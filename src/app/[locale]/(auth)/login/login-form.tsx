@@ -52,7 +52,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const params = useParams();
   const locale = (params as any)?.locale || defaultLocale;
-  const { login, loginExtended } = useAuth();
+  const { login } = useAuth();
   const t = useTranslations();
 
   const redirectUrl = searchParams.get("redirect");
@@ -102,14 +102,7 @@ function LoginForm() {
     setIsSubmitting(true);
     setAuthError(null);
     try {
-      const result = rememberMe
-        ? await loginExtended({
-          email: data.email,
-          password: data.password,
-          rememberMe,
-          deviceInfo: { userAgent: navigator.userAgent, platform: "web" as const },
-        } as ExtendedLoginBodyType)
-        : await login(data.email, data.password);
+      const result = await login(data.email, data.password, rememberMe);
 
       if (result?.success) {
         setShowSuccessLoader(true);

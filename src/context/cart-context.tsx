@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useAppContextProvider } from "@/context/app-context";
+import { useAuth } from "@/hooks/useAuth";
 
 export type CartItem = {
   id: string;
@@ -71,13 +71,13 @@ type JsonRecord = Record<string, unknown>;
 
 type RawCartProduct =
   | {
-      _id?: string;
-      id?: string;
-      name?: string;
-      price?: number;
-      finalPrice?: number;
-      images?: string[];
-    }
+    _id?: string;
+    id?: string;
+    name?: string;
+    price?: number;
+    finalPrice?: number;
+    images?: string[];
+  }
   | string
   | null;
 
@@ -169,15 +169,15 @@ const mapServerItems = (serverItems: RawCartItem[]): CartItem[] => {
     const fallbackImages = resolvedImages || item.images;
     const variantLabel = Array.isArray(item.variant)
       ? item.variant
-          .map((entry) =>
-            entry &&
+        .map((entry) =>
+          entry &&
             typeof entry.name === "string" &&
             typeof entry.value === "string"
-              ? `${entry.name}: ${entry.value}`
-              : null
-          )
-          .filter((label): label is string => Boolean(label))
-          .join(" • ") || item.variantName || null
+            ? `${entry.name}: ${entry.value}`
+            : null
+        )
+        .filter((label): label is string => Boolean(label))
+        .join(" • ") || item.variantName || null
       : item.variantName || null;
 
     const imageUrl =
@@ -231,7 +231,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucher | null>(
     null
   );
-  const { sessionToken } = useAppContextProvider();
+  const { isAuthenticated } = useAuth();
   const [cartSessionId, setCartSessionId] = useState<string | null>(null);
   const itemsRef = useRef<CartItem[]>([]);
   const hasHydratedServerCart = useRef(false);
@@ -261,7 +261,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch {}
+    } catch { }
   }, [items]);
 
   useEffect(() => {
@@ -274,7 +274,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         localStorage.removeItem(VOUCHER_STORAGE_KEY);
       }
-    } catch {}
+    } catch { }
   }, [appliedVoucher]);
 
   useEffect(() => {
@@ -307,12 +307,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       if (cartSessionId) {
         headers[SESSION_HEADER] = cartSessionId;
       }
-      if (sessionToken && !headers.Authorization) {
-        headers.Authorization = `Bearer ${sessionToken}`;
-      }
       return headers;
     },
-    [cartSessionId, sessionToken]
+    [cartSessionId]
   );
 
   const sendCartRequest = useCallback(
@@ -326,7 +323,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           "Content-Type": "application/json; charset=utf-8",
         }),
         body: JSON.stringify(payload),
-      }).catch(() => {});
+      }).catch(() => { });
     },
     [buildHeaders, cartSessionId]
   );
@@ -393,7 +390,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   }, [cartSessionId, fetchCartFromServer, pushItemsToServer]);
 
   useEffect(() => {
-    if (!sessionToken || !cartSessionId) return;
+    if (!isAuthenticated || !cartSessionId) return;
     let cancelled = false;
 
     const mergeAndRefresh = async () => {
@@ -420,7 +417,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       cancelled = true;
     };
-  }, [sessionToken, cartSessionId, buildHeaders, fetchCartFromServer]);
+  }, [isAuthenticated, cartSessionId, buildHeaders, fetchCartFromServer]);
 
   const addItem = (item: CartItem) => {
     setItems((prev) => {
@@ -592,8 +589,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         if (!res.ok) {
           throw new Error(
             getString(baseRecord, "message") ||
-              getString(nestedData, "message") ||
-              "Voucher không còn hợp lệ"
+            getString(nestedData, "message") ||
+            "Voucher không còn hợp lệ"
           );
         }
         if (cancelled) return;
@@ -602,12 +599,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         setAppliedVoucher((prev) =>
           prev
             ? {
-                ...prev,
-                discountAmount: Number(
-                  getNumber(effectiveData, "discountAmount") ?? 0
-                ),
-                status: getString(voucherRecord, "status") || prev.status,
-              }
+              ...prev,
+              discountAmount: Number(
+                getNumber(effectiveData, "discountAmount") ?? 0
+              ),
+              status: getString(voucherRecord, "status") || prev.status,
+            }
             : prev
         );
       } catch (error) {

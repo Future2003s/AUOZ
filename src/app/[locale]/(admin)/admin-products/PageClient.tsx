@@ -34,7 +34,7 @@ const ProductViewModal = dynamic(
   { ssr: false }
 );
 import { productApiRequest } from "@/apiRequests/products";
-import { useAppContextProvider } from "@/context/app-context";
+
 
 const backendStatusToUI = (status?: string, fallback?: string) => {
   const raw = status ?? fallback;
@@ -101,7 +101,7 @@ export default function PageClient() {
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const { sessionToken } = useAppContextProvider();
+
   const latestFetchIdRef = useRef(0);
   const fetchProductsRef = useRef<(() => Promise<void>) | null>(null);
 
@@ -206,8 +206,8 @@ export default function PageClient() {
           : backend.brand?._id || fallback?.brandId,
       images: Array.isArray(backend.images)
         ? backend.images.map((img: any) =>
-            typeof img === "string" ? img : img.url
-          )
+          typeof img === "string" ? img : img.url
+        )
         : fallback?.images || [],
       isFeatured: backend.isFeatured ?? fallback?.isFeatured ?? false,
       isVisible: backend.isVisible ?? fallback?.isVisible ?? true,
@@ -228,7 +228,7 @@ export default function PageClient() {
         editing || undefined
       );
       const response = await productApiRequest.updateProduct(
-        sessionToken || "",
+        "",
         targetId,
         payloadWithStatus
       );
@@ -271,7 +271,7 @@ export default function PageClient() {
 
   const handleDelete = async (productId: string) => {
     if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
-    
+
     if (!productId) {
       toast.error("Không tìm thấy ID sản phẩm");
       return;
@@ -280,22 +280,22 @@ export default function PageClient() {
     try {
       setDeletingId(productId);
       console.log("Deleting product:", productId);
-      
+
       const response = await productApiRequest.deleteProduct(
-        sessionToken || "",
+        "",
         productId
       );
-      
+
       console.log("Delete response:", response);
-      
+
       if (response.success) {
         // Remove from local state immediately
         setProducts((prev) => prev.filter((p) => p.id !== productId));
         if (viewing?.id === productId) setViewing(null);
         if (editing?.id === productId) setEditing(null);
-        
+
         toast.success("Đã xóa sản phẩm thành công!");
-        
+
         // Refresh the list to ensure consistency
         if (fetchProductsRef.current) {
           await fetchProductsRef.current();
@@ -327,7 +327,7 @@ export default function PageClient() {
         currentProduct || undefined
       );
       const response = await productApiRequest.updateProduct(
-        sessionToken || "",
+        "",
         targetId,
         payloadWithStatus
       );
@@ -352,7 +352,7 @@ export default function PageClient() {
     try {
       setSaving(true);
       const response = await productApiRequest.createProduct(
-        sessionToken || "",
+        "",
         productData
       );
 
@@ -427,7 +427,7 @@ export default function PageClient() {
 
     try {
       const response = await productApiRequest.updateProduct(
-        sessionToken || "",
+        "",
         productId,
         updateDataWithStatus
       );
@@ -481,10 +481,10 @@ export default function PageClient() {
           statusFilter === "ACTIVE"
             ? "active"
             : statusFilter === "INACTIVE"
-            ? "archived"
-            : statusFilter === "DRAFT"
-            ? "draft"
-            : statusFilter.toLowerCase();
+              ? "archived"
+              : statusFilter === "DRAFT"
+                ? "draft"
+                : statusFilter.toLowerCase();
         params.set("status", backendStatus);
       }
       params.set("page", String(currentPage));
@@ -493,7 +493,7 @@ export default function PageClient() {
       // Add timestamp to prevent caching
       const timestamp = Date.now();
       const url = `/api/products/admin?${params.toString()}&_t=${timestamp}`;
-      
+
       const res = await fetch(url, {
         cache: "no-store",
         headers: {
@@ -521,10 +521,10 @@ export default function PageClient() {
                 p.status === "active"
                   ? "ACTIVE"
                   : p.status === "archived"
-                  ? "INACTIVE"
-                  : p.status === "draft"
-                  ? "DRAFT"
-                  : p.status || "ACTIVE",
+                    ? "INACTIVE"
+                    : p.status === "draft"
+                      ? "DRAFT"
+                      : p.status || "ACTIVE",
               sku: p.sku || p.code || "",
               brand: p.brandName || p.brand?.name || "",
               isVisible: p.isVisible ?? true,
@@ -653,7 +653,6 @@ export default function PageClient() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
         },
         body: JSON.stringify({
           name: categoryName,
@@ -676,7 +675,7 @@ export default function PageClient() {
           } else if (errorData.message) {
             errorMessage = errorData.message;
           }
-        } catch {}
+        } catch { }
         throw new Error(errorMessage);
       }
     } catch (error: any) {
@@ -972,11 +971,10 @@ export default function PageClient() {
                     <Button
                       variant={product.isFeatured ? "default" : "outline"}
                       size="sm"
-                      className={`w-full ${
-                        product.isFeatured
-                          ? "bg-yellow-500 hover:bg-yellow-600 text-white"
-                          : "hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-300"
-                      } transition-all`}
+                      className={`w-full ${product.isFeatured
+                        ? "bg-yellow-500 hover:bg-yellow-600 text-white"
+                        : "hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-300"
+                        } transition-all`}
                       onClick={() =>
                         handleToggleFeatured(
                           product.id,
@@ -985,9 +983,8 @@ export default function PageClient() {
                       }
                     >
                       <Star
-                        className={`h-4 w-4 mr-2 ${
-                          product.isFeatured ? "fill-current" : ""
-                        }`}
+                        className={`h-4 w-4 mr-2 ${product.isFeatured ? "fill-current" : ""
+                          }`}
                       />
                       {product.isFeatured ? "Đã nổi bật" : "Đánh dấu nổi bật"}
                     </Button>

@@ -35,12 +35,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { advertisementApi, type Advertisement } from "@/apiRequests/advertisements";
-import { useAppContextProvider } from "@/context/app-context";
+
 import { ImageUpload } from "@/components/ImageUpload";
 import Image from "next/image";
 
 export default function PageClient() {
-  const { sessionToken } = useAppContextProvider();
+
   const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Advertisement | null>(null);
@@ -72,18 +72,17 @@ export default function PageClient() {
 
   useEffect(() => {
     fetchAdvertisements();
-  }, [currentPage, sessionToken]);
+  }, [currentPage]);
 
   const fetchAdvertisements = async () => {
-    if (!sessionToken) return;
-    
+
     try {
       setLoading(true);
       const response = await advertisementApi.getAll(
         { page: currentPage, limit: 10 },
-        sessionToken
+        undefined
       );
-      
+
       if (response.success && response.data) {
         setAdvertisements(response.data.advertisements);
         setTotalPages(response.data.pagination.pages);
@@ -147,11 +146,6 @@ export default function PageClient() {
   };
 
   const handleSave = async () => {
-    if (!sessionToken) {
-      toast.error("Vui lòng đăng nhập");
-      return;
-    }
-
     if (!formData.content?.trim()) {
       toast.error("Vui lòng nhập nội dung quảng cáo");
       return;
@@ -159,15 +153,14 @@ export default function PageClient() {
 
     try {
       setSaving(true);
-      
+
       if (editing?._id) {
-        // Update
         const response = await advertisementApi.update(
           editing._id,
           formData,
-          sessionToken
+          undefined
         );
-        
+
         if (response.success) {
           toast.success("Cập nhật quảng cáo thành công");
           setEditing(null);
@@ -176,12 +169,11 @@ export default function PageClient() {
           toast.error("Cập nhật quảng cáo thất bại");
         }
       } else {
-        // Create
         const response = await advertisementApi.create(
           formData,
-          sessionToken
+          undefined
         );
-        
+
         if (response.success) {
           toast.success("Tạo quảng cáo thành công");
           setCreating(false);
@@ -199,14 +191,14 @@ export default function PageClient() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!sessionToken || !confirm("Bạn có chắc chắn muốn xóa quảng cáo này?")) {
+    if (!confirm("Bạn có chắc chắn muốn xóa quảng cáo này?")) {
       return;
     }
 
     try {
       setDeletingId(id);
-      const response = await advertisementApi.delete(id, sessionToken);
-      
+      const response = await advertisementApi.delete(id, undefined);
+
       if (response.success) {
         toast.success("Xóa quảng cáo thành công");
         fetchAdvertisements();
@@ -222,11 +214,11 @@ export default function PageClient() {
   };
 
   const handleToggle = async (ad: Advertisement) => {
-    if (!sessionToken || !ad._id) return;
+    if (!ad._id) return;
 
     try {
-      const response = await advertisementApi.toggle(ad._id, sessionToken);
-      
+      const response = await advertisementApi.toggle(ad._id);
+
       if (response.success) {
         toast.success(
           response.data?.enabled ? "Đã bật quảng cáo" : "Đã tắt quảng cáo"

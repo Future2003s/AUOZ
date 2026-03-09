@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { useAppContextProvider } from "@/context/app-context";
 import { ButtonLoader } from "@/components/ui/loader";
 import { envConfig } from "@/config";
 import { useAuth } from "@/hooks/useAuth";
@@ -57,7 +56,6 @@ export default function BuyNowModal({
   onClose,
   items,
 }: BuyNowModalProps) {
-  const { sessionToken } = useAppContextProvider();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { data: addresses = [] } = useAddresses({
     enabled: isAuthenticated && open,

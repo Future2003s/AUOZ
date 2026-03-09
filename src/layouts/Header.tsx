@@ -2,7 +2,6 @@
 import { envConfig } from "@/config";
 import Link from "next/link";
 import Image from "next/image";
-import { useAppContextProvider } from "@/context/app-context";
 import { useCart } from "@/context/cart-context";
 import { useCartSidebar } from "@/context/cart-sidebar-context";
 import { useRouter, usePathname } from "next/navigation";
@@ -108,7 +107,6 @@ export default function Header() {
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
   const router = useRouter();
-  const { sessionToken, setSessionToken } = useAppContextProvider();
   const { logout, isAuthenticated, user } = useAuth();
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -122,7 +120,7 @@ export default function Header() {
   const { openSidebar } = useCartSidebar();
   const t = useTranslations();
   const { locale } = useI18n();
-  const isLoggedIn = Boolean(sessionToken) || isAuthenticated;
+  const isLoggedIn = isAuthenticated;
   const pathname = usePathname();
 
   // Fetch categories
@@ -421,7 +419,6 @@ export default function Header() {
                           try {
                             setIsAccountOpen(false);
                             await logout();
-                            setSessionToken("");
                             toast.success("Đã đăng xuất", { position: "top-center" });
                             router.push(`/${locale}/login`);
                             router.refresh();

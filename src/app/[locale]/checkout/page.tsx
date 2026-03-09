@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/context/cart-context";
 import { Address, useAddresses } from "@/hooks/useAddresses";
-import { useAppContextProvider } from "@/context/app-context";
+import { useAuth } from "@/hooks/useAuth";
 import { envConfig } from "@/config";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -65,7 +65,7 @@ export default function CheckoutPage() {
         clear,
     } = useCart();
 
-    const { sessionToken } = useAppContextProvider();
+    const { isAuthenticated } = useAuth();
 
     const {
         data: addresses = [],
@@ -144,7 +144,7 @@ export default function CheckoutPage() {
         try {
             let res: Response;
 
-            if (sessionToken) {
+            if (isAuthenticated) {
                 // Authenticated user → use /api/orders
                 res = await fetch("/api/orders", {
                     method: "POST",
@@ -350,8 +350,8 @@ export default function CheckoutPage() {
                                                     type="button"
                                                     onClick={() => handleSelectAddress(addr)}
                                                     className={`w-full text-left border rounded-xl p-3.5 transition-all text-sm ${isActive
-                                                            ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-400"
-                                                            : "border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
+                                                        ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-400"
+                                                        : "border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
                                                         }`}
                                                 >
                                                     <div className="flex items-center justify-between">
@@ -458,14 +458,14 @@ export default function CheckoutPage() {
                                     type="button"
                                     onClick={() => setPaymentMethod("cod")}
                                     className={`flex items-start gap-3 border rounded-xl p-4 transition-all text-left ${paymentMethod === "cod"
-                                            ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-400"
-                                            : "border-gray-200 hover:border-indigo-300"
+                                        ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-400"
+                                        : "border-gray-200 hover:border-indigo-300"
                                         }`}
                                 >
                                     <div
                                         className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${paymentMethod === "cod"
-                                                ? "border-indigo-600"
-                                                : "border-gray-300"
+                                            ? "border-indigo-600"
+                                            : "border-gray-300"
                                             }`}
                                     >
                                         {paymentMethod === "cod" && (
@@ -487,14 +487,14 @@ export default function CheckoutPage() {
                                     type="button"
                                     onClick={() => setPaymentMethod("online")}
                                     className={`flex items-start gap-3 border rounded-xl p-4 transition-all text-left ${paymentMethod === "online"
-                                            ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-400"
-                                            : "border-gray-200 hover:border-indigo-300"
+                                        ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-400"
+                                        : "border-gray-200 hover:border-indigo-300"
                                         }`}
                                 >
                                     <div
                                         className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${paymentMethod === "online"
-                                                ? "border-indigo-600"
-                                                : "border-gray-300"
+                                            ? "border-indigo-600"
+                                            : "border-gray-300"
                                             }`}
                                     >
                                         {paymentMethod === "online" && (

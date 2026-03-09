@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import type { Product } from "@/apiRequests/products";
 import { useParams, useRouter } from "next/navigation";
-import { useAppContextProvider } from "@/context/app-context";
 import { useCart } from "@/context/cart-context";
 import { useCartSidebar } from "@/context/cart-sidebar-context";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,7 +42,6 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const id = params?.id as string;
   const locale = params?.locale || "vi";
-  const { sessionToken } = useAppContextProvider();
   const { addItem } = useCart();
   const { openSidebar } = useCartSidebar();
   const { isAuthenticated, user } = useAuth();
@@ -71,8 +69,6 @@ export default function ProductDetailPage() {
   const [orderError, setOrderError] = useState<string | null>(null);
 
   const checkoutRef = useRef<HTMLDivElement>(null);
-
-  void sessionToken;
 
   // Pre-fill từ user profile nếu đã đăng nhập
   useEffect(() => {

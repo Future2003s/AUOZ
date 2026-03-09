@@ -4,11 +4,8 @@ import "./globals.css";
 import "./styleSmoothUI.css";
 import { NextFont } from "next/dist/compiled/@next/font";
 import NextTopLoader from "nextjs-toploader";
-import AppProvider from "@/context/app-provider";
 import LayoutMain from "@/layouts/layout-main";
 import { Toaster } from "sonner";
-import { cookies } from "next/headers";
-import AppContext from "@/context/app-context";
 import { CartProvider } from "@/context/cart-context";
 import { CartSidebarProvider } from "@/context/cart-sidebar-context";
 import { ThemeProvider } from "@/context/theme-context";
@@ -105,12 +102,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    // Add your verification codes here when available
-    // google: "your-google-verification-code",
-    // yandex: "your-yandex-verification-code",
-    // yahoo: "your-yahoo-verification-code",
-  },
+  verification: {},
 };
 
 export const viewport: Viewport = {
@@ -122,14 +114,11 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get("sessionToken");
-
   return (
     <html lang="vi" suppressHydrationWarning>
       <body className={`${fontSans.className}`} suppressHydrationWarning>
@@ -140,22 +129,18 @@ export default async function RootLayout({
           height={3}
           showSpinner={false}
         />
-        <AppProvider>
-          <AppContext initialSessionToken={sessionToken?.value as string}>
-            <QueryProvider>
-              <CartProvider>
-                <CartSidebarProvider>
-                  <ThemeProvider>
-                    <I18nProvider>
-                      <LayoutMain>{children}</LayoutMain>
-                    </I18nProvider>
-                  </ThemeProvider>
-                </CartSidebarProvider>
-              </CartProvider>
-            </QueryProvider>
-          </AppContext>
-          <Toaster />
-        </AppProvider>
+        <QueryProvider>
+          <CartProvider>
+            <CartSidebarProvider>
+              <ThemeProvider>
+                <I18nProvider>
+                  <LayoutMain>{children}</LayoutMain>
+                </I18nProvider>
+              </ThemeProvider>
+            </CartSidebarProvider>
+          </CartProvider>
+        </QueryProvider>
+        <Toaster />
         <PWARegister />
       </body>
     </html>

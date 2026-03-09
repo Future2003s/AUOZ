@@ -61,46 +61,46 @@ export const advertisementApi = {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
-    
+
     const url = `/advertisements${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    
+
     return http.get(url, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
   // Get advertisement by ID (admin)
-  getById: async (id: string, token: string): Promise<AdvertisementResponse> => {
+  getById: async (id: string, token?: string): Promise<AdvertisementResponse> => {
     return http.get(`/advertisements/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
   // Create advertisement (admin)
-  create: async (data: Partial<Advertisement>, token: string): Promise<AdvertisementResponse> => {
+  create: async (data: Partial<Advertisement>, token?: string): Promise<AdvertisementResponse> => {
     return http.post("/advertisements", data, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
   // Update advertisement (admin)
-  update: async (id: string, data: Partial<Advertisement>, token: string): Promise<AdvertisementResponse> => {
+  update: async (id: string, data: Partial<Advertisement>, token?: string): Promise<AdvertisementResponse> => {
     return http.put(`/advertisements/${id}`, data, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
   // Delete advertisement (admin)
-  delete: async (id: string, token: string): Promise<{ success: boolean; message: string }> => {
+  delete: async (id: string, token?: string): Promise<{ success: boolean; message: string }> => {
     return http.delete(`/advertisements/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
   // Toggle advertisement enabled status (admin)
-  toggle: async (id: string, token: string): Promise<AdvertisementResponse> => {
+  toggle: async (id: string, token?: string): Promise<AdvertisementResponse> => {
     return http.patch(`/advertisements/${id}/toggle`, {}, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 };

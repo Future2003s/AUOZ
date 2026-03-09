@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 export async function POST() {
   const cookieStore = await cookies();
@@ -6,22 +7,16 @@ export async function POST() {
 
   try {
     if (token) {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
+      const baseUrl = process.env.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
       await fetch(`${baseUrl}/auth/logout`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {});
+      }).catch(() => { });
     }
   } finally {
     cookieStore.delete("sessionToken");
     cookieStore.delete("refreshToken");
-    cookieStore.delete("auth_user");
-    cookieStore.delete("auth_remember_me");
   }
 
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  return NextResponse.json({ success: true }, { status: 200 });
 }

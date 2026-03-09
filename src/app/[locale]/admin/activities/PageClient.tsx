@@ -7,12 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { activityApi, type Activity } from "@/apiRequests/activities";
-import { useAppContextProvider } from "@/context/app-context";
+
 import { ActivityForm } from "./components/ActivityForm";
 import { ActivityList } from "./components/ActivityList";
 
 export default function PageClient() {
-  const { sessionToken } = useAppContextProvider();
+
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Activity | null>(null);
@@ -25,10 +25,9 @@ export default function PageClient() {
 
   useEffect(() => {
     fetchActivities();
-  }, [currentPage, sessionToken, searchQuery]);
+  }, [currentPage, searchQuery]);
 
   const fetchActivities = async () => {
-    if (!sessionToken) return;
 
     try {
       setLoading(true);
@@ -38,7 +37,7 @@ export default function PageClient() {
           limit: 12,
           search: searchQuery || undefined,
         },
-        sessionToken
+        undefined
       );
 
       if (response.success && response.data) {
@@ -69,15 +68,14 @@ export default function PageClient() {
   };
 
   const handleSubmit = async (data: Partial<Activity>) => {
-    if (!sessionToken) return;
 
     try {
       setSaving(true);
       if (editing) {
-        await activityApi.update(editing._id!, data, sessionToken);
+        await activityApi.update(editing._id!, data, undefined);
         toast.success("Cập nhật hoạt động thành công");
       } else {
-        await activityApi.create(data, sessionToken);
+        await activityApi.create(data, undefined);
         toast.success("Tạo hoạt động thành công");
       }
       handleClose();
@@ -95,12 +93,11 @@ export default function PageClient() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!sessionToken) return;
     if (!confirm("Bạn có chắc chắn muốn xóa hoạt động này?")) return;
 
     try {
       setDeletingId(id);
-      await activityApi.delete(id, sessionToken);
+      await activityApi.delete(id, undefined);
       toast.success("Xóa hoạt động thành công");
       fetchActivities();
     } catch (error: any) {
@@ -112,10 +109,9 @@ export default function PageClient() {
   };
 
   const handleToggle = async (id: string) => {
-    if (!sessionToken) return;
 
     try {
-      await activityApi.toggle(id, sessionToken);
+      await activityApi.toggle(id, undefined);
       toast.success("Cập nhật trạng thái thành công");
       fetchActivities();
     } catch (error: any) {

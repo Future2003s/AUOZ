@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Plus, Save, Loader2, Trash2, ArrowUp, ArrowDown } from "lucide-react";
-import { useAppContextProvider } from "@/context/app-context";
+
 import { complaintApi } from "@/apiRequests/complaints";
 import {
   ComplaintSettings,
@@ -23,7 +23,7 @@ import {
 import { toast } from "sonner";
 
 export default function AdminComplaintsPage() {
-  const { sessionToken } = useAppContextProvider();
+
   const [settings, setSettings] = useState<ComplaintSettings>(
     defaultComplaintSettings
   );
@@ -72,7 +72,6 @@ export default function AdminComplaintsPage() {
   }, []);
 
   const fetchRequests = async () => {
-    if (!sessionToken) return;
     try {
       setRequestsLoading(true);
       const response = await complaintApi.getRequests(
@@ -80,7 +79,7 @@ export default function AdminComplaintsPage() {
           status: statusFilter,
           search: searchTerm.trim() || undefined,
         },
-        sessionToken
+        undefined
       );
       if (response.success) {
         setRequests(response.data || []);
@@ -94,20 +93,14 @@ export default function AdminComplaintsPage() {
   };
 
   useEffect(() => {
-    if (sessionToken) {
-      fetchRequests();
-    }
+    fetchRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionToken, statusFilter]);
+  }, [statusFilter]);
 
   const handleSave = async () => {
-    if (!sessionToken) {
-      toast.error("Bạn cần đăng nhập lại");
-      return;
-    }
     try {
       setSaving(true);
-      const res = await complaintApi.updateSettings(settings, sessionToken);
+      const res = await complaintApi.updateSettings(settings);
       if (res.success) {
         toast.success("Cập nhật thông tin thành công");
         setSettings(res.data);
@@ -126,16 +119,11 @@ export default function AdminComplaintsPage() {
     id: string,
     nextStatus: ComplaintStatus
   ) => {
-    if (!sessionToken) {
-      toast.error("Bạn cần đăng nhập lại");
-      return;
-    }
     try {
       setUpdatingRequestId(id);
       const res = await complaintApi.updateRequest(
         id,
-        { status: nextStatus },
-        sessionToken
+        { status: nextStatus }
       );
       if (res.success) {
         toast.success("Đã cập nhật trạng thái khiếu nại");
@@ -200,7 +188,7 @@ export default function AdminComplaintsPage() {
         <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-500" />
       </div>
     );
-    }
+  }
 
   return (
     <div className="container mx-auto px-6 py-8 space-y-6">

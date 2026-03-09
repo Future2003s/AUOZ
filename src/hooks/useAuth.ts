@@ -1,42 +1,39 @@
 import { useCallback } from "react";
-import {
-  BackendAuthResponse,
-  BackendUserProfile,
-} from "@/services/auth.service";
-import { ExtendedLoginBodyType } from "@/shemaValidation/auth.schema";
 import { HttpError } from "@/lib/http";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchMe, meQueryKey } from "@/app/[locale]/me/query";
 
-// ─── Auth state interface ────────────────────────────────────────────
-interface AuthState {
-  user: BackendUserProfile | null;
+// ─── Types ───────────────────────────────────────────────────────────
+export interface AuthUser {
+  _id: string;
+  id?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  role: string;
+  avatar?: string;
+  isActive?: boolean;
+  [key: string]: any; // Allow extra fields from backend
+}
+
+interface UseAuthReturn {
+  user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-}
-
-interface AuthActions {
-  login: (
-    email: string,
-    password: string,
-    rememberMe?: boolean
-  ) => Promise<BackendAuthResponse>;
-  loginExtended: (data: ExtendedLoginBodyType) => Promise<BackendAuthResponse>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<any>;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
   clearError: () => void;
 }
 
-type UseAuthReturn = AuthState & AuthActions;
-
-// ─── Helper: login via Next API to set httpOnly cookies ──────────────
-async function loginViaNextApi(body: {
+// ─── Login via Next API route (sets httpOnly cookies) ────────────────
+async function loginViaApi(body: {
   email: string;
   password: string;
   rememberMe?: boolean;
-  deviceInfo?: any;
-}): Promise<BackendAuthResponse> {
+}): Promise<any> {
   const res = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json; charset=utf-8" },
@@ -44,122 +41,66 @@ async function loginViaNextApi(body: {
   });
   const data = await res.json();
   if (!res.ok || !data?.success) {
-    const message = data?.error || data?.message || "Login failed";
     throw new HttpError({
       statusCode: res.status,
-      payload: { message },
+      payload: { message: data?.error || data?.message || "Đăng nhập thất bại" },
       url: "/api/auth/login",
     });
   }
-  return data as BackendAuthResponse;
-}
-
-// ─── Error message mapping ───────────────────────────────────────────
-function mapLoginError(error: unknown): string {
-  if (!(error instanceof HttpError)) return "Đăng nhập thất bại";
-  const payload = error.payload as any;
-  const msg = payload?.error || payload?.message;
-  if (error.statusCode === 401) {
-    if (msg?.includes("deactivated") || msg?.includes("inactive")) {
-      return "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên";
-    }
-    return msg || "Email hoặc mật khẩu không đúng";
-  }
-  if (error.statusCode === 429)
-    return "Quá nhiều lần đăng nhập sai. Vui lòng thử lại sau 15 phút";
-  if (error.statusCode === 403)
-    return "Tài khoản của bạn không có quyền truy cập";
-  return msg || "Đăng nhập thất bại";
+  return data;
 }
 
 // ─── Main hook ───────────────────────────────────────────────────────
 export const useAuth = (): UseAuthReturn => {
   const queryClient = useQueryClient();
 
-  // Single source of truth: React Query for /api/auth/me
-  const {
-    data: meData,
-    isLoading: meLoading,
-    error: meError,
-  } = useQuery({
+  // Single source of truth: React Query → /api/auth/me
+  const { data: meData, isLoading, error: meError } = useQuery({
     queryKey: meQueryKey,
     queryFn: fetchMe,
     enabled: typeof window !== "undefined",
-    staleTime: 3 * 60 * 1000, // 3 minutes
-    gcTime: 10 * 60 * 1000,  // 10 minutes
-    retry: 0,                 // No retry — auth failure = not logged in, fast feedback
+    staleTime: 3 * 60 * 1000,   // 3 min
+    gcTime: 10 * 60 * 1000,     // 10 min
+    retry: 0,                    // No retry — fast feedback
     refetchOnMount: false,
     refetchOnWindowFocus: true,
   });
 
-  // ─── Derived state (no useState!) ──────────────────────────────────
-  const user: BackendUserProfile | null =
-    meData?.success && meData?.user ? meData.user : null;
+  // Derived state
+  const user: AuthUser | null = meData?.success && meData?.user ? meData.user : null;
   const isAuthenticated = !!user;
-  const isLoading = meLoading;
   const error = meError
-    ? meError instanceof Error
-      ? meError.message
-      : "Authentication failed"
+    ? meError instanceof Error ? meError.message : "Authentication failed"
     : null;
 
-  // ─── Login ─────────────────────────────────────────────────────────
+  // Login
   const login = useCallback(
-    async (email: string, password: string, rememberMe: boolean = false) => {
-      const response = await loginViaNextApi({ email, password, rememberMe });
-      // Invalidate React Query cache to refetch user data with new cookies
+    async (email: string, password: string, rememberMe = false) => {
+      const response = await loginViaApi({ email, password, rememberMe });
       await queryClient.invalidateQueries({ queryKey: meQueryKey });
       return response;
     },
     [queryClient]
   );
 
-  const loginExtended = useCallback(
-    async (data: ExtendedLoginBodyType) => {
-      const response = await loginViaNextApi(data);
-      await queryClient.invalidateQueries({ queryKey: meQueryKey });
-      return response;
-    },
-    [queryClient]
-  );
-
-  // ─── Logout ────────────────────────────────────────────────────────
+  // Logout
   const logout = useCallback(async () => {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch (e) {
+      console.error("Logout error:", e);
     } finally {
-      // Clear React Query cache immediately
       queryClient.setQueryData(meQueryKey, { success: true, user: null });
       queryClient.removeQueries({ queryKey: meQueryKey });
     }
   }, [queryClient]);
 
-  // ─── Refresh ───────────────────────────────────────────────────────
+  // Refresh auth (manually trigger re-fetch from /api/auth/me)
   const refreshAuth = useCallback(async () => {
-    try {
-      const res = await fetch("/api/auth/refresh", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (res.ok) {
-        // Refetch user data with fresh token
-        await queryClient.invalidateQueries({ queryKey: meQueryKey });
-      } else {
-        await logout();
-      }
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      await logout();
-    }
-  }, [queryClient, logout]);
+    await queryClient.invalidateQueries({ queryKey: meQueryKey });
+  }, [queryClient]);
 
-  // ─── Clear error ───────────────────────────────────────────────────
+  // Clear error
   const clearError = useCallback(() => {
     queryClient.resetQueries({ queryKey: meQueryKey });
   }, [queryClient]);
@@ -170,7 +111,6 @@ export const useAuth = (): UseAuthReturn => {
     isLoading,
     error,
     login,
-    loginExtended,
     logout,
     refreshAuth,
     clearError,

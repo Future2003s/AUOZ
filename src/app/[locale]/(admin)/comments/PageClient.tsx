@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2, Search, Trash2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { productApiRequest, Product } from "@/apiRequests/products";
-import { useAppContextProvider } from "@/context/app-context";
+
 
 type CommentUser = {
   id?: string;
@@ -61,7 +61,7 @@ const normalizeUserName = (user?: CommentUser) => {
 };
 
 export default function AdminCommentsPage() {
-  const { sessionToken } = useAppContextProvider();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [productOptions, setProductOptions] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
@@ -94,8 +94,8 @@ export default function AdminCommentsPage() {
         const list = Array.isArray(data?.data)
           ? data.data
           : Array.isArray(data?.data?.data)
-          ? data.data.data
-          : [];
+            ? data.data.data
+            : [];
         const normalized = (list || []).map((p: any) => ({
           ...p,
           _id: p._id || p.id,
@@ -160,10 +160,6 @@ export default function AdminCommentsPage() {
 
   const handleDelete = useCallback(
     async (commentId: string) => {
-      if (!sessionToken) {
-        toast.error("Cần đăng nhập để xoá");
-        return;
-      }
       setDeletingId(commentId);
       try {
         const res = await fetch(`/api/comments/${commentId}`, {
@@ -186,7 +182,7 @@ export default function AdminCommentsPage() {
         setDeletingId(null);
       }
     },
-    [sessionToken]
+    []
   );
 
   useEffect(() => {
@@ -230,9 +226,8 @@ export default function AdminCommentsPage() {
                 <button
                   key={p._id}
                   onClick={() => handleSelectProduct(p)}
-                  className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left transition hover:bg-gray-50 ${
-                    selectedProduct?._id === p._id ? "border-indigo-500 bg-indigo-50" : "border-gray-200"
-                  }`}
+                  className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left transition hover:bg-gray-50 ${selectedProduct?._id === p._id ? "border-indigo-500 bg-indigo-50" : "border-gray-200"
+                    }`}
                 >
                   <div>
                     <div className="font-medium text-gray-900 line-clamp-1">{p.name}</div>

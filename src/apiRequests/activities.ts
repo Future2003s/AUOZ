@@ -48,9 +48,9 @@ export const activityApi = {
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.search) queryParams.append('search', params.search);
-    
+
     const url = `/api/activities${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    
+
     return http.get(url, { baseUrl: "" });
   },
 
@@ -66,9 +66,9 @@ export const activityApi = {
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.search) queryParams.append('search', params.search);
     if (params?.published !== undefined) queryParams.append('published', params.published);
-    
+
     const url = `/api/activities/admin/all${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    
+
     return http.get(url, {
       baseUrl: "",
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -76,42 +76,42 @@ export const activityApi = {
   },
 
   // Get activity by ID (admin)
-  getByIdAdmin: async (id: string, token: string): Promise<ActivityResponse> => {
+  getByIdAdmin: async (id: string, token?: string): Promise<ActivityResponse> => {
     return http.get(`/api/activities/admin/${id}`, {
       baseUrl: "",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
   // Create activity (admin)
-  create: async (data: Partial<Activity>, token: string): Promise<ActivityResponse> => {
+  create: async (data: Partial<Activity>, token?: string): Promise<ActivityResponse> => {
     return http.post("/api/activities", data, {
       baseUrl: "",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
   // Update activity (admin)
-  update: async (id: string, data: Partial<Activity>, token: string): Promise<ActivityResponse> => {
+  update: async (id: string, data: Partial<Activity>, token?: string): Promise<ActivityResponse> => {
     return http.put(`/api/activities/${id}`, data, {
       baseUrl: "",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
   // Delete activity (admin)
-  delete: async (id: string, token: string): Promise<{ success: boolean; message: string }> => {
+  delete: async (id: string, token?: string): Promise<{ success: boolean; message: string }> => {
     return http.delete(`/api/activities/${id}`, {
       baseUrl: "",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
   // Toggle published status (admin)
-  toggle: async (id: string, token: string): Promise<ActivityResponse> => {
+  toggle: async (id: string, token?: string): Promise<ActivityResponse> => {
     return http.patch(`/api/activities/${id}/toggle`, {}, {
       baseUrl: "",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 };
