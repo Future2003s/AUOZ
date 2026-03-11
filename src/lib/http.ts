@@ -56,7 +56,7 @@ const request = async (
   const baseUrl =
     options?.baseUrl === undefined
       ? envConfig.NEXT_PUBLIC_API_END_POINT ||
-        `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`
+      `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`
       : options.baseUrl;
 
   // Support absolute URLs without prefixing baseUrl
@@ -64,8 +64,8 @@ const request = async (
   const fullUrl = isAbsolute
     ? url
     : url.startsWith("/")
-    ? `${baseUrl}${url}`
-    : `${baseUrl}/${url}`;
+      ? `${baseUrl}${url}`
+      : `${baseUrl}/${url}`;
 
   // Add timeout support
   const controller = new AbortController();
