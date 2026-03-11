@@ -81,6 +81,17 @@ const taskCards: TaskCard[] = [
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
   },
   {
+    id: "materials",
+    title: "Vật Tư Hộp & Nhãn",
+    description: "Quản lý hộp hoa và tem nhãn",
+    icon: Package,
+    href: "/employee/materials",
+    color: "text-cyan-600 dark:text-cyan-400",
+    bgColor: "bg-cyan-100 dark:bg-cyan-900/30",
+    badge: "Mới",
+    badgeColor: "bg-cyan-500",
+  },
+  {
     id: "reports",
     title: "Báo Cáo & Thống Kê",
     description: "Xem báo cáo doanh thu và hiệu suất",
@@ -280,9 +291,8 @@ export default function EmployeeDashboard() {
           return (
             <Card
               key={index}
-              className={`border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md hover:shadow-lg transition-all duration-200 ${
-                stat.href ? "cursor-pointer hover:scale-[1.02]" : ""
-              }`}
+              className={`border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md hover:shadow-lg transition-all duration-200 ${stat.href ? "cursor-pointer hover:scale-[1.02]" : ""
+                }`}
               onClick={() => stat.href && handleStatClick(stat.href)}
             >
               <CardContent className="p-6">

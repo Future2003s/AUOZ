@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useCart } from "@/context/cart-context";
 import { Address, useAddresses } from "@/hooks/useAddresses";
 import { useAuth } from "@/hooks/useAuth";
@@ -532,12 +533,14 @@ export default function CheckoutPage() {
                                         key={`${item.id}-${item.variantId || ""}`}
                                         className="flex items-center gap-3"
                                     >
-                                        <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden shrink-0">
+                                        <div className="relative w-12 h-12 rounded-lg bg-gray-100 overflow-hidden shrink-0">
                                             {item.imageUrl ? (
-                                                <img
+                                                <Image
                                                     src={item.imageUrl}
                                                     alt={item.name}
-                                                    className="w-full h-full object-cover"
+                                                    fill
+                                                    sizes="48px"
+                                                    className="object-cover"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center">

@@ -19,6 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { defaultLocale, getLocaleFromPathname } from "@/i18n/config";
@@ -160,12 +161,14 @@ export default function CartPage() {
                     >
                       <div className="flex gap-4">
                         {/* Product Image */}
-                        <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="relative w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
                           {item.imageUrl ? (
-                            <img
+                            <Image
                               src={item.imageUrl}
                               alt={item.name}
-                              className="w-full h-full object-cover"
+                              fill
+                              sizes="(max-width: 768px) 100vw, 30vw"
+                              className="object-cover"
                             />
                           ) : (
                             <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">

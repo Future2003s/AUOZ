@@ -51,6 +51,10 @@ export const BELLLC_API_CONFIG = {
     STATS: "/flower-logs/stats",
     CATALOG: "/flower-logs/catalog",
   },
+  FLOWER_IMPORTS: {
+    BASE: "/flower-imports",
+    BY_ID: "/flower-imports/:id",
+  },
 };
 
 export function belllcBuildUrl(

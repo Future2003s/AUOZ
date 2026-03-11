@@ -536,6 +536,7 @@ export default function HoneyInventoryManager() {
 
     try {
       const data: CreateInventoryData = {
+        sku: '',
         name: currentItem.name,
         quantity: Number(currentItem.quantity) || 0,
         unit: currentItem.unit,

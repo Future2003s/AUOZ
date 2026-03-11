@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { envConfig } from "@/config";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = envConfig.NEXT_PUBLIC_URL || "https://lalalycheee.vn";
+  const baseUrl = envConfig.NEXT_PUBLIC_URL || "https://lala-lycheee.com";
 
   return {
     rules: [

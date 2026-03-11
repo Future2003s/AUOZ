@@ -17,6 +17,7 @@ import {
   Loader2,
   Filter,
   RefreshCw,
+  Box,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { FlowerImportTab } from './FlowerImportTab';
 
 // ==========================================
 // ĐỊNH NGHĨA KIỂU DỮ LIỆU
@@ -851,7 +853,8 @@ export default function FlowerLogsPage() {
   const [editingFlowerLog, setEditingFlowerLog] = useState<FlowerLog | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
-  
+  const [activeTab, setActiveTab] = useState<'logs' | 'import'>('logs');
+
   // Dynamic categories state
   const [flowerCategories, setFlowerCategories] = useState<Record<string, string[]>>(DEFAULT_FLOWER_CATEGORIES);
   const [catalogLoading, setCatalogLoading] = useState(false);
@@ -1216,8 +1219,36 @@ export default function FlowerLogsPage() {
   };
 
   return (
-    <div className="pt-3 sm:pt-5 pb-6 bg-gradient-to-b from-sky-50/70 via-slate-50 to-slate-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
+    <div className="pt-3 sm:pt-5 pb-6 bg-gradient-to-b from-sky-50/70 via-slate-50 to-slate-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950 px-4 sm:px-6lg:px-8">
+      
+      {/* ── TABS ── */}
+      <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit mb-4">
+          <button
+              onClick={() => setActiveTab('logs')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${
+                  activeTab === 'logs'
+                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+          >
+              <Scissors className="w-4 h-4" />
+              Nhật ký cắt hoa
+          </button>
+          <button
+              onClick={() => setActiveTab('import')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${
+                  activeTab === 'import'
+                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+          >
+              <Box className="w-4 h-4" />
+              Nhập kho
+          </button>
+      </div>
+
       {/* Flower Log Tab */}
+      {activeTab === 'logs' && (
       <FlowerLogTab 
         logs={flowerLogs} 
         onAdd={() => openFlowerModal()} 
@@ -1227,6 +1258,12 @@ export default function FlowerLogsPage() {
         loading={loading}
         onRefresh={fetchFlowerLogs}
       />
+      )}
+
+      {/* Flower Import Tab */}
+      {activeTab === 'import' && (
+        <FlowerImportTab categories={flowerCategories} />
+      )}
 
       <FlowerLogDetailsModal
         log={detailsLog}

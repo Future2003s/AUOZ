@@ -14,6 +14,7 @@ export interface InventoryItem {
   damagedQty: number;
   pendingCheckQty: number;
   soldQty: number;
+  importedQty: number;
   totalStock: number;
   unit: string;
   netWeight: number;
@@ -110,6 +111,7 @@ export interface DefectiveReportItem {
 // ─── Request data types ──────────────────────────────────────────────
 
 export interface CreateInventoryData {
+  sku: string;
   name: string;
   quantity: number;
   unit?: string;

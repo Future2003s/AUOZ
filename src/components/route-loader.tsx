@@ -38,7 +38,8 @@ export default function RouteLoader({
         if (isLocaleHomeDest) return;
         // Chỉ khi khác pathname hiện tại
         if (destPath !== pathname) {
-          setLoading(true);
+          // Bỏ hiệu ứng loading toàn màn hình để tận dụng tối đa cache của Next.js và React Query
+          // setLoading(true);
           // Hủy hẹn tắt cũ nếu có
           if (hideTimerRef.current) window.clearTimeout(hideTimerRef.current);
         }
@@ -46,7 +47,7 @@ export default function RouteLoader({
     }
     window.addEventListener("click", onDocClick, true);
     // Popstate (Back/Forward)
-    const onPop = () => setLoading(true);
+    const onPop = () => { /* setLoading(true); */ };
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("click", onDocClick, true);

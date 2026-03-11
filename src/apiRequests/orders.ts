@@ -4,14 +4,14 @@ import { API_CONFIG } from "@/lib/api-config";
 // Order types based on backend model
 export interface OrderItem {
   product:
-    | string
-    | {
-        _id: string;
-        name: string;
-        slug: string;
-        sku: string;
-        images: string[];
-      };
+  | string
+  | {
+    _id: string;
+    name: string;
+    slug: string;
+    sku: string;
+    images: string[];
+  };
   quantity: number;
   price: number;
   total: number;
@@ -37,13 +37,13 @@ export interface Order {
   _id: string;
   orderNumber: string;
   user:
-    | string
-    | {
-        _id: string;
-        firstName: string;
-        lastName: string;
-        email: string;
-      };
+  | string
+  | {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
   items: OrderItem[];
   shippingAddress: ShippingAddress;
   billingAddress?: ShippingAddress;
@@ -54,12 +54,12 @@ export interface Order {
   discount: number;
   total: number;
   status:
-    | "pending"
-    | "processing"
-    | "shipped"
-    | "delivered"
-    | "cancelled"
-    | "refunded";
+  | "pending"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "refunded";
   trackingNumber?: string;
   notes?: string;
   couponCode?: string;
@@ -186,6 +186,14 @@ export const orderApiRequest = {
       headers: { Authorization: `Bearer ${token}` },
     });
   },
+
+  // Public order tracking without token
+  trackOrderByNumber: (
+    orderNumber: string
+  ): Promise<OrderTrackingResponse> => {
+    return http.get(`/orders/track/${orderNumber}`);
+  },
+
 
   // Admin: Get all orders
   getAllOrders: (

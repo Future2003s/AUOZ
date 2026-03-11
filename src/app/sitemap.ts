@@ -38,11 +38,62 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // TODO: Add dynamic routes from API
-  // - Products: /products/[id]
-  // - News articles: /news/[slug]
-  // - Activities: /activities/[id]
-  // These should be fetched from your backend API
+  // Dynamic routes: Products
+  try {
+    const productsRes = await fetch(`${baseUrl}/api/products/public`, { next: { revalidate: 3600 } });
+    if (productsRes.ok) {
+      const prodData = await productsRes.json();
+      const products = prodData?.data?.products || [];
+      for (const locale of locales) {
+        for (const product of products) {
+          if (product._id) {
+            routes.push({
+              url: `${baseUrl}/${locale}/products/${product._id}`,
+              lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
+              changeFrequency: "weekly",
+              priority: 0.9,
+              alternates: {
+                languages: Object.fromEntries(
+                  locales.map((loc) => [loc, `${baseUrl}/${loc}/products/${product._id}`])
+                ),
+              },
+            });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Failed to fetch products for sitemap:", err);
+  }
+
+  // Dynamic routes: News Articles
+  try {
+    // We only need one locale's slugs since they share the same ID/Slug format across translations for generation
+    const newsRes = await fetch(`${baseUrl}/api/news?locale=vi`, { next: { revalidate: 3600 } });
+    if (newsRes.ok) {
+      const newsData = await newsRes.json();
+      const articles = Array.isArray(newsData?.data) ? newsData.data : (Array.isArray(newsData) ? newsData : []);
+      for (const locale of locales) {
+        for (const article of articles) {
+          if (article.slug) {
+            routes.push({
+              url: `${baseUrl}/${locale}/news/${article.slug}`,
+              lastModified: article.updatedAt ? new Date(article.updatedAt) : new Date(),
+              changeFrequency: "weekly",
+              priority: 0.8,
+              alternates: {
+                languages: Object.fromEntries(
+                  locales.map((loc) => [loc, `${baseUrl}/${loc}/news/${article.slug}`])
+                ),
+              },
+            });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Failed to fetch news for sitemap:", err);
+  }
 
   return routes;
 }

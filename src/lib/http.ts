@@ -107,6 +107,14 @@ const request = async (
 
     // Handle non-2xx responses
     if (!res.ok) {
+      // Auto-redirect to login when session expired or invalid token
+      if (res.status === 401 && typeof window !== "undefined") {
+        const locale = window.location.pathname.split("/")[1] || "vi";
+        // Avoid redirect loop if already on login page
+        if (!window.location.pathname.includes("/login")) {
+          window.location.href = `/${locale}/login`;
+        }
+      }
       throw new HttpError({
         statusCode: res.status,
         payload: data || { message: `HTTP ${res.status}: ${res.statusText}` },
