@@ -10,13 +10,15 @@ import {
   History, Calendar, User, Loader2, RefreshCw, ChevronDown, ChevronUp
 } from 'lucide-react';
 import {
-  getInventories,
-  getInventoryHistory,
-  getInventoryStats,
-  createInventory,
-  updateInventory,
-  deleteInventory,
-  adjustStock,
+  proxyGetInventories as getInventories,
+  proxyGetInventoryHistory as getInventoryHistory,
+  proxyGetInventoryStats as getInventoryStats,
+  proxyCreateInventory as createInventory,
+  proxyUpdateInventory as updateInventory,
+  proxyDeleteInventory as deleteInventory,
+  proxyAdjustStock as adjustStock,
+} from '@/apiRequests/inventoryProxy';
+import type {
   InventoryItem,
   InventoryHistoryItem,
   InventoryStats,

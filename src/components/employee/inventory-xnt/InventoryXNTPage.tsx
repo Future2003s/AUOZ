@@ -18,10 +18,13 @@ import type {
 } from './types';
 import { STATUS_LABELS, computeStatus } from './types';
 import {
-    getInventories, createInventory, updateInventory, deleteInventory,
-    adjustStock,
-    type InventoryItem,
-} from '@/apiRequests/inventory';
+    proxyGetInventories as getInventories,
+    proxyCreateInventory as createInventory,
+    proxyUpdateInventory as updateInventory,
+    proxyDeleteInventory as deleteInventory,
+    proxyAdjustStock as adjustStock,
+} from '@/apiRequests/inventoryProxy';
+import type { InventoryItem } from '@/apiRequests/inventory';
 
 // ─── Mapper: Backend InventoryItem → UI InventoryXNTItem ──────────────────────
 // The backend stores quantity (ongoing stock), minStock.

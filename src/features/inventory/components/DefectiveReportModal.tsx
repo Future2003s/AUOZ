@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, AlertTriangle, Camera, Loader2 } from 'lucide-react';
-import { reportDefective, type InventoryItem, type DefectiveSeverity } from '@/apiRequests/inventory';
+import { proxyReportDefective as reportDefective } from '@/apiRequests/inventoryProxy';
+import type { InventoryItem, DefectiveSeverity } from '@/apiRequests/inventory';
 import { toast } from 'sonner';
 
 type Props = {

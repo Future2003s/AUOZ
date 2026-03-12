@@ -7,16 +7,21 @@ const IS_PROD = () => process.env.NODE_ENV === "production";
 const TIMEOUT_MS = 8000;
 
 // ─── Cookie config (single source of truth) ─────────────────────────
+// Production: SameSite=None;Secure → cho phép cross-site (FE domain ≠ API domain)
+// Development: SameSite=Lax → không cần HTTPS
+const _IS_PROD = process.env.NODE_ENV === "production";
 const COOKIE_CONFIG = {
     sessionToken: {
         httpOnly: true,
-        sameSite: "lax" as const,
+        sameSite: (_IS_PROD ? "none" : "lax") as "none" | "lax",
+        secure: _IS_PROD,
         path: "/",
         maxAge: 60 * 60 * 24 * 30, // 30 days
     },
     refreshToken: {
         httpOnly: true,
-        sameSite: "strict" as const,
+        sameSite: (_IS_PROD ? "none" : "lax") as "none" | "lax",
+        secure: _IS_PROD,
         path: "/",
         maxAge: 60 * 60 * 24 * 365, // 1 year
     },

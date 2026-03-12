@@ -41,12 +41,15 @@ export async function getAuthHeaderOrRefresh(
   if (!result) return { authHeader: null };
 
   // Build set-cookie header
+  // Production: SameSite=None;Secure → cho phép cross-site gửi cookie
+  // Development: SameSite=Lax → không cần HTTPS
   const isProd = process.env.NODE_ENV === "production";
   const securePart = isProd ? "; Secure" : "";
-  let setCookieHeader = `sessionToken=${result.token}; Path=/; HttpOnly; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${securePart}`;
+  const sameSite = isProd ? "None" : "Lax";
+  let setCookieHeader = `sessionToken=${result.token}; Path=/; HttpOnly; Max-Age=${60 * 60 * 24 * 30}; SameSite=${sameSite}${securePart}`;
 
   if (result.refreshToken) {
-    setCookieHeader += `, refreshToken=${result.refreshToken}; Path=/; HttpOnly; Max-Age=${60 * 60 * 24 * 365}; SameSite=Strict${securePart}`;
+    setCookieHeader += `, refreshToken=${result.refreshToken}; Path=/; HttpOnly; Max-Age=${60 * 60 * 24 * 365}; SameSite=${sameSite}${securePart}`;
   }
 
   return { authHeader: `Bearer ${result.token}`, setCookie: setCookieHeader };

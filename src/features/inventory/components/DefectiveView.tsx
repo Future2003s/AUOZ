@@ -7,11 +7,13 @@ import {
     Loader2, RefreshCw, Calendar, User, ChevronDown
 } from 'lucide-react';
 import {
-    getDefectiveReports,
-    resolveDefective,
-    type DefectiveReportItem,
-    type DefectiveReportFilters,
-    type DefectiveResolution,
+    proxyGetDefectiveReports as getDefectiveReports,
+    proxyResolveDefective as resolveDefective,
+} from '@/apiRequests/inventoryProxy';
+import type {
+    DefectiveReportItem,
+    DefectiveReportFilters,
+    DefectiveResolution,
 } from '@/apiRequests/inventory';
 import { toast } from 'sonner';
 

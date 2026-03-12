@@ -6,7 +6,7 @@ import {
     Search, ArrowDownCircle, ArrowUpCircle, RefreshCw,
     AlertTriangle, RotateCcw, Loader2, Clock,
 } from 'lucide-react';
-import { getInventoryHistory } from '@/apiRequests/inventory';
+import { proxyGetInventoryHistory as getInventoryHistory } from '@/apiRequests/inventoryProxy';
 import type { InventoryHistoryItem, InventoryTransactionType } from '@/apiRequests/inventory';
 import type { InventoryXNTItem } from './types';
 
