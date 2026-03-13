@@ -206,7 +206,7 @@ export default function AdminDashboard({
           },
           {
             id: "employee-inventory",
-            label: "Kho Mật Ong",
+            label: "Kho Xuất Nhập Tồn",
             icon: Package,
             href: `/${locale}/employee/inventory`,
           },

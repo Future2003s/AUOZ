@@ -12,9 +12,16 @@ export async function PUT(
       envConfig.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
     const url = `${baseUrl}/orders/${id}/status`;
 
+    // Forward the request body so the backend validator receives { status }
+    const body = await request.text();
+
     const response = await proxyJson(url, request, {
       method: "PUT",
       requireAuth: true,
+      body,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
     return response;

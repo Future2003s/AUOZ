@@ -163,28 +163,6 @@ export default function OrderDetailPage() {
         const res = await fetch(`/api/delivery/${orderId}/upload-proof`, {
           cache: "no-store",
         });
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/432e8fdf-0ddd-4690-a25d-aebc1c16d609", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: "debug-session",
-            runId: "pre-fix-2",
-            hypothesisId: "E",
-            location: "page.tsx:fetchProofImage:response",
-            message: "fetchProofImage response",
-            data: {
-              url: `/api/delivery/${orderId}/upload-proof`,
-              status: res.status,
-              ok: res.ok,
-              headers: {
-                contentType: res.headers.get("content-type"),
-              },
-            },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion
 
         if (!res.ok) {
           return;
@@ -356,6 +334,8 @@ export default function OrderDetailPage() {
               <option value="processing">Đang xử lý</option>
               <option value="shipped">Đã gửi hàng</option>
               <option value="delivered">Đã giao hàng</option>
+              <option value="completed">Hoàn thành</option>
+              <option value="returned">Trả hàng</option>
               <option value="cancelled">Đã hủy</option>
             </select>
             {updatingStatus && (
@@ -425,9 +405,11 @@ export default function OrderDetailPage() {
                   <div className="flex-1">
                     <div className="text-gray-500 dark:text-gray-400 text-xs mb-1">Tên khách hàng</div>
                     <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {order.buyerName || order.shippingAddress 
-                        ? `${order.shippingAddress?.firstName || ""} ${order.shippingAddress?.lastName || ""}`.trim() || order.buyerName
-                        : order.customer?.fullName || "Chưa có thông tin"}
+                      {(
+                        order.shippingAddress
+                          ? `${order.shippingAddress.firstName || ""} ${order.shippingAddress.lastName || ""}`.trim()
+                          : ""
+                      ) || order.buyerName || order.customer?.fullName || "Chưa có thông tin"}
                     </div>
                   </div>
                 </div>
