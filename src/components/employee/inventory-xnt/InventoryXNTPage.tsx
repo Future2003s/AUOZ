@@ -497,9 +497,9 @@ export function InventoryXNTPage() {
                         <WifiOff className="w-8 h-8 text-red-500 dark:text-red-400" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">Không thể kết nối backend</h2>
+                        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">Không thể lấy dữ liệu</h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Không lấy được dữ liệu từ máy chủ. Kiểm tra Backend đang chạy trên cổng 8081.
+                            Đã xảy ra lỗi khi tải danh sách sản phẩm. Vui lòng kiểm tra lại kết nối hoặc xem log ở tab Network.
                         </p>
                     </div>
                     <button

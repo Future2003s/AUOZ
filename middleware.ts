@@ -86,6 +86,8 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|api/|icons/|images/).*)',
+    // Exclude: static assets, images, api routes, icons
+    // NOTE: "api" (without trailing slash) covers /api and /api/* correctly
+    '/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|api|icons|images).*)',
   ],
 };

@@ -47,13 +47,21 @@ fi
 
 echo -e "${GREEN}✅ Build completed successfully${NC}"
 
-# Check standalone output
+# Handle standalone output — REQUIRED for output: "standalone"
 if [ -d ".next/standalone" ]; then
-    echo "📋 Standalone output detected"
-    echo "⚠️  Remember to copy the following to your server:"
-    echo "   - .next/standalone/"
-    echo "   - .next/static/ -> .next/standalone/.next/static/"
-    echo "   - public/ -> .next/standalone/public/"
+    echo "📋 Standalone output detected — copying required static files..."
+
+    # Copy static assets (JS/CSS chunks, _next/static)
+    cp -r .next/static .next/standalone/.next/static
+    echo -e "${GREEN}   ✅ .next/static → .next/standalone/.next/static${NC}"
+
+    # Copy public directory (images, manifest, icons, sw.js v.v.)
+    cp -r public .next/standalone/public
+    echo -e "${GREEN}   ✅ public/ → .next/standalone/public/${NC}"
+
+    echo -e "${GREEN}✅ Standalone output ready at .next/standalone/${NC}"
+else
+    echo "📋 Standard build output (not standalone)"
 fi
 
 echo ""

@@ -43,16 +43,16 @@ function buildBackendUrl(path: string[], searchParams: URLSearchParams): string 
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
   const p = await params;
-  const url = buildBackendUrl(p.path, request.nextUrl.searchParams);
+  const url = buildBackendUrl(p.path || [], request.nextUrl.searchParams);
   return proxyJson(url, request, { method: "GET", requireAuth: true });
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
   let body: string | undefined;
   try {
@@ -61,7 +61,7 @@ export async function POST(
     body = undefined;
   }
   const p = await params;
-  const url = buildBackendUrl(p.path, request.nextUrl.searchParams);
+  const url = buildBackendUrl(p.path || [], request.nextUrl.searchParams);
   return proxyJson(url, request, {
     method: "POST",
     requireAuth: true,
@@ -72,7 +72,7 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
   let body: string | undefined;
   try {
@@ -81,7 +81,7 @@ export async function PUT(
     body = undefined;
   }
   const p = await params;
-  const url = buildBackendUrl(p.path, request.nextUrl.searchParams);
+  const url = buildBackendUrl(p.path || [], request.nextUrl.searchParams);
   return proxyJson(url, request, {
     method: "PUT",
     requireAuth: true,
@@ -92,7 +92,7 @@ export async function PUT(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
   let body: string | undefined;
   try {
@@ -101,7 +101,7 @@ export async function PATCH(
     body = undefined;
   }
   const p = await params;
-  const url = buildBackendUrl(p.path, request.nextUrl.searchParams);
+  const url = buildBackendUrl(p.path || [], request.nextUrl.searchParams);
   return proxyJson(url, request, {
     method: "PATCH",
     requireAuth: true,
@@ -112,9 +112,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
   const p = await params;
-  const url = buildBackendUrl(p.path, request.nextUrl.searchParams);
+  const url = buildBackendUrl(p.path || [], request.nextUrl.searchParams);
   return proxyJson(url, request, { method: "DELETE", requireAuth: true });
 }
