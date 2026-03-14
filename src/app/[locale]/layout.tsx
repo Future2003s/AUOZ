@@ -5,6 +5,8 @@ import { isValidLocale, defaultLocale, locales } from "@/i18n/config";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import RouteLoader from "@/components/route-loader";
 import { envConfig } from "@/config";
+import { QueryProvider } from "@/providers/query-provider";
+import { SocketProvider } from "@/providers/SocketProvider";
 
 const baseUrl = envConfig.NEXT_PUBLIC_URL || "https://lala-lycheee.com";
 
@@ -81,8 +83,13 @@ export default async function LocaleLayout({
       initialLocale={locale}
       initialMessages={messages}
     >
-      {/* Loader khi điều hướng giữa các route (trừ trang chủ) */}
-      <RouteLoader>{children}</RouteLoader>
+      <QueryProvider>
+        <SocketProvider>
+          {/* Loader khi điều hướng giữa các route (trừ trang chủ) */}
+          <RouteLoader>{children}</RouteLoader>
+        </SocketProvider>
+      </QueryProvider>
     </I18nProvider>
   );
 }
+

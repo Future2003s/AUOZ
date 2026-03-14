@@ -1,8 +1,11 @@
+"use client";
 import { motion } from "framer-motion";
 import { Eye, ShoppingBag, Star } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { ImageSkeleton } from "@/components/ui/skeleton-loaders";
+import { useCart } from "@/context/cart-context";
+import { useCartSidebar } from "@/context/cart-sidebar-context";
 
 export interface Product {
   id: number;
@@ -39,6 +42,20 @@ export const ProductCard = ({
 }) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const { addItem } = useCart();
+  const { openSidebar } = useCartSidebar();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addItem({
+      id: String(product.id),
+      name: product.name,
+      price: product.price,
+      imageUrl: product.image,
+      quantity: 1,
+    });
+    openSidebar();
+  };
 
   return (
     <motion.div
@@ -104,6 +121,7 @@ export const ProductCard = ({
             <Eye size={20} />
           </button>
           <button
+            onClick={handleAddToCart}
             className="transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-100 bg-white text-slate-900 hover:bg-rose-600 hover:text-white p-3 rounded-full shadow-lg"
             title="Thêm vào giỏ"
           >
@@ -133,3 +151,4 @@ export const ProductCard = ({
     </motion.div>
   );
 };
+

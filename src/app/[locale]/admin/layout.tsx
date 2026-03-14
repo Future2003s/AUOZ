@@ -154,6 +154,12 @@ export default async function AdminLayout({
       icon: <Newspaper size={18} />,
     },
     {
+      id: "cms",
+      label: "Quản lý CMS",
+      href: `/${locale}/admin/cms/posts`,
+      icon: <FileText size={18} />,
+    },
+    {
       id: "advertisements",
       label: "Quảng Cáo",
       href: `/${locale}/admin/advertisements`,

@@ -46,13 +46,11 @@ const getNavLinks = (
 
   const activeCategories = categories
     .filter((cat) => {
-      const n = cat.name?.toLowerCase() || "";
-      if (n.includes("nước ép") || n.includes("nuoc ep")) return false;
       return cat.isActive && (!cat.parent || typeof cat.parent === "string");
     })
     .slice(0, 8)
     .map((cat) => ({
-      href: `/${locale}/products?category=${cat.slug}`,
+      href: `/${locale}/products?category=${cat._id}`,
       label: cat.name,
       query: cat.name,
       categoryId: cat._id,

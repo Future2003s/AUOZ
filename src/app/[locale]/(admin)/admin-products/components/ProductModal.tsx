@@ -54,7 +54,7 @@ export default function ProductModal({
     sku: "",
     categoryId: "",
     brandId: "",
-    status: "draft", // use backend-aligned default
+    status: "active", // default: active để sản phẩm mới hiển thị ngay trên trang public
     isFeatured: false,
     images: [] as string[],
   });
@@ -196,16 +196,16 @@ export default function ProductModal({
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: parseFloat(formData.price),
-        quantity: parseInt(formData.stock) || 0, // Changed from stock to quantity
-        sku: formData.sku.trim(),
-        // Ensure status is always valid and never empty
+        quantity: parseInt(formData.stock) || 0, // Backend expected field is 'quantity'
+        sku: formData.sku.trim().toUpperCase(), // SKU is usually uppercase in backend
+        // Ensure status is always valid and lowercase
         status: formData.status || "draft",
         isFeatured: formData.isFeatured || false,
         // Required fields with defaults
         trackQuantity: true,
         allowBackorder: false,
-        isVisible: true, // Products should be visible by default
-        tags: [], // Empty tags array
+        isVisible: true,
+        tags: [],
       };
 
       // Debug category validation
@@ -215,14 +215,10 @@ export default function ProductModal({
 
       if (formData.categoryId) {
         productData.category = formData.categoryId;
-        if (isValidObjectId(formData.categoryId)) {
-        } else {
-          console.warn(
-            "⚠️ Category ID format unusual, but proceeding:",
-            formData.categoryId
-          );
-        }
       } else {
+         setError("Vui lòng chọn danh mục sản phẩm");
+         setLoading(false);
+         return;
       }
 
       if (formData.brandId) {

@@ -1,8 +1,11 @@
+"use client";
 import { AnimatePresence } from "framer-motion";
 import { Product } from "./product-card";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { X } from "lucide-react";
+import { useCart } from "@/context/cart-context";
+import { useCartSidebar } from "@/context/cart-sidebar-context";
 
 export const MockModal = ({
   product,
@@ -11,7 +14,23 @@ export const MockModal = ({
   product: Product | null;
   onClose: () => void;
 }) => {
+  const { addItem } = useCart();
+  const { openSidebar } = useCartSidebar();
+
   if (!product) return null;
+
+  const handleAddToCart = () => {
+    addItem({
+      id: String(product.id),
+      name: product.name,
+      price: product.price,
+      imageUrl: product.image,
+      quantity: 1,
+    });
+    openSidebar();
+    onClose();
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -56,7 +75,10 @@ export const MockModal = ({
                 ? product.longDescription
                 : "Mô tả ngắn về sản phẩm sẽ hiển thị ở đây. Đây là phiên bản xem nhanh (Quick View)."}
             </p>
-            <button className="w-full bg-rose-600 text-white py-3 rounded-full font-bold hover:bg-rose-700 transition-colors">
+            <button
+              onClick={handleAddToCart}
+              className="w-full bg-rose-600 text-white py-3 rounded-full font-bold hover:bg-rose-700 transition-colors"
+            >
               Thêm vào giỏ hàng
             </button>
           </div>

@@ -325,8 +325,8 @@ export default function ProductCommentsSection({ productId }: { productId: strin
             <button
               onClick={() => setFilter("all")}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === "all"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
+                ? "bg-indigo-600 text-white shadow-md"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
                 }`}
             >
               Tất cả
@@ -334,8 +334,8 @@ export default function ProductCommentsSection({ productId }: { productId: strin
             <button
               onClick={() => setFilter("with-replies")}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === "with-replies"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
+                ? "bg-indigo-600 text-white shadow-md"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
                 }`}
             >
               Có phản hồi

@@ -51,7 +51,12 @@ function PaymentCallbackContent() {
       sig,
     };
 
-    let finalStatus = status ? String(status).toUpperCase() : null;
+    // VietQR success redirect uses ?status=success — normalise to PAID
+    let finalStatus = status
+      ? status.toLowerCase() === "success"
+        ? "PAID"
+        : String(status).toUpperCase()
+      : null;
 
     if (cancelParam === "true" && finalStatus !== "CANCELLED") {
       console.warn(
@@ -61,6 +66,8 @@ function PaymentCallbackContent() {
     if (!finalStatus && cancelParam === "true") {
       finalStatus = "CANCELLED";
     }
+    // Allow orderNumber param as alias for orderCode (VietQR flow)
+    const resolvedOrderCode = orderCode || searchParams.get("orderNumber") || null;
 
     if (!finalStatus) {
       setError(
@@ -71,7 +78,7 @@ function PaymentCallbackContent() {
     }
 
     const currentPaymentDetails: PaymentDetails = {
-      orderCode: orderCode ? String(orderCode) : null,
+      orderCode: resolvedOrderCode ? String(resolvedOrderCode) : null,
       amount: amount ? Number(amount) : null,
       description: description ? String(description) : null,
       status: finalStatus,

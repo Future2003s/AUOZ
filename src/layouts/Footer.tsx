@@ -10,11 +10,43 @@ import TgBctLogo from "../../public/images/tg_bct_logo.png";
 
 function Footer() {
   const [isMounted, setIsMounted] = useState(false);
+  const [businessData, setBusinessData] = useState<{ 
+    id: string; 
+    name: string; 
+    address: string;
+    internationalName: string;
+    shortName: string;
+    status: string;
+  } | null>(null);
+  const [businessMetadata, setBusinessMetadata] = useState<{
+    disclaimer: string;
+    source: string;
+    updatedAt: string;
+    contact: string;
+  } | null>(null);
   const params = useParams();
   const locale = (params?.locale as string) || "vi";
 
   useEffect(() => {
     const timer = setTimeout(() => setIsMounted(true), 0);
+    
+    const fetchBusinessData = async () => {
+      try {
+        const response = await fetch("https://api.vietqr.io/v2/business/0801381660");
+        const result = await response.json();
+        if (result.code === "00" && result.data) {
+          setBusinessData(result.data);
+          if (result.metadata) {
+            setBusinessMetadata(result.metadata);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch business data:", error);
+      }
+    };
+    
+    fetchBusinessData();
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -138,12 +170,26 @@ function Footer() {
         {/* Company Info & Certifications */}
         <div className="text-center md:text-left">
           <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-5">
-            CÔNG TY TNHH LALA - LYCHEEE
+            {businessData ? businessData.name : "CÔNG TY TNHH LALA - LYCHEEE"}
           </h3>
-          <p className="text-gray-300 font-medium text-sm mb-1">Mã Số Thuế: 0801381660</p>
-          <p className="text-gray-400 text-sm italic mb-5">
+          <p className="text-gray-300 font-medium text-sm mb-1">Mã Số Thuế: {businessData ? businessData.id : "0801381660"}</p>
+          {businessData?.shortName && <p className="text-gray-400 text-sm mb-1">Tên viết tắt: {businessData.shortName}</p>}
+          {businessData?.internationalName && <p className="text-gray-400 text-sm mb-1">Tên quốc tế: {businessData.internationalName}</p>}
+          {businessData?.status && <p className="text-gray-400 text-sm mb-1">Trạng thái: <span className="text-green-400 font-medium">{businessData.status}</span></p>}
+          {businessData?.address && <p className="text-gray-400 text-sm mb-1">Địa chỉ: <span className="text-gray-300 font-medium">{businessData.address}</span></p>}
+          <p className="text-gray-400 text-sm italic mb-4">
             Quản Lý Bởi Thanh Hà - Thuế cơ sở 14 Thành Phố Hải Phòng
           </p>
+
+          {businessMetadata && (
+            <div className="bg-slate-800/50 rounded-lg p-3 mb-5 border border-slate-700/50">
+               <p className="text-xs text-gray-400 leading-relaxed mb-1.5">{businessMetadata.disclaimer}</p>
+               <div className="flex flex-col gap-1 text-[11px] text-gray-500">
+                  <p>Nguồn: <a href={businessMetadata.source} target="_blank" rel="noopener noreferrer" className="hover:text-rose-400 transition-colors">{businessMetadata.source}</a></p>
+                  <p>Cập nhật lúc: {new Date(businessMetadata.updatedAt).toLocaleDateString("vi-VN")}</p>
+               </div>
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-4">
             {/* DMCA Badge */}

@@ -1,11 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import {
-  productService,
+  productApiRequest,
   Product,
-  ProductListResponse,
-  ProductFilters,
-} from "@/services/product.service";
-import { HttpError } from "@/lib/http";
+  ProductsResponse,
+  ProductQueryParams,
+} from "@/apiRequests/products";
 
 // Product state interface
 interface ProductState {
@@ -17,49 +16,28 @@ interface ProductState {
     page: number;
     limit: number;
     total: number;
-    totalPages: number;
+    pages: number;
   } | null;
 }
 
 // Product actions interface
 interface ProductActions {
   getProducts: (
-    filters?: ProductFilters,
-    page?: number,
-    limit?: number
+    filters?: ProductQueryParams
   ) => Promise<void>;
   getProductById: (productId: string) => Promise<void>;
-  getProductBySlug: (slug: string) => Promise<void>;
-  getFeaturedProducts: (limit?: number) => Promise<void>;
-  getNewArrivals: (limit?: number) => Promise<void>;
-  getProductsOnSale: (limit?: number) => Promise<void>;
-  getPopularProducts: (limit?: number) => Promise<void>;
-  getTrendingProducts: (limit?: number) => Promise<void>;
-  getRelatedProducts: (productId: string, limit?: number) => Promise<void>;
+  getFeaturedProducts: () => Promise<void>;
   searchProducts: (
     query: string,
-    filters?: Omit<ProductFilters, "search">,
-    page?: number,
-    limit?: number
+    filters?: Partial<ProductQueryParams>
   ) => Promise<void>;
   getProductsByCategory: (
     categoryId: string,
-    filters?: Omit<ProductFilters, "category">,
-    page?: number,
-    limit?: number
+    filters?: ProductQueryParams
   ) => Promise<void>;
   getProductsByBrand: (
     brand: string,
-    filters?: Omit<ProductFilters, "brand">,
-    page?: number,
-    limit?: number
-  ) => Promise<void>;
-  getProductsInPriceRange: (
-    minPrice: number,
-    maxPrice: number,
-    filters?: Omit<ProductFilters, "minPrice" | "maxPrice">,
-    page?: number,
-    limit?: number
+    filters?: ProductQueryParams
   ) => Promise<void>;
   clearError: () => void;
   clearProducts: () => void;
@@ -110,11 +88,8 @@ export const useProducts = (): UseProductsReturn => {
           isLoading: false,
           error: null,
         }));
-      } catch (error) {
-        const errorMessage =
-          error instanceof HttpError
-            ? error.payload?.message || "API request failed"
-            : "An unexpected error occurred";
+      } catch (error: any) {
+        const errorMessage = error?.message || "API request failed";
 
         setProductState((prev) => ({
           ...prev,
@@ -130,12 +105,12 @@ export const useProducts = (): UseProductsReturn => {
 
   // Get all products with filters and pagination
   const getProducts = useCallback(
-    async (filters?: ProductFilters, page: number = 1, limit: number = 20) => {
+    async (filters?: ProductQueryParams) => {
       await handleApiCall(
-        () => productService.getProducts(filters, page, limit),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
+        () => productApiRequest.getProducts(filters),
+        (response: ProductsResponse) => ({
+          products: response.data,
+          pagination: response.pagination || null,
         })
       );
     },
@@ -146,20 +121,7 @@ export const useProducts = (): UseProductsReturn => {
   const getProductById = useCallback(
     async (productId: string) => {
       await handleApiCall(
-        () => productService.getProductById(productId),
-        (response: any) => ({
-          currentProduct: response.data,
-        })
-      );
-    },
-    [handleApiCall]
-  );
-
-  // Get product by slug
-  const getProductBySlug = useCallback(
-    async (slug: string) => {
-      await handleApiCall(
-        () => productService.getProductBySlug(slug),
+        () => productApiRequest.getProduct(productId),
         (response: any) => ({
           currentProduct: response.data,
         })
@@ -170,82 +132,12 @@ export const useProducts = (): UseProductsReturn => {
 
   // Get featured products
   const getFeaturedProducts = useCallback(
-    async (limit: number = 10) => {
+    async () => {
       await handleApiCall(
-        () => productService.getFeaturedProducts(limit),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
-        })
-      );
-    },
-    [handleApiCall]
-  );
-
-  // Get new arrivals
-  const getNewArrivals = useCallback(
-    async (limit: number = 10) => {
-      await handleApiCall(
-        () => productService.getNewArrivals(limit),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
-        })
-      );
-    },
-    [handleApiCall]
-  );
-
-  // Get products on sale
-  const getProductsOnSale = useCallback(
-    async (limit: number = 10) => {
-      await handleApiCall(
-        () => productService.getProductsOnSale(limit),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
-        })
-      );
-    },
-    [handleApiCall]
-  );
-
-  // Get popular products
-  const getPopularProducts = useCallback(
-    async (limit: number = 10) => {
-      await handleApiCall(
-        () => productService.getPopularProducts(limit),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
-        })
-      );
-    },
-    [handleApiCall]
-  );
-
-  // Get trending products
-  const getTrendingProducts = useCallback(
-    async (limit: number = 10) => {
-      await handleApiCall(
-        () => productService.getTrendingProducts(limit),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
-        })
-      );
-    },
-    [handleApiCall]
-  );
-
-  // Get related products
-  const getRelatedProducts = useCallback(
-    async (productId: string, limit: number = 6) => {
-      await handleApiCall(
-        () => productService.getRelatedProducts(productId, limit),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
+        () => productApiRequest.getFeaturedProducts(),
+        (response: ProductsResponse) => ({
+          products: response.data,
+          pagination: response.pagination || null,
         })
       );
     },
@@ -256,15 +148,13 @@ export const useProducts = (): UseProductsReturn => {
   const searchProducts = useCallback(
     async (
       query: string,
-      filters?: Omit<ProductFilters, "search">,
-      page: number = 1,
-      limit: number = 20
+      filters?: Partial<ProductQueryParams>
     ) => {
       await handleApiCall(
-        () => productService.searchProducts(query, filters, page, limit),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
+        () => productApiRequest.searchProducts(query, filters),
+        (response: ProductsResponse) => ({
+          products: response.data,
+          pagination: response.pagination || null,
         })
       );
     },
@@ -275,21 +165,17 @@ export const useProducts = (): UseProductsReturn => {
   const getProductsByCategory = useCallback(
     async (
       categoryId: string,
-      filters?: Omit<ProductFilters, "category">,
-      page: number = 1,
-      limit: number = 20
+      filters?: ProductQueryParams
     ) => {
       await handleApiCall(
         () =>
-          productService.getProductsByCategory(
+          productApiRequest.getProductsByCategory(
             categoryId,
-            filters,
-            page,
-            limit
+            filters
           ),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
+        (response: ProductsResponse) => ({
+          products: response.data,
+          pagination: response.pagination || null,
         })
       );
     },
@@ -298,44 +184,12 @@ export const useProducts = (): UseProductsReturn => {
 
   // Get products by brand
   const getProductsByBrand = useCallback(
-    async (
-      brand: string,
-      filters?: Omit<ProductFilters, "brand">,
-      page: number = 1,
-      limit: number = 20
-    ) => {
+    async (brand: string, filters?: ProductQueryParams) => {
       await handleApiCall(
-        () => productService.getProductsByBrand(brand, filters, page, limit),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
-        })
-      );
-    },
-    [handleApiCall]
-  );
-
-  // Get products in price range
-  const getProductsInPriceRange = useCallback(
-    async (
-      minPrice: number,
-      maxPrice: number,
-      filters?: Omit<ProductFilters, "minPrice" | "maxPrice">,
-      page: number = 1,
-      limit: number = 20
-    ) => {
-      await handleApiCall(
-        () =>
-          productService.getProductsInPriceRange(
-            minPrice,
-            maxPrice,
-            filters,
-            page,
-            limit
-          ),
-        (response: ProductListResponse) => ({
-          products: response.data.products,
-          pagination: response.data.pagination,
+        () => productApiRequest.getProductsByBrand(brand, filters),
+        (response: ProductsResponse) => ({
+          products: response.data,
+          pagination: response.pagination || null,
         })
       );
     },
@@ -346,17 +200,10 @@ export const useProducts = (): UseProductsReturn => {
     ...productState,
     getProducts,
     getProductById,
-    getProductBySlug,
     getFeaturedProducts,
-    getNewArrivals,
-    getProductsOnSale,
-    getPopularProducts,
-    getTrendingProducts,
-    getRelatedProducts,
     searchProducts,
     getProductsByCategory,
     getProductsByBrand,
-    getProductsInPriceRange,
     clearError,
     clearProducts,
   };

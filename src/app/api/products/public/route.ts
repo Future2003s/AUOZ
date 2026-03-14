@@ -105,8 +105,8 @@ export async function GET(request: NextRequest) {
         status: 200,
         headers: {
           "Content-Type": "application/json",
-          // Cache public products for 60s at the edge/CDN; allow stale while revalidate
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+          // Cache public products 10s; allow stale while revalidate 20s
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=20",
         },
       }
     );

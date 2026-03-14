@@ -5,20 +5,20 @@ import { ShoppingBag } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import useTranslations from "@/i18n/useTranslations";
+import { useI18n } from "@/i18n/I18nProvider";
 import { MockModal } from "./mock-model";
 import { ProductCardSkeleton } from "@/components/ui/skeleton-loaders";
 
 export const FeaturedProductsSection: React.FC = () => {
   const t = useTranslations();
+  const { locale } = useI18n();
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(
     null
   );
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
-  
-  const categories = ["Tất cả", "Vải Tươi", "Quà Tặng", "Mật Ong"];
+
 
   // Fetch featured products from API
   useEffect(() => {
@@ -173,24 +173,7 @@ export const FeaturedProductsSection: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* Filter Tabs */}
-          <div className="flex justify-center mb-12">
-            <div className="inline-flex bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-lg border border-rose-100">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 ${
-                    selectedCategory === category
-                      ? "bg-rose-600 text-white shadow-md"
-                      : "text-slate-600 hover:text-rose-600 hover:bg-rose-50"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
+
 
           {/* Product Grid */}
           {loading ? (
@@ -218,51 +201,37 @@ export const FeaturedProductsSection: React.FC = () => {
           ) : (
             <div className="flex justify-center">
               <div className="max-w-6xl w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-                {featuredProducts
-                  .filter((product) => {
-                    if (selectedCategory === "Tất cả") return true;
-                    const categoryLower = product.category.toLowerCase();
-                    if (selectedCategory === "Vải Tươi") {
-                      return categoryLower.includes("vải") || categoryLower.includes("tươi") || categoryLower.includes("fresh");
-                    }
-                    if (selectedCategory === "Quà Tặng") {
-                      return categoryLower.includes("quà") || categoryLower.includes("gift") || categoryLower.includes("set");
-                    }
-                    if (selectedCategory === "Mật Ong") {
-                      return categoryLower.includes("mật") || categoryLower.includes("honey") || categoryLower.includes("ong");
-                    }
-                    return true;
-                  })
-                  .map((product, index) => {
-                    // Determine badge based on product data or index
-                    const isNew = index < 2; // First 2 products are "new"
-                    const isBestSeller = index % 3 === 0; // Every 3rd product is "best seller"
-                    
-                    return (
-                      <ProductCard
-                        key={product.id}
-                        product={product}
-                        onQuickView={setQuickViewProduct}
-                        badge={isNew ? "Mới" : isBestSeller ? "Bán chạy" : undefined}
-                      />
-                    );
-                  })}
+                {featuredProducts.map((product, index) => {
+                  const isNew = index < 2;
+                  const isBestSeller = index % 3 === 0;
+                  return (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onQuickView={setQuickViewProduct}
+                      badge={isNew ? "Mới" : isBestSeller ? "Bán chạy" : undefined}
+                    />
+                  );
+                })}
               </div>
             </div>
           )}
 
           {/* View All Button */}
           <div className="text-center mt-16">
-            <motion.button
+            <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-2 px-8 py-3 bg-white border-2 border-slate-900 text-slate-900 rounded-full font-bold hover:bg-slate-900 hover:text-white transition-colors duration-300 shadow-sm"
+              className="inline-block"
             >
-              <Link href={"/products"}>
+              <Link
+                href={`/${locale}/products`}
+                className="inline-flex items-center gap-2 px-8 py-3 bg-white border-2 border-slate-900 text-slate-900 rounded-full font-bold hover:bg-slate-900 hover:text-white transition-colors duration-300 shadow-sm"
+              >
                 <span>Xem Tất Cả Sản Phẩm</span>
+                <ShoppingBag size={18} />
               </Link>
-              <ShoppingBag size={18} />
-            </motion.button>
+            </motion.div>
           </div>
         </div>
       </section>

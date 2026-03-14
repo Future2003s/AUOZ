@@ -6,7 +6,13 @@ import { Product } from "@/apiRequests/products";
 import { envConfig } from "@/config";
 
 // ─── Module-level cache: tồn tại suốt phiên trình duyệt, không mất khi component unmount ───
-const _globalProductsCache = new Map<string, PreviewData>();
+// TTL 5 phút — sau đó sẽ re-fetch để hiển thị sản phẩm mới
+const MEGAMENU_CACHE_TTL = 5 * 60 * 1000; // 5 minutes in ms
+interface MegaMenuCacheEntry {
+  data: PreviewData;
+  ts: number;
+}
+const _globalProductsCache = new Map<string, MegaMenuCacheEntry>();
 
 interface ProductMenuItem {
   href: string;
@@ -52,13 +58,18 @@ export default function ProductsMegaMenu({
     // Tạo cache key dựa trên categoryId hoặc href
     const cacheKey = item.categoryId || item.categorySlug || item.href || item.label;
 
-    // Kiểm tra module-level cache — tồn tại ngay cả khi component unmount/remount
+    // Kiểm tra module-level cache với TTL — tồn tại ngay cả khi component unmount/remount
     if (_globalProductsCache.has(cacheKey)) {
-      const cachedData = _globalProductsCache.get(cacheKey)!;
-      setPreviewData(cachedData);
-      setImageOpacity(1);
-      setIsLoading(false);
-      return;
+      const entry = _globalProductsCache.get(cacheKey)!;
+      if (Date.now() - entry.ts < MEGAMENU_CACHE_TTL) {
+        // Cache còn hiệu lực
+        setPreviewData(entry.data);
+        setImageOpacity(1);
+        setIsLoading(false);
+        return;
+      }
+      // Cache hết hạn — xóa để re-fetch
+      _globalProductsCache.delete(cacheKey);
     }
 
     // Tăng delay để tránh fetch quá nhanh khi di chuyển chuột
@@ -72,104 +83,42 @@ export default function ProductsMegaMenu({
       setImageOpacity(0.7);
 
       try {
-        let products: Product[] = [];
         if (process.env.NODE_ENV === "development") {
           console.log("🔍 Fetching product preview for:", item);
         }
 
-        // Fetch sản phẩm cho preview - chỉ lấy đủ để hiển thị (tối đa 2 trang)
-        let allProducts: Product[] = [];
-        let totalPages = 1;
-        let hasMore = true;
-        let currentPage = 1;
-        const MAX_PREVIEW_PAGES = 2; // Chỉ fetch 2 trang đầu để preview nhanh hơn
+        // Chỉ fetch đúng 7 sản phẩm cần thiết — không cần phân trang
+        const pageParams = new URLSearchParams();
+        pageParams.set("size", "7");
+        pageParams.set("page", "1");
+        pageParams.set("status", "active");
+        pageParams.set("isVisible", "true");
 
-        // Fetch sản phẩm cho preview (giới hạn số trang để tải nhanh)
-        while (hasMore && currentPage <= MAX_PREVIEW_PAGES) {
-          const pageParams = new URLSearchParams();
-          pageParams.set("page", String(currentPage));
-          pageParams.set("size", "50"); // Giảm từ 100 xuống 50 để tải nhanh hơn
-          pageParams.set("status", "active");
-          pageParams.set("isVisible", "true");
-
-          // Try to fetch products based on category ID, category slug, query
-          if (item.categoryId) {
-            if (process.env.NODE_ENV === "development") {
-              console.log(`📦 Fetching trang ${currentPage} by category ID from API:`, item.categoryId);
-            }
-            pageParams.set("categoryId", item.categoryId);
-          } else if (item.categorySlug || item.href.includes("category=")) {
-            const categoryMatch = item.href.match(/[?&]category=([^&]+)/);
-            const categorySlug = item.categorySlug || (categoryMatch ? decodeURIComponent(categoryMatch[1]) : null);
-            if (categorySlug) {
-              if (process.env.NODE_ENV === "development") {
-                console.log(`📦 Fetching trang ${currentPage} by category slug from API:`, categorySlug);
-              }
-              pageParams.set("q", categorySlug);
-            }
-          } else if (item.query) {
-            if (process.env.NODE_ENV === "development") {
-              console.log(`📦 Fetching trang ${currentPage} by query from API:`, item.query);
-            }
-            pageParams.set("q", item.query);
-          } else {
-            // Nếu là "Tất cả sản phẩm", lấy tất cả
-            if (process.env.NODE_ENV === "development") {
-              console.log(`📦 Fetching trang ${currentPage} - Tất cả sản phẩm`);
-            }
-          }
-
-          try {
-            const response = await fetch(`/api/products/public?${pageParams.toString()}`, {
-              next: { revalidate: 180 }, // Cache 3 phút cho mega menu preview
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              const list: Product[] = Array.isArray(data?.data) ? data.data : [];
-
-              // Lấy thông tin pagination từ trang đầu tiên
-              if (currentPage === 1 && data?.pagination) {
-                totalPages = data.pagination.totalPages || data.pagination.pages || 1;
-                const totalElements = data.pagination.totalElements || data.pagination.total || 0;
-                if (process.env.NODE_ENV === "development") {
-                  console.log(`📊 Tổng số sản phẩm: ${totalElements}, Tổng số trang: ${totalPages}`);
-                }
-              }
-
-              // Thêm sản phẩm vào danh sách (tránh duplicate)
-              const existingIds = new Set(allProducts.map((p) => p._id));
-              const newProducts = list.filter((p) => !existingIds.has(p._id));
-              allProducts = [...allProducts, ...newProducts];
-
-              if (process.env.NODE_ENV === "development") {
-                console.log(`✅ Trang ${currentPage}: ${newProducts.length} sản phẩm mới, Tổng: ${allProducts.length}`);
-              }
-
-              // Kiểm tra xem đã lấy hết chưa
-              if (data?.pagination) {
-                const totalElements = data.pagination.totalElements || data.pagination.total || 0;
-                if (allProducts.length >= totalElements || currentPage >= totalPages || list.length === 0) {
-                  hasMore = false;
-                }
-              } else {
-                if (list.length === 0 || list.length < 50) {
-                  hasMore = false;
-                }
-              }
-            }
-          } catch (err) {
-            console.error(`❌ Error fetching trang ${currentPage}:`, err);
-            hasMore = false;
-          }
-
-          currentPage++;
+        if (item.categoryId) {
+          pageParams.set("categoryId", item.categoryId);
+        } else if (item.categorySlug || item.href.includes("category=")) {
+          const categoryMatch = item.href.match(/[?&]category=([^&]+)/);
+          const categorySlug = item.categorySlug || (categoryMatch ? decodeURIComponent(categoryMatch[1]) : null);
+          if (categorySlug) pageParams.set("q", categorySlug);
+        } else if (item.query) {
+          pageParams.set("q", item.query);
         }
 
-        products = allProducts;
+        let products: Product[] = [];
+        try {
+          const response = await fetch(`/api/products/public?${pageParams.toString()}`, {
+            cache: "no-store",
+          });
+          if (response.ok) {
+            const data = await response.json();
+            products = Array.isArray(data?.data) ? data.data : [];
+          }
+        } catch (err) {
+          console.error("❌ Error fetching MegaMenu preview:", err);
+        }
+
         if (process.env.NODE_ENV === "development") {
-          console.log(`🎉 Đã lấy ${products.length} sản phẩm từ API cho preview`);
-          console.log("📊 Products found:", products.length);
+          console.log(`🎉 MegaMenu: fetched ${products.length} products (requested 7)`);
         }
 
         if (products.length > 0) {
@@ -220,8 +169,8 @@ export default function ProductsMegaMenu({
                 categoryHref: item.href,
               };
 
-              // Lưu vào module-level cache
-              _globalProductsCache.set(cacheKey, newPreviewData);
+              // Lưu vào module-level cache với timestamp
+              _globalProductsCache.set(cacheKey, { data: newPreviewData, ts: Date.now() });
 
               // Update preview với smooth transition
               setPreviewData(newPreviewData);
@@ -239,8 +188,8 @@ export default function ProductsMegaMenu({
             categoryHref: item.href,
           };
 
-          // Lưu vào module-level cache để tránh fetch lại
-          _globalProductsCache.set(cacheKey, emptyPreviewData);
+          // Lưu vào module-level cache để tránh fetch lại (TTL ngắn hơn cho empty result)
+          _globalProductsCache.set(cacheKey, { data: emptyPreviewData, ts: Date.now() });
 
           // Chỉ update nếu vẫn đang fetch item này
           if (currentFetchKey.current === cacheKey) {
@@ -256,8 +205,8 @@ export default function ProductsMegaMenu({
           categoryHref: item.href,
         };
 
-        // Lưu vào module-level cache để tránh fetch lại khi lỗi
-        _globalProductsCache.set(cacheKey, errorPreviewData);
+        // Lưu vào module-level cache để tránh fetch lại khi lỗi (TTL bình thường)
+        _globalProductsCache.set(cacheKey, { data: errorPreviewData, ts: Date.now() });
 
         // Chỉ update nếu vẫn đang fetch item này
         if (currentFetchKey.current === cacheKey) {

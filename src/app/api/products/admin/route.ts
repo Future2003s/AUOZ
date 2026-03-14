@@ -23,8 +23,7 @@ export async function GET(request: NextRequest) {
   }
   params.set("page", page);
   params.set("limit", size);
-  // Don't force isVisible for admin - they should see all products
-  // params.set("isVisible", "true"); // Removed - admin should see all products
+  params.set("allProducts", "true"); // Always show all products in admin
 
   const base =
     envConfig.NEXT_PUBLIC_API_END_POINT ||

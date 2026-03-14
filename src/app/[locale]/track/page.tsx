@@ -3,13 +3,15 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { orderApiRequest } from "@/apiRequests/orders";
-import { Search, Package, Truck, CheckCircle, Clock, XCircle, AlertCircle, ShoppingBag, Receipt, MapPin } from "lucide-react";
+import { Search, Package, Truck, CheckCircle, Clock, XCircle, AlertCircle, ShoppingBag, Receipt, MapPin, Wifi } from "lucide-react";
 import Image from "next/image";
 import { envConfig } from "@/config";
+import { useSocket } from "@/providers/SocketProvider";
 
 function OrderTrackingContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { socket, connected } = useSocket();
 
     // The order ID can be in ?orderNumber=XXX or just ?ORD-XXX (first key in search params)
     const initialOrderFromQuery = searchParams.get("orderNumber") || Array.from(searchParams.keys())[0] || "";
@@ -42,6 +44,11 @@ function OrderTrackingContent() {
             if (res.success) {
                 setOrderData(res.data);
 
+                // Join socket room for realtime updates
+                if (socket && connected) {
+                    socket.emit("join-order-room", formattedCode);
+                }
+
                 // Optional: Update URL without reloading page if they typed it manually
                 if (codeToSearch !== initialOrderFromQuery) {
                     router.replace(`?${formattedCode}`, { scroll: false });
@@ -55,6 +62,18 @@ function OrderTrackingContent() {
             setLoading(false);
         }
     };
+
+    // Socket realtime: listen for order-status-updated events
+    useEffect(() => {
+        if (!socket || !orderData?.orderNumber) return;
+        const handler = (data: any) => {
+            if (data?.orderNumber === orderData.orderNumber || data?.orderId === orderData._id) {
+                setOrderData((prev: any) => prev ? { ...prev, ...data } : prev);
+            }
+        };
+        socket.on("order-status-updated", handler);
+        return () => { socket.off("order-status-updated", handler); };
+    }, [socket, orderData?.orderNumber, orderData?._id]);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -142,8 +161,13 @@ function OrderTrackingContent() {
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
                                 <div>
                                     <p className="text-sm font-semibold tracking-wider text-neutral-500 uppercase mb-1">Mã vận đơn</p>
-                                    <h2 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
+                                    <h2 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight flex items-center gap-2">
                                         #{orderData.orderNumber}
+                                        {connected && (
+                                            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                                                <Wifi className="w-3 h-3" /> Trực tuyến
+                                            </span>
+                                        )}
                                     </h2>
                                     <p className="text-sm text-neutral-500 mt-2 flex items-center gap-1.5">
                                         <Clock className="w-4 h-4" />

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { envConfig } from "@/config";
+import { toast } from "sonner";
 
 interface OrderNotification {
   orderId: string;
@@ -37,8 +38,9 @@ export function useSocket(): UseSocketReturn {
     const socketInstance = io(backendUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
+      reconnectionAttempts: 10,
       timeout: 20000,
     });
 
@@ -59,6 +61,23 @@ export function useSocket(): UseSocketReturn {
     socketInstance.on("connect_error", (error) => {
       console.error("[Socket.IO] Connection error:", error);
       setIsConnected(false);
+    });
+
+    // Reconnect events — user-facing toasts
+    socketInstance.on("reconnect_attempt", (attempt) => {
+      console.log("[Socket.IO] Reconnect attempt:", attempt);
+      toast.loading("Đang kết nối lại...", { id: "socket-reconnect", duration: Infinity });
+    });
+
+    socketInstance.on("reconnect", () => {
+      console.log("[Socket.IO] Reconnected");
+      setIsConnected(true);
+      toast.success("Đã kết nối lại", { id: "socket-reconnect" });
+    });
+
+    socketInstance.on("reconnect_failed", () => {
+      console.error("[Socket.IO] Reconnect failed");
+      toast.error("Mất kết nối. Vui lòng tải lại trang.", { id: "socket-reconnect" });
     });
 
     // Listen for new order notifications
