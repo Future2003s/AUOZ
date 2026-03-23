@@ -32,6 +32,7 @@ interface PreviewData {
     image: string;
     title: string;
     price: number;
+    comingSoon?: boolean;
     href: string;
     id: string;
   }>;
@@ -140,6 +141,7 @@ export default function ProductsMegaMenu({
               image: imageUrl,
               title: product.name || "Product",
               price: product.price || 0,
+              comingSoon: (product as any).comingSoon ?? false,
               href: `/${locale}/products/${product._id}`,
             };
           });
@@ -323,7 +325,11 @@ export default function ProductsMegaMenu({
                       {featureProduct.title}
                     </h3>
 
-                    {featureProduct.price > 0 && (
+                    {featureProduct.comingSoon ? (
+                      <p className="text-base font-bold text-blue-600">
+                        Comming Soon
+                      </p>
+                    ) : featureProduct.price > 0 && (
                       <p className="text-base font-bold text-gray-900 dark:text-white">
                         {new Intl.NumberFormat("vi-VN", {
                           style: "currency",
@@ -391,7 +397,9 @@ export default function ProductsMegaMenu({
                       <h4 className="font-semibold text-xs text-slate-900 dark:text-white line-clamp-2 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors duration-300 leading-tight">
                         {product.title}
                       </h4>
-                      {product.price > 0 ? (
+                      {product.comingSoon ? (
+                        <p className="text-xs font-bold text-blue-600">Comming Soon</p>
+                      ) : product.price > 0 ? (
                         <p className="text-sm font-bold text-gray-900 dark:text-white">
                           {new Intl.NumberFormat("vi-VN", {
                             style: "currency",

@@ -54,8 +54,9 @@ export default function ProductModal({
     sku: "",
     categoryId: "",
     brandId: "",
-    status: "active", // default: active để sản phẩm mới hiển thị ngay trên trang public
+    status: "active",
     isFeatured: false,
+    comingSoon: false,
     images: [] as string[],
   });
   const [formData, setFormData] = useState(createEmptyFormData);
@@ -128,6 +129,7 @@ export default function ProductModal({
         ),
         status: mappedStatus,
         isFeatured: product.isFeatured ?? false,
+        comingSoon: product.comingSoon ?? false,
         images: Array.isArray(product.images)
           ? product.images.map((img: any) =>
               typeof img === "string" ? img : img.url
@@ -201,6 +203,7 @@ export default function ProductModal({
         // Ensure status is always valid and lowercase
         status: formData.status || "draft",
         isFeatured: formData.isFeatured || false,
+        comingSoon: formData.comingSoon || false,
         // Required fields with defaults
         trackQuantity: true,
         allowBackorder: false,
@@ -602,6 +605,26 @@ export default function ProductModal({
               >
                 <Star className="h-4 w-4 text-yellow-500" />
                 Đánh dấu sản phẩm nổi bật
+              </Label>
+            </div>
+
+            {/* Coming Soon Checkbox */}
+            <div className="flex items-center space-x-2 p-4 border border-blue-200 rounded-lg bg-blue-50/50">
+              <Checkbox
+                id="comingSoon"
+                checked={formData.comingSoon}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    comingSoon: checked === true,
+                  }))
+                }
+              />
+              <Label
+                htmlFor="comingSoon"
+                className="text-sm font-medium text-gray-700 cursor-pointer flex items-center gap-2"
+              >
+                🔔 Sắp ra mắt (Comming Soon) — Ẩn giá, hiển badge "Đặt Trước"
               </Label>
             </div>
 

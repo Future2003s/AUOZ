@@ -50,7 +50,13 @@ const ProductCard = React.memo<ProductCardProps>(
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
 
             {/* Stock Status Badge */}
-            {product.quantity !== undefined && (
+            {product.comingSoon ? (
+              <Badge
+                className="absolute top-3 right-3 bg-rose-600 hover:bg-rose-700 text-white border-0"
+              >
+                Đặt Trước
+              </Badge>
+            ) : product.quantity !== undefined && (
               <Badge
                 variant={product.quantity > 0 ? "default" : "destructive"}
                 className="absolute top-3 right-3"
@@ -72,14 +78,21 @@ const ProductCard = React.memo<ProductCardProps>(
             </h3>
 
             <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold text-blue-600">
-                {formatCurrency(Number(product.price))}
-              </span>
-
-              {product.quantity !== undefined && (
-                <span className="text-sm text-muted-foreground">
-                  SL: {product.quantity}
+              {product.comingSoon ? (
+                <span className="text-2xl font-bold text-blue-600">
+                  Comming Soon
                 </span>
+              ) : (
+                <>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {formatCurrency(Number(product.price))}
+                  </span>
+                  {product.quantity !== undefined && (
+                    <span className="text-sm text-muted-foreground">
+                      SL: {product.quantity}
+                    </span>
+                  )}
+                </>
               )}
             </div>
           </CardContent>

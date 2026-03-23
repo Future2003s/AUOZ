@@ -50,6 +50,7 @@ export interface Product {
   tags: string[];
   status: "active" | "draft" | "archived";
   featured: boolean;
+  comingSoon?: boolean; // Nếu true: hiển thị "Coming Soon" thay vì giá
   specifications?: Record<string, any>;
   weight?: number;
   dimensions?: {

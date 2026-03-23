@@ -342,16 +342,30 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                 </div>
 
                 {/* Price */}
-                <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl px-5 py-4 border border-orange-100/80">
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-4xl lg:text-5xl font-black text-orange-500 tracking-tight">{formatCurrency(price)}</span>
+                {item.comingSoon ? (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl px-5 py-4 border border-blue-100/80">
+                    <div className="flex items-center gap-3">
+                      <span className="text-4xl lg:text-5xl font-black text-blue-500 tracking-tight">Comming Soon</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-3">
+                      <span className="inline-flex items-center gap-1.5 bg-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                        🔔 Đặt Trước — Sắp ra mắt
+                      </span>
+                      <span className="text-xs text-gray-400">Sản phẩm sẽ sớm có mặt!</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4 mt-2">
-                    <span className="text-xs text-gray-400 flex items-center gap-1"><Truck className="h-3 w-3" />Miễn phí vận chuyển</span>
-                    <span className="text-xs text-gray-400">•</span>
-                    <span className="text-xs text-gray-400">Đã bao gồm VAT</span>
+                ) : (
+                  <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl px-5 py-4 border border-orange-100/80">
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-4xl lg:text-5xl font-black text-orange-500 tracking-tight">{formatCurrency(price)}</span>
+                    </div>
+                    <div className="flex items-center gap-4 mt-2">
+                      <span className="text-xs text-gray-400 flex items-center gap-1"><Truck className="h-3 w-3" />Miễn phí vận chuyển</span>
+                      <span className="text-xs text-gray-400">•</span>
+                      <span className="text-xs text-gray-400">Đã bao gồm VAT</span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Variants */}
                 {(item.variants?.length ?? 0) > 0 && (
@@ -370,32 +384,46 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                   </div>
                 )}
 
-                {/* Qty + Cart */}
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
-                    <button onClick={() => setQty(q => Math.max(1, q - 1))} disabled={qty <= 1}
-                      className="w-11 h-11 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-orange-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <div className="w-14 text-center text-base font-bold border-x border-gray-200 h-11 flex items-center justify-center text-gray-900">{qty}</div>
-                    <button onClick={() => setQty(q => Math.min(q + 1, item.quantity ?? 999))} disabled={qty >= (item.quantity ?? 999)}
-                      className="w-11 h-11 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-orange-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <button onClick={handleAddToCart} disabled={isOutOfStock}
-                    className="flex-1 h-11 rounded-xl border-2 border-orange-400 text-orange-500 bg-white font-semibold text-sm hover:bg-orange-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
-                    <ShoppingCart className="h-4 w-4" /> Thêm vào giỏ
-                  </button>
-                </div>
+                {/* Qty + Cart — ẩn khi comingSoon */}
+                {!item.comingSoon ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                        <button onClick={() => setQty(q => Math.max(1, q - 1))} disabled={qty <= 1}
+                          className="w-11 h-11 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-orange-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <div className="w-14 text-center text-base font-bold border-x border-gray-200 h-11 flex items-center justify-center text-gray-900">{qty}</div>
+                        <button onClick={() => setQty(q => Math.min(q + 1, item.quantity ?? 999))} disabled={qty >= (item.quantity ?? 999)}
+                          className="w-11 h-11 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-orange-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <button onClick={handleAddToCart} disabled={isOutOfStock}
+                        className="flex-1 h-11 rounded-xl border-2 border-orange-400 text-orange-500 bg-white font-semibold text-sm hover:bg-orange-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <ShoppingCart className="h-4 w-4" /> Thêm vào giỏ
+                      </button>
+                    </div>
 
-                {/* Buy Now CTA */}
-                <button
-                  onClick={() => { if (isOutOfStock) return; setCheckoutOpen(prev => !prev); setOrderSuccess(null); setOrderError(null); }}
-                  disabled={isOutOfStock}
-                  className={`w-full h-14 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2.5 shadow-lg active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${checkoutOpen ? "bg-gray-800 hover:bg-gray-900 text-white" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-orange-300"}`}>
-                  {checkoutOpen ? <><ChevronUp className="h-5 w-5" />Đóng thông tin đặt hàng</> : <><Package className="h-5 w-5" />Mua ngay — Đặt hàng nhanh<ArrowRight className="h-4 w-4 ml-1" /></>}
-                </button>
+                    {/* Buy Now CTA */}
+                    <button
+                      onClick={() => { if (isOutOfStock) return; setCheckoutOpen(prev => !prev); setOrderSuccess(null); setOrderError(null); }}
+                      disabled={isOutOfStock}
+                      className={`w-full h-14 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2.5 shadow-lg active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${checkoutOpen ? "bg-gray-800 hover:bg-gray-900 text-white" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-orange-300"}`}>
+                      {checkoutOpen ? <><ChevronUp className="h-5 w-5" />Đóng thông tin đặt hàng</> : <><Package className="h-5 w-5" />Mua ngay — Đặt hàng nhanh<ArrowRight className="h-4 w-4 ml-1" /></>}
+                    </button>
+                  </>
+                ) : (
+                  /* Nút Đặt Trước khi comingSoon = true */
+                  <button
+                    onClick={() => {
+                      toast.success("🔔 Cảm ơn bạn! Chúng tôi sẽ thông báo khi sản phẩm ra mắt.", { duration: 4000 });
+                    }}
+                    className="w-full h-14 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2.5 shadow-lg active:scale-[0.98] bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white shadow-rose-300"
+                  >
+                    🔔 Đặt Trước — Nhận thông báo ra mắt
+                  </button>
+                )}
 
                 {/* Trust badges desktop */}
                 <div className="hidden lg:grid grid-cols-3 gap-3 pt-1 border-t border-gray-100">
