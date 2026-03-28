@@ -8,7 +8,7 @@ import { useCart } from "@/context/cart-context";
 import { useCartSidebar } from "@/context/cart-sidebar-context";
 
 export interface Product {
-  id: number;
+  id: number | string;
   longDescription?: string;
   name: string;
   price: number;
@@ -16,6 +16,7 @@ export interface Product {
   imageUrl?: string;
   image: string;
   rating: number;
+  comingSoon?: boolean;
 }
 
 const RatingStars = ({ rating }: { rating: number }) => (
@@ -38,7 +39,7 @@ export const ProductCard = ({
 }: {
   product: Product;
   onQuickView: (p: Product) => void;
-  badge?: "Mới" | "Bán chạy";
+  badge?: "Mới" | "Bán chạy" | "Đặt Trước" | string;
 }) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
@@ -47,6 +48,7 @@ export const ProductCard = ({
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (product.comingSoon) return;
     addItem({
       id: String(product.id),
       name: product.name,
@@ -99,13 +101,15 @@ export const ProductCard = ({
           {product.category}
         </span>
 
-        {/* Badge Mới / Bán chạy */}
         {badge && (
           <span
-            className={`absolute top-4 right-4 ${badge === "Mới"
+            className={`absolute top-4 right-4 ${
+              badge === "Mới"
                 ? "bg-green-500 text-white"
+                : badge === "Đặt Trước"
+                ? "bg-rose-600 text-white font-bold tracking-wide"
                 : "bg-rose-600 text-white"
-              } text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm`}
+            } text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm`}
           >
             {badge}
           </span>
@@ -120,13 +124,15 @@ export const ProductCard = ({
           >
             <Eye size={20} />
           </button>
-          <button
-            onClick={handleAddToCart}
-            className="transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-100 bg-white text-slate-900 hover:bg-rose-600 hover:text-white p-3 rounded-full shadow-lg"
-            title="Thêm vào giỏ"
-          >
-            <ShoppingBag size={20} />
-          </button>
+          {!product.comingSoon && (
+            <button
+              onClick={handleAddToCart}
+              className="transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-100 bg-white text-slate-900 hover:bg-rose-600 hover:text-white p-3 rounded-full shadow-lg"
+              title="Thêm vào giỏ"
+            >
+              <ShoppingBag size={20} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -141,12 +147,18 @@ export const ProductCard = ({
         >
           {product.name}
         </h3>
-        <p className="font-body text-gray-900 font-bold">
-          {new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          }).format(product.price)}
-        </p>
+        {product.comingSoon ? (
+          <p className="font-body text-blue-600 font-bold italic">
+            Comming Soon
+          </p>
+        ) : (
+          <p className="font-body text-gray-900 font-bold">
+            {new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(product.price)}
+          </p>
+        )}
       </div>
     </motion.div>
   );

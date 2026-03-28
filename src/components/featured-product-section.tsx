@@ -63,6 +63,7 @@ export const FeaturedProductsSection: React.FC = () => {
               averageRating?: number;
               description?: string;
               longDescription?: string;
+              comingSoon?: boolean;
               },
               index: number
             ) => {
@@ -90,6 +91,7 @@ export const FeaturedProductsSection: React.FC = () => {
                 imageUrl: imageUrl,
                 rating: Math.min(5, Math.max(1, rating)), // Clamp between 1-5
                 longDescription: product.description || product.longDescription,
+                comingSoon: product.comingSoon || false,
               };
             }
           );
@@ -209,7 +211,7 @@ export const FeaturedProductsSection: React.FC = () => {
                       key={product.id}
                       product={product}
                       onQuickView={setQuickViewProduct}
-                      badge={isNew ? "Mới" : isBestSeller ? "Bán chạy" : undefined}
+                      badge={product.comingSoon ? "Đặt Trước" : isNew ? "Mới" : isBestSeller ? "Bán chạy" : undefined}
                     />
                   );
                 })}

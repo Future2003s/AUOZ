@@ -177,7 +177,7 @@ export default function CMSDashboard() {
             <div className="text-2xl font-bold text-yellow-600">
               {cmsModules.filter((m) => m.status === "coming-soon").length}
             </div>
-            <p className="text-xs text-gray-500 mt-1">Sắp ra mắt</p>
+            <p className="text-xs text-gray-500 mt-1">Comming Soon</p>
           </CardContent>
         </Card>
         <Card>
@@ -222,9 +222,8 @@ export default function CMSDashboard() {
             return (
               <Card
                 key={module.id}
-                className={`relative overflow-hidden transition-all duration-200 hover:shadow-lg ${
-                  isComingSoon ? "opacity-75" : ""
-                }`}
+                className={`relative overflow-hidden transition-all duration-200 hover:shadow-lg ${isComingSoon ? "opacity-75" : ""
+                  }`}
               >
                 <div
                   className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${module.color} opacity-10 rounded-bl-full`}
