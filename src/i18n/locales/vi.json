@@ -8,17 +8,27 @@
     "trending": "Xu hướng",
     "view_all": "Xem tất cả"
   },
-
   "site": {
     "cta_explore": "Khám phá bộ sưu tập",
     "experience_title": "Trải Nghiệm LALA-LYCHEE",
     "featured_section": "Sản Phẩm Nổi Bật",
     "collections_section": "Bộ Sưu Tập Đặc Biệt",
-    "craft_section": "Quy Trình Sáng Tạo",
+    "craft_section": "Về quê hương vải thiều",
     "social_section": "Sự Tin Tưởng Từ Cộng Đồng",
-    "about_title": "Câu Chuyện LALA-LYCHEE"
+    "about_title": "Câu Chuyện LALA-LYCHEE",
+    "about_desc_1": "Sinh ra và lớn lên tại vùng quê Vĩnh Lập – Thanh Hà – Hải Dương, nơi được mệnh danh là \"đất vải\", tôi hiểu sâu sắc cuộc sống còn nhiều khó khăn của người nông dân nơi đây. Vùng đất này đẹp nhưng nghèo, bốn bề là sông nước, giao thương hạn chế. Có một thời, tôi từng tự ti về quê hương mình đến mức không dám nói với bạn bè rằng mình đến từ Vĩnh Lập.",
+    "about_desc_2": "Chúng tôi đã đem những trái vải quê mình sang giới thiệu với bạn bè Nhật Bản, và từ đó tôi nhận ra rằng: Vùng đất mà trước đây tôi từng tự ti, thực chất lại là một nơi vô cùng đáng tự hào. Tôi hiểu rằng mình phải làm điều gì đó để thế hệ trẻ lớn lên tại đây có thể tự tin nói rằng: \"Tôi sinh ra ở Vĩnh Lập.\"",
+    "about_desc_3": "Từ khát vọng đó, tôi bắt đầu hành trình đưa trái vải – tinh hoa của trời đất Thanh Hà – vươn ra thế giới. LALA-LYCHEEE ra đời với sứ mệnh mang vải thiều Vĩnh Lập đến với bạn bè quốc tế, tạo thêm công ăn việc làm cho bà con, để sau mỗi mùa vải, họ không còn cảnh thiếu việc, phải đi làm ăn xa.",
+    "founder_quote": "Mang niềm tự hào trở lại với quê hương.",
+    "about_footer_quote": "Mỗi sản phẩm là một tác phẩm nghệ thuật, kết tinh từ nguồn nguyên liệu tuyển chọn và tình yêu quê hương xứ sở.",
+    "read_more_story": "Đọc thêm câu chuyện",
+    "mission_title": "Sứ Mệnh",
+    "mission_desc": "Mang vải thiều Vĩnh Lập – tinh hoa của đất trời Thanh Hà – vươn ra thế giới, tạo thêm công ăn việc làm bền vững cho bà con nông dân, để thế hệ trẻ Vĩnh Lập có thể tự hào nói: \"Tôi sinh ra ở Vĩnh Lập.\"",
+    "vision_title": "Tầm Nhìn",
+    "vision_desc": "Trở thành thương hiệu nông sản Việt Nam hàng đầu, được công nhận trên thị trường quốc tế, góp phần nâng tầm giá trị nông sản Việt và mang lại cuộc sống tốt đẹp hơn cho người nông dân quê hương.",
+    "we_were_born_in": "\"Tôi sinh ra ở Vĩnh Lập.\"",
+    "craft_subheading": "Hành trình từ trái vải tươi ngon đến sản phẩm tinh hoa trên tay bạn."
   },
-
   "nav": {
     "home": "Trang Chủ",
     "products": "Sản Phẩm",
@@ -41,7 +51,6 @@
     "language": "Ngôn ngữ",
     "menu": "Menu"
   },
-
   "auth": {
     "login_title": "Đăng nhập",
     "login_subtitle": "để tiếp tục đến tài khoản của bạn",
@@ -58,7 +67,6 @@
     "login_failed": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
     "or_continue_with": "Hoặc tiếp tục với"
   },
-
   "common": {
     "loading": "Đang tải...",
     "error": "Lỗi",
@@ -121,7 +129,6 @@
     "to": "đến",
     "items": "mục"
   },
-
   "admin": {
     "title": "Quản Trị",
     "dashboard": {
@@ -210,7 +217,7 @@
       },
       "footer": {
         "title": "Cài Đặt Footer",
-        "description": "Quản lý thông tin, links và cấu hình footer của website",
+        "description": "Mô Tả",
         "company": "Công Ty",
         "contact": "Liên Hệ",
         "links": "Links",
@@ -219,7 +226,6 @@
         "company_info": "Thông Tin Công Ty",
         "company_info_desc": "Cấu hình logo, tên và mô tả công ty",
         "company_name": "Tên Công Ty",
-        "description": "Mô Tả",
         "logo": "Logo (tùy chọn)",
         "legal_info": "Thông Tin Pháp Lý",
         "legal_company_name": "Tên Công Ty (Pháp Lý)",
@@ -267,14 +273,13 @@
       "select_section": "Chọn phần để chỉnh sửa",
       "hero": {
         "title": "Hero Section",
-        "description": "Phần đầu trang với background và tiêu đề chính",
+        "description": "Description",
         "background_image": "Background Image",
         "background_desc": "Hình ảnh nền cho hero section",
         "content": "Nội dung Hero",
         "content_desc": "Tiêu đề và mô tả chính",
         "title_label": "Title",
         "subtitle": "Subtitle",
-        "description": "Description",
         "preview": "Preview"
       },
       "chapter1": {
@@ -316,7 +321,7 @@
         "youtube_id_help": "Lấy ID từ URL YouTube: https://www.youtube.com/watch?v=VIDEO_ID",
         "title_label": "Tiêu đề",
         "description_label": "Mô tả",
-        "show_video": "Hiển thị video",
+        "show_video0": "Hiển thị video",
         "preview_video": "Preview Video"
       },
       "chapter3": {
@@ -346,7 +351,6 @@
       "import_export": "Nhập/Xuất"
     }
   },
-
   "products": {
     "title": "Sản Phẩm",
     "all_products": "Tất Cả Sản Phẩm",
@@ -380,7 +384,6 @@
     "no_products": "Không tìm thấy sản phẩm nào",
     "loading_products": "Đang tải sản phẩm..."
   },
-
   "orders": {
     "title": "Đơn Hàng",
     "my_orders": "Đơn Hàng Của Tôi",
@@ -400,7 +403,6 @@
     "cancelled": "Đã Hủy",
     "refunded": "Đã Hoàn Tiền"
   },
-
   "footer": {
     "company_name": "Lalalycheee",
     "company_description": "Chúng tôi tự hào mang đến những sản phẩm vải thiều chất lượng cao, bền vững và thân thiện môi trường, góp phần nâng tầm giá trị nông sản Việt.",
@@ -411,7 +413,250 @@
     "quick_links": "Liên kết nhanh",
     "company_info": "CÔNG TY TNHH LALA - LYCHEEE",
     "tax_code": "Mã Số Thuế",
-    "managed_by": "Quản Lý Bởi",
-    "copyright": "© {year} Lalalycheee CO.,LTD. Bảo lưu mọi quyền."
+    "managed_by": "Quản Lý Bởi Thanh Hà - Thuế cơ sở 14 Thành Phố Hải Phòng",
+    "copyright": "© {year} Lalalycheee CO.,LTD. Bảo lưu mọi quyền.",
+    "address_value": "thôn Tú Y, xã Hà Đông, Thành Phố Hải Phòng.",
+    "news_events": "Tin tức & Sự kiện",
+    "complaints": "Giải quyết khiếu nại",
+    "tax_code_label": "Mã Số Thuế:",
+    "short_name_label": "Tên viết tắt:",
+    "intl_name_label": "Tên quốc tế:",
+    "status_label": "Trạng thái:",
+    "address_label": "Địa chỉ:",
+    "source_label": "Nguồn:",
+    "updated_at_label": "Cập nhật lúc:",
+    "copyright_notice": "Lalalycheee CO.,LTD. Bảo lưu mọi quyền.",
+    "location_title": "Vải Thiều Vĩnh Lập - Thanh Hà"
+  },
+  "header": {
+    "select_language": "Chọn ngôn ngữ",
+    "hello": "Xin chào",
+    "employee_page": "Trang nhân viên",
+    "admin_page": "Quản trị",
+    "logout": "Đăng xuất",
+    "logout_failed": "Đăng xuất thất bại",
+    "logout_success": "Đã đăng xuất",
+    "login": "Đăng nhập",
+    "cart": "Giỏ hàng",
+    "pc_mode": "Chế độ PC",
+    "open_menu": "Mở menu"
+  },
+  "hero": {
+    "badges": {
+      "japan_export": "Xuất khẩu Nhật Bản",
+      "quality_cert": "Chứng nhận chất lượng",
+      "vinh_lap_lychee": "Vải thiều Vĩnh Lập - Hương vị độc bản"
+    },
+    "stats": {
+      "happy_customers": "Khách hàng hài lòng",
+      "avg_rating": "Đánh giá trung bình"
+    }
+  },
+  "value": {
+    "subtitle": "Tại Sao Chọn Chúng Tôi",
+    "title": "Giá Trị Cốt Lõi",
+    "description": "Những lý do khiến LALA-LYCHEEE trở thành lựa chọn hàng đầu cho những ai yêu thích hương vị tự nhiên và chất lượng cao cấp",
+    "items": {
+      "item1": {
+        "title": "100% Vải Tươi Vĩnh Lập",
+        "description": "Nguồn gốc rõ ràng từ vùng đất Vĩnh Lập - Thanh Hà, nơi có hương vị độc bản không nơi nào có."
+      },
+      "item2": {
+        "title": "Chất Lượng Quốc Tế",
+        "description": "Quy trình canh tác chuẩn Nhật Bản, đạt chứng nhận chất lượng và xuất khẩu thành công."
+      },
+      "item3": {
+        "title": "Đóng Gói Sang Trọng",
+        "description": "Mỗi sản phẩm được đóng gói tinh xảo, phù hợp làm quà tặng cao cấp."
+      },
+      "item4": {
+        "title": "Tâm Huyết Với Quê Hương",
+        "description": "Mang lại công ăn việc làm bền vững cho người nông dân, góp phần phát triển địa phương."
+      },
+      "item5": {
+        "title": "Xuất Khẩu Nhật Bản",
+        "description": "Được tin dùng tại thị trường Nhật Bản - minh chứng cho chất lượng và uy tín."
+      },
+      "item6": {
+        "title": "Dịch Vụ Tận Tâm",
+        "description": "Hỗ trợ khách hàng 24/7, giao hàng nhanh chóng, đảm bảo hài lòng 100%."
+      }
+    }
+  },
+  "social_proof": {
+    "title": "Sự Tin Tưởng Từ Cộng Đồng",
+    "description": "Niềm vui của khách hàng và sự đồng hành của các thương hiệu uy tín là minh chứng cho chất lượng của chúng tôi.",
+    "testimonials_title": "Khách Hàng Phản Hồi ?",
+    "partners_title": "Đối Tác Đồng Hành",
+    "testimonials": {
+      "t1": {
+        "quote": "Sản phẩm của LALA-LYCHEE thực sự khác biệt. Vị ngọt thanh và hương thơm tự nhiên khiến tôi rất ấn tượng. Bao bì cũng rất sang trọng!",
+        "author": "Ngọc Anh",
+        "role": "Chuyên gia ẩm thực"
+      },
+      "t2": {
+        "quote": "Tôi đã dùng mật ong hoa vải của LALA-LYCHEE để tiếp đãi đối tác và họ rất thích. Một sản phẩm chất lượng, thể hiện được sự tinh tế của người tặng.",
+        "author": "Minh Tuấn",
+        "role": "Giám đốc Doanh nghiệp"
+      },
+      "t3": {
+        "quote": "Chưa bao giờ tôi nghĩ một sản phẩm từ quả vải lại có thể tinh tế đến vậy. Chắc chắn sẽ ủng hộ LALA-LYCHEE dài dài.",
+        "author": "Phương Linh",
+        "role": "Blogger Du lịch"
+      }
+    }
+  },
+  "certifications": {
+    "subtitle": "Chứng Nhận & Đối Tác",
+    "title": "Được Công Nhận",
+    "partners_title": "Đối Tác Đồng Hành",
+    "items": {
+      "cert1": {
+        "name": "Chứng Nhận Chất Lượng",
+        "description": "Đạt tiêu chuẩn chất lượng quốc tế"
+      },
+      "cert2": {
+        "name": "Xuất Khẩu Nhật Bản",
+        "description": "Được tin dùng tại thị trường Nhật Bản"
+      },
+      "cert3": {
+        "name": "ISO 22000:2018",
+        "description": "Hệ thống quản lý an toàn thực phẩm"
+      }
+    }
+  },
+  "featured_products": {
+    "subtitle": "Bộ Sưu Tập Độc Quyền",
+    "description": "Những sáng tạo độc đáo từ <strong>LALA-LYCHEE</strong>, kết tinh hương vị ngọt ngào của đất trời và tâm huyết của người nông dân.",
+    "error": "Không thể tải sản phẩm nổi bật",
+    "retry": "Thử lại",
+    "empty": "Chưa có sản phẩm nổi bật",
+    "view_all": "Xem Tất Cả Sản Phẩm",
+    "default_name": "Sản phẩm",
+    "default_category": "Sản phẩm",
+    "badges": {
+      "preorder": "Đặt Trước",
+      "new": "Mới",
+      "bestseller": "Bán chạy"
+    }
+  },
+  "video_section": {
+    "section_title": "Câu chuyện của chúng tôi",
+    "video_title": "Vợ chồng Nhật Việt tâm huyết với quả vải Thanh Hà, Hải Dương",
+    "video_description": "Góp phần quảng bá đặc sản quê hương Vĩnh Lập, Thanh Hà đến với bạn bè trong và ngoài nước."
+  },
+  "news_section": {
+    "subtitle": "Tin Tức & Cập Nhật",
+    "title": "Câu Chuyện Từ Vĩnh Lập",
+    "description": "Khám phá những câu chuyện, tin tức và cập nhật mới nhất về vải thiều Vĩnh Lập và hành trình của LALA-LYCHEEE",
+    "view_all": "Xem Tất Cả Tin Tức"
+  },
+  "our_craft": {
+    "click_hint": "(Nhấp vào từng bước để xem chi tiết)",
+    "steps": {
+      "step1": {
+        "title": "Tuyển Chọn Tinh Tế",
+        "description": "Từng trái vải được lựa chọn thủ công từ những khu vườn đạt chuẩn, đảm bảo độ chín mọng và hương vị ngọt ngào nhất."
+      },
+      "step2": {
+        "title": "Chế Biến Tỉ Mỉ",
+        "description": "Quy trình sản xuất khép kín, ứng dụng công nghệ hiện đại để giữ trọn vẹn dưỡng chất và hương vị tự nhiên của trái vải."
+      },
+      "step3": {
+        "title": "Đóng Gói Sang Trọng",
+        "description": "Mỗi sản phẩm là một tác phẩm nghệ thuật, được khoác lên mình bao bì đẳng cấp, tinh xảo trong từng chi tiết."
+      }
+    }
+  },
+  "collection": {
+    "title": "Bộ Sưu Tập Đặc Biệt",
+    "subtitle": "Khám phá những dòng sản phẩm độc đáo được sáng tạo dành riêng cho bạn.",
+    "items": {
+      "item1": {
+        "title": "Thu Hoạch Vải",
+        "category": "Năng lượng tích cực cùng mọi người thu hoạch."
+      },
+      "item2": {
+        "title": "Tinh Tế Trong Từng Công Đoạn",
+        "category": "Lựa chọn những trái vải tốt nhất."
+      },
+      "item3": {
+        "title": "Kết Hợp Với Ánh Nắng Mặt Trời",
+        "category": "Phơi khô tự nhiên để giữ trọn hương vị."
+      },
+      "item4": {
+        "title": "Thành Quả Ngọt Ngào",
+        "category": "Những trái vải khô mọng, sẵn sàng để chế biến."
+      },
+      "item5": {
+        "title": "Đóng Gói",
+        "category": "Sản phẩm được đóng gói tỉ mỉ và sang trọng."
+      }
+    }
+  },
+  "maps": {
+    "subtitle": "Vị Trí",
+    "title": "Ghé thăm Công Ty Chúng Tôi",
+    "description": "LALA-LYCHEEE nằm ngay tại trung tâm vùng đất vải thiều trứ danh. Hãy đến để cảm nhận hương vị tươi ngon tận vườn.",
+    "old_address": "Vĩnh Lập – Thanh Hà – Hải Dương (địa chỉ hành chính cũ)",
+    "new_address_main": "Thôn Tú - Xã Hà Đông - Thành Phố Hải Phòng",
+    "new_address_note": "(địa chỉ hành chính mới)",
+    "directions": "Chỉ đường Google Maps"
+  },
+  "marquee": {
+    "item1": "🍒 Vĩnh Lập - Đất Vải Thanh Hà",
+    "item2": "⭐ Hương Vị Độc Bản",
+    "item3": "🌏 Xuất Khẩu Nhật Bản",
+    "item4": "✨ 100% Vải Tươi Tuyển Chọn",
+    "item5": "🏆 Chứng Nhận Chất Lượng",
+    "item6": "💝 Quà Tặng Sang Trọng",
+    "item7": "🚚 Giao Hàng Toàn Quốc",
+    "item8": "👥 10,000+ Khách Hàng Hài Lòng"
+  },
+  "sub": {
+    "craft_subheading": "Tinh hoa từ trái vải"
+  },
+  "defaults": {
+    "hero_title": "Tinh Tuý Từ Thiên Nhiên",
+    "hero_subtitle": "Vải thiều Vĩnh Lập – Thanh Hà, được tuyển chọn cẩn thận, mang hương vị ngọt ngào thuần khiết đến với gia đình bạn.",
+    "hero_cta": "Khám Phá Ngay"
+  },
+  "story": {
+    "loading": "Đang tải câu chuyện...",
+    "hero_title": "Hành Trình Trở Về",
+    "hero_subtitle": "Đánh Thức",
+    "hero_description": "Từ nỗi tự ti của một người con xa xứ, đến khát vọng mang niềm tự hào Vĩnh Lập vươn ra thế giới.",
+    "explore": "Khám phá",
+    "chapter1_label": "Chương I",
+    "chapter1_location": "Vĩnh Lập, Thanh Hà",
+    "chapter1_location_text": "\"Bốn bề là sông nước, người dân quanh năm vất vả...\"",
+    "chapter1_title": "Vùng Đất Đẹp Nhưng Nghèo",
+    "chapter1_content1": "Tôi sinh ra và lớn lên tại Vĩnh Lập – Thanh Hà – Hải Dương, cái nôi của cây vải thiều. Nhưng ngày ấy, tôi chỉ thấy sự nhọc nhằn. Vùng đất này đẹp, nhưng giao thương hạn chế, đời sống người dân thiếu thốn đủ bề.",
+    "chapter1_quote": "\"Có một thời, tôi từng tự ti về quê hương mình đến mức không dám nói với bạn bè rằng mình đến từ Vĩnh Lập.\"",
+    "chapter2_label": "Chương II",
+    "chapter2_title": "Góc Nhìn Từ Xứ Người",
+    "chapter2_content1": "Mười năm du học và làm việc tại Nhật Bản là khoảng thời gian thay đổi cuộc đời tôi. Tại đó, tôi gặp người bạn đời - một cô giáo dạy tiếng Nhật.",
+    "chapter2_content2": "Khi cùng nhau trở về Việt Nam, chính ánh mắt của cô ấy đã giúp tôi nhìn lại quê hương mình. Cô chỉ cho tôi thấy vẻ đẹp của tình làng nghĩa xóm, sự bình yên của sông nước, và đặc biệt là vị ngon tuyệt hảo của trái vải mà bấy lâu tôi xem nhẹ.",
+    "chapter2_awakening_title": "Sự Thức Tỉnh",
+    "chapter2_item1": "Vẻ đẹp chân chất của con người Vĩnh Lập",
+    "chapter2_item2": "Hương vị vải thiều độc bản không nơi nào có",
+    "chapter2_item3": "Niềm tự hào tiềm ẩn trong sự bình dị",
+    "chapter2_love": "Tình yêu & Nỗi nhớ",
+    "quote_text": "\"Chúng tôi mang trái vải quê mình mời bạn bè Nhật Bản. Từ ánh mắt ngạc nhiên của họ, tôi nhận ra: Vùng đất tôi từng tự ti, lại là nơi đáng tự hào nhất.\"",
+    "quote_author": "Founder LALA-LYCHEEE",
+    "video_title": "Câu Chuyện Trên Màn Ảnh",
+    "video_description": "Khám phá hành trình đưa vải thiều Vĩnh Lập vươn ra thế giới qua góc nhìn của những người trong cuộc",
+    "chapter3_label": "Chương III",
+    "chapter3_small_label": "Cây Vải Tổ Thanh Hà",
+    "chapter3_title": "Mang Vải Thiều Vươn Ra Thế Giới",
+    "chapter3_content1": "Sứ mệnh của LALA-LYCHEEE không chỉ là bán trái cây. Đó là hành trình khẳng định thương hiệu nông sản Việt. Để thế hệ trẻ Vĩnh Lập có thể dõng dạc nói: \"Tôi sinh ra ở Vĩnh Lập.\"",
+    "chapter3_card1_title": "Chất Lượng",
+    "chapter3_card1_content": "Quy trình canh tác chuẩn Nhật Bản, giữ trọn hương vị tự nhiên.",
+    "chapter3_card2_title": "Cộng Đồng",
+    "chapter3_card2_content": "Tạo sinh kế bền vững, để người nông dân không phải ly hương.",
+    "chapter3_button": "Trải Nghiệm Ngay",
+    "modal_close_hint": "Nhấn ESC hoặc click vào vùng tối để đóng",
+    "click_to_enlarge": "(Nhấn để xem lớn)",
+    "hero_tagline": "Hương Vị Đất Vải"
   }
 }

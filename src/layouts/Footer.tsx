@@ -7,8 +7,10 @@ import Image from "next/image";
 import IconAnToan from "../../public/images/hg.png";
 import IconInstagram from "../../public/images/instagram.png";
 import TgBctLogo from "../../public/images/tg_bct_logo.png";
+import useTranslations from "@/i18n/useTranslations";
 
 function Footer() {
+  const t = useTranslations();
   const [isMounted, setIsMounted] = useState(false);
   const [businessData, setBusinessData] = useState<{ 
     id: string; 
@@ -58,11 +60,9 @@ function Footer() {
           <h3 className="text-2xl font-bold text-white mb-1 tracking-tight">
             LALA-LYCHEEE
           </h3>
-          <p className="text-rose-400 text-sm font-medium mb-4">Vải Thiều Vĩnh Lập - Thanh Hà</p>
+          <p className="text-rose-400 text-sm font-medium mb-4">{t("footer.location_title")}</p>
           <p className="text-gray-400 leading-relaxed mb-6 text-sm">
-            Chúng tôi tự hào mang đến những sản phẩm vải thiều chất lượng cao,
-            bền vững và thân thiện môi trường, góp phần nâng tầm giá trị nông
-            sản Việt.
+            {t("footer.company_description")}
           </p>
           <div className="flex space-x-4">
             <Link
@@ -85,7 +85,7 @@ function Footer() {
         {/* Contact Info */}
         <div className="text-center md:text-left">
           <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-5">
-            Liên hệ
+            {t("footer.contact_us")}
           </h3>
           <address className="not-italic space-y-3">
             <Link
@@ -94,13 +94,13 @@ function Footer() {
               suppressHydrationWarning
             >
               <p className="text-gray-400 text-sm hover:text-gray-200 transition-colors">
-                <span className="block text-gray-300 font-medium mb-0.5">Địa chỉ</span>
-                thôn Tú Y, xã Hà Đông, Thành Phố Hải Phòng.
+                <span className="block text-gray-300 font-medium mb-0.5">{t("footer.address")}</span>
+                {t("footer.address_value")}
               </p>
             </Link>
 
             <p className="text-gray-400 text-sm">
-              <span className="block text-gray-300 font-medium mb-0.5">Email</span>
+              <span className="block text-gray-300 font-medium mb-0.5">{t("footer.email")}</span>
               {isMounted ? (
                 <Link
                   href="mailto:lalalycheee1@gmail.com"
@@ -113,7 +113,7 @@ function Footer() {
               )}
             </p>
             <p className="text-gray-400 text-sm">
-              <span className="block text-gray-300 font-medium mb-0.5">Điện thoại</span>
+              <span className="block text-gray-300 font-medium mb-0.5">{t("footer.phone")}</span>
               {isMounted ? (
                 <Link
                   href="tel:0962215666"
@@ -131,38 +131,38 @@ function Footer() {
         {/* Quick Links */}
         <div className="text-center md:text-left">
           <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-5">
-            Liên kết nhanh
+            {t("footer.quick_links")}
           </h3>
           <nav className="flex flex-col space-y-2.5">
             <Link
               href={`/${locale}`}
               className="text-gray-400 hover:text-rose-400 transition-colors duration-150 text-sm"
             >
-              Trang chủ
+              {t("nav.home")}
             </Link>
             <Link
               href={`/${locale}/products`}
               className="text-gray-400 hover:text-rose-400 transition-colors duration-150 text-sm"
             >
-              Sản phẩm
+              {t("nav.products")}
             </Link>
             <Link
               href={`/${locale}/contact`}
               className="text-gray-400 hover:text-rose-400 transition-colors duration-150 text-sm"
             >
-              Liên hệ
+              {t("nav.contact")}
             </Link>
             <Link
               href={`/${locale}/news`}
               className="text-gray-400 hover:text-rose-400 transition-colors duration-150 text-sm"
             >
-              Tin tức & Sự kiện
+              {t("footer.news_events")}
             </Link>
             <Link
               href={`/${locale}/complaints`}
               className="text-gray-400 hover:text-rose-400 transition-colors duration-150 text-sm"
             >
-              Giải quyết khiếu nại
+              {t("footer.complaints")}
             </Link>
           </nav>
         </div>
@@ -170,23 +170,23 @@ function Footer() {
         {/* Company Info & Certifications */}
         <div className="text-center md:text-left">
           <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-500 mb-5">
-            {businessData ? businessData.name : "CÔNG TY TNHH LALA - LYCHEEE"}
+            {businessData ? businessData.name : t("footer.company_info")}
           </h3>
-          <p className="text-gray-300 font-medium text-sm mb-1">Mã Số Thuế: {businessData ? businessData.id : "0801381660"}</p>
-          {businessData?.shortName && <p className="text-gray-400 text-sm mb-1">Tên viết tắt: {businessData.shortName}</p>}
-          {businessData?.internationalName && <p className="text-gray-400 text-sm mb-1">Tên quốc tế: {businessData.internationalName}</p>}
-          {businessData?.status && <p className="text-gray-400 text-sm mb-1">Trạng thái: <span className="text-green-400 font-medium">{businessData.status}</span></p>}
-          {businessData?.address && <p className="text-gray-400 text-sm mb-1">Địa chỉ: <span className="text-gray-300 font-medium">{businessData.address}</span></p>}
+          <p className="text-gray-300 font-medium text-sm mb-1">{t("footer.tax_code_label")} {businessData ? businessData.id : "0801381660"}</p>
+          {businessData?.shortName && <p className="text-gray-400 text-sm mb-1">{t("footer.short_name_label")} {businessData.shortName}</p>}
+          {businessData?.internationalName && <p className="text-gray-400 text-sm mb-1">{t("footer.intl_name_label")} {businessData.internationalName}</p>}
+          {businessData?.status && <p className="text-gray-400 text-sm mb-1">{t("footer.status_label")} <span className="text-green-400 font-medium">{businessData.status}</span></p>}
+          {businessData?.address && <p className="text-gray-400 text-sm mb-1">{t("footer.address_label")} <span className="text-gray-300 font-medium">{businessData.address}</span></p>}
           <p className="text-gray-400 text-sm italic mb-4">
-            Quản Lý Bởi Thanh Hà - Thuế cơ sở 14 Thành Phố Hải Phòng
+            {t("footer.managed_by")}
           </p>
 
           {businessMetadata && (
             <div className="bg-slate-800/50 rounded-lg p-3 mb-5 border border-slate-700/50">
                <p className="text-xs text-gray-400 leading-relaxed mb-1.5">{businessMetadata.disclaimer}</p>
                <div className="flex flex-col gap-1 text-[11px] text-gray-500">
-                  <p>Nguồn: <a href={businessMetadata.source} target="_blank" rel="noopener noreferrer" className="hover:text-rose-400 transition-colors">{businessMetadata.source}</a></p>
-                  <p>Cập nhật lúc: {new Date(businessMetadata.updatedAt).toLocaleDateString("vi-VN")}</p>
+                  <p>{t("footer.source_label")} <a href={businessMetadata.source} target="_blank" rel="noopener noreferrer" className="hover:text-rose-400 transition-colors">{businessMetadata.source}</a></p>
+                  <p>{t("footer.updated_at_label")} {new Date(businessMetadata.updatedAt).toLocaleDateString("vi-VN")}</p>
                </div>
             </div>
           )}
@@ -240,7 +240,7 @@ function Footer() {
 
       {/* Bottom Bar */}
       <div className="mt-12 pt-8 border-t border-slate-700 text-center text-gray-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} Lalalycheee CO.,LTD. Bảo lưu mọi quyền.</p>
+        <p>&copy; {new Date().getFullYear()} {t("footer.copyright_notice")}</p>
         <Script
           src="https://images.dmca.com/Badges/DMCABadgeHelper.min.js"
           strategy="lazyOnload"

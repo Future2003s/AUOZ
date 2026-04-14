@@ -11,46 +11,50 @@ type CollectionSlide = {
   category: string;
 };
 
-const collectionSlides: CollectionSlide[] = [
-  {
-    id: 1,
-    imageUrl:
-      "https://res.cloudinary.com/duw5dconp/image/upload/v1752658344/DO_VAI_l6xevs.jpg",
-    title: "Thu Hoạch Vải",
-    category: "Năng lượng tích cực cùng mọi người thu hoạch.",
-  },
-  {
-    id: 2,
-    imageUrl:
-      "https://res.cloudinary.com/duw5dconp/image/upload/v1752658344/HAI_VAI_sxr3qj.jpg",
-    title: "Tinh Tế Trong Từng Công Đoạn",
-    category: "Lựa chọn những trái vải tốt nhất.",
-  },
-  {
-    id: 3,
-    imageUrl:
-      "https://res.cloudinary.com/duw5dconp/image/upload/v1752658345/HAI_VAI_ANH_NANG_naxaqz.jpg",
-    title: "Kết Hợp Với Ánh Nắng Mặt Trời",
-    category: "Phơi khô tự nhiên để giữ trọn hương vị.",
-  },
-  {
-    id: 4,
-    imageUrl:
-      "https://res.cloudinary.com/duw5dconp/image/upload/v1752658344/THAM_VAI_eirspj.jpg",
-    title: "Thành Quả Ngọt Ngào",
-    category: "Những trái vải khô mọng, sẵn sàng để chế biến.",
-  },
-  {
-    id: 5,
-    imageUrl:
-      "https://res.cloudinary.com/duw5dconp/image/upload/v1752658344/DO_VAI_2_j4boul.jpg",
-    title: "Đóng Gói",
-    category: "Sản phẩm được đóng gói tỉ mỉ và sang trọng.",
-  },
-];
+import useTranslations from "@/i18n/useTranslations";
 
 export const CollectionSection: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const t = useTranslations();
+  
+  const collectionSlides: CollectionSlide[] = [
+    {
+      id: 1,
+      imageUrl:
+        "https://res.cloudinary.com/duw5dconp/image/upload/v1752658344/DO_VAI_l6xevs.jpg",
+      title: t("collection.items.item1.title") || "Thu Hoạch Vải",
+      category: t("collection.items.item1.category") || "Năng lượng tích cực cùng mọi người thu hoạch.",
+    },
+    {
+      id: 2,
+      imageUrl:
+        "https://res.cloudinary.com/duw5dconp/image/upload/v1752658344/HAI_VAI_sxr3qj.jpg",
+      title: t("collection.items.item2.title") || "Tinh Tế Trong Từng Công Đoạn",
+      category: t("collection.items.item2.category") || "Lựa chọn những trái vải tốt nhất.",
+    },
+    {
+      id: 3,
+      imageUrl:
+        "https://res.cloudinary.com/duw5dconp/image/upload/v1752658345/HAI_VAI_ANH_NANG_naxaqz.jpg",
+      title: t("collection.items.item3.title") || "Kết Hợp Với Ánh Nắng Mặt Trời",
+      category: t("collection.items.item3.category") || "Phơi khô tự nhiên để giữ trọn hương vị.",
+    },
+    {
+      id: 4,
+      imageUrl:
+        "https://res.cloudinary.com/duw5dconp/image/upload/v1752658344/THAM_VAI_eirspj.jpg",
+      title: t("collection.items.item4.title") || "Thành Quả Ngọt Ngào",
+      category: t("collection.items.item4.category") || "Những trái vải khô mọng, sẵn sàng để chế biến.",
+    },
+    {
+      id: 5,
+      imageUrl:
+        "https://res.cloudinary.com/duw5dconp/image/upload/v1752658344/DO_VAI_2_j4boul.jpg",
+      title: t("collection.items.item5.title") || "Đóng Gói",
+      category: t("collection.items.item5.category") || "Sản phẩm được đóng gói tỉ mỉ và sang trọng.",
+    },
+  ];
 
   return (
     <section id="collections" className="py-24 bg-white overflow-hidden">
@@ -58,11 +62,10 @@ export const CollectionSection: React.FC = () => {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-800">
-              Bộ Sưu Tập Đặc Biệt
+              {t("collection.title") || "Bộ Sưu Tập Đặc Biệt"}
             </h2>
             <p className="mt-3 text-lg text-slate-500 max-w-2xl mx-auto">
-              Khám phá những dòng sản phẩm độc đáo được sáng tạo dành riêng cho
-              bạn.
+              {t("collection.subtitle") || "Khám phá những dòng sản phẩm độc đáo được sáng tạo dành riêng cho bạn."}
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">

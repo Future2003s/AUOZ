@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ImageSkeleton, CardSkeleton } from "@/components/ui/skeleton-loaders";
+import useTranslations from "@/i18n/useTranslations";
 
 interface NewsArticle {
   _id: string;
@@ -59,6 +60,7 @@ export const NewsPreviewSection: React.FC = () => {
   const locale = (params?.locale as string) || "vi";
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations();
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -125,15 +127,14 @@ export const NewsPreviewSection: React.FC = () => {
           className="text-center mb-12 max-w-3xl mx-auto"
         >
           <span className="text-rose-600 font-bold tracking-widest uppercase text-xs mb-3 block">
-            Tin Tức & Cập Nhật
+            {t("news_section.subtitle") || "Tin Tức & Cập Nhật"}
           </span>
           <h2 className="font-serif text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-            Câu Chuyện Từ Vĩnh Lập
+            {t("news_section.title") || "Câu Chuyện Từ Vĩnh Lập"}
           </h2>
           <div className="w-20 h-1 bg-rose-600 mx-auto rounded-full mb-6" />
           <p className="text-lg text-slate-600 leading-relaxed">
-            Khám phá những câu chuyện, tin tức và cập nhật mới nhất về vải thiều Vĩnh Lập
-            và hành trình của LALA-LYCHEEE
+            {t("news_section.description") || "Khám phá những câu chuyện, tin tức và cập nhật mới nhất về vải thiều Vĩnh Lập và hành trình của LALA-LYCHEEE"}
           </p>
         </motion.div>
 
@@ -206,7 +207,7 @@ export const NewsPreviewSection: React.FC = () => {
             href={`/${locale}/news`}
             className="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold px-8 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
-            <span>Xem Tất Cả Tin Tức</span>
+            <span>{t("news_section.view_all") || "Xem Tất Cả Tin Tức"}</span>
             <ArrowRight size={18} />
           </Link>
         </motion.div>

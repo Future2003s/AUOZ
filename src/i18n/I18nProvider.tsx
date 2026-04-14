@@ -116,8 +116,8 @@ export const I18nProvider: React.FC<{
     const search = typeof window !== "undefined" ? window.location.search : "";
     const newPath = `/${segments.join("/")}${search}`;
 
-    // use Next router to navigate client-side
-    router.push(newPath);
+    // use Next router to navigate client-side without scrolling to the top
+    router.push(newPath, { scroll: false });
   }
 
   return (

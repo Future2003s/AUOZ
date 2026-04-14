@@ -20,6 +20,7 @@ import { CertificationsPartnersSection } from "@/components/certifications-partn
 import { NewsPreviewSection } from "@/components/news-preview-section";
 import { HomepageSettings } from "@/types/homepage";
 import { defaultHomepageSettings } from "@/lib/homepage-default";
+import useTranslations from "@/i18n/useTranslations";
 
 interface HomePageClientProps {
   settings?: HomepageSettings;
@@ -29,6 +30,8 @@ export function HomePageClient({ settings }: HomePageClientProps) {
   const mergedSettings = useMemo(() => {
     return { ...defaultHomepageSettings, ...(settings || {}) };
   }, [settings]);
+
+  const t = useTranslations();
 
   useEffect(() => {
     if (mergedSettings.typography.fontUrl) {
@@ -49,20 +52,19 @@ export function HomePageClient({ settings }: HomePageClientProps) {
         ?.map((slide, index) => ({
           id: slide.desktopImage?.url || `slide-${index}`,
           imageUrl: slide.desktopImage?.url || "",
-          title: slide.title || "",
-          subtitle: slide.subtitle || "",
-          ctaText: slide.cta?.label || "",
+          // Always use i18n locale keys for text — backend slides may store Vietnamese
+          title: t("defaults.hero_title") || slide.title || "",
+          subtitle: t("defaults.hero_subtitle") || slide.subtitle || "",
+          ctaText: t("defaults.hero_cta") || slide.cta?.label || "",
           ctaLink: slide.cta?.href || "#",
           overlayOpacity: slide.overlayOpacity,
         })) ?? [];
     return slides;
   }, [mergedSettings.sections?.hero?.data?.slides]);
 
-  const marqueeItems =
-    mergedSettings.sections.marquee.data?.phrases &&
-    mergedSettings.sections.marquee.data?.phrases.length > 0
-      ? mergedSettings.sections.marquee.data?.phrases
-      : undefined;
+  // Always use undefined so MarqueeBannerSection uses t() locale keys
+  // (backend phrases are hardcoded Vietnamese and cannot be dynamically translated)
+  const marqueeItems = undefined;
 
   const craftData = mergedSettings.sections.craft.data;
 

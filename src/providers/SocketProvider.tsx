@@ -84,17 +84,6 @@ export function SocketProvider({
       }
     });
 
-    socket.on("disconnect", () => {
-      setConnected(false);
-
-      // Start 30s timer before showing reconnect toast
-      disconnectTimerRef.current = setTimeout(() => {
-        reconnectToastIdRef.current = toast.loading(
-          "Đang kết nối lại... Vui lòng kiểm tra đường truyền mạng.",
-          { duration: Infinity }
-        );
-      }, RECONNECT_TOAST_DELAY);
-    });
 
     socket.on("connect_error", (err) => {
       if (process.env.NODE_ENV === "development") {

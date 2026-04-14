@@ -8,47 +8,50 @@ interface ValueItem {
   description: string;
   color: string;
 }
-
-const values: ValueItem[] = [
-  {
-    icon: <Leaf className="w-8 h-8" />,
-    title: "100% Vải Tươi Vĩnh Lập",
-    description: "Nguồn gốc rõ ràng từ vùng đất Vĩnh Lập - Thanh Hà, nơi có hương vị độc bản không nơi nào có.",
-    color: "from-emerald-500 to-green-600",
-  },
-  {
-    icon: <Award className="w-8 h-8" />,
-    title: "Chất Lượng Quốc Tế",
-    description: "Quy trình canh tác chuẩn Nhật Bản, đạt chứng nhận chất lượng và xuất khẩu thành công.",
-    color: "from-rose-500 to-pink-600",
-  },
-  {
-    icon: <Package className="w-8 h-8" />,
-    title: "Đóng Gói Sang Trọng",
-    description: "Mỗi sản phẩm được đóng gói tinh xảo, phù hợp làm quà tặng cao cấp.",
-    color: "from-amber-500 to-orange-500",
-  },
-  {
-    icon: <Heart className="w-8 h-8" />,
-    title: "Tâm Huyết Với Quê Hương",
-    description: "Mang lại công ăn việc làm bền vững cho người nông dân, góp phần phát triển địa phương.",
-    color: "from-rose-600 to-rose-700",
-  },
-  {
-    icon: <Globe className="w-8 h-8" />,
-    title: "Xuất Khẩu Nhật Bản",
-    description: "Được tin dùng tại thị trường Nhật Bản - minh chứng cho chất lượng và uy tín.",
-    color: "from-rose-400 to-pink-500",
-  },
-  {
-    icon: <Shield className="w-8 h-8" />,
-    title: "Dịch Vụ Tận Tâm",
-    description: "Hỗ trợ khách hàng 24/7, giao hàng nhanh chóng, đảm bảo hài lòng 100%.",
-    color: "from-emerald-600 to-teal-600",
-  },
-];
+import useTranslations from "@/i18n/useTranslations";
 
 export const ValuePropositionSection: React.FC = () => {
+  const t = useTranslations();
+
+  const values: ValueItem[] = [
+    {
+      icon: <Leaf className="w-8 h-8" />,
+      title: t("value.items.item1.title") || "100% Vải Tươi Vĩnh Lập",
+      description: t("value.items.item1.description") || "Nguồn gốc rõ ràng từ vùng đất Vĩnh Lập - Thanh Hà, nơi có hương vị độc bản không nơi nào có.",
+      color: "from-emerald-500 to-green-600",
+    },
+    {
+      icon: <Award className="w-8 h-8" />,
+      title: t("value.items.item2.title") || "Chất Lượng Quốc Tế",
+      description: t("value.items.item2.description") || "Quy trình canh tác chuẩn Nhật Bản, đạt chứng nhận chất lượng và xuất khẩu thành công.",
+      color: "from-rose-500 to-pink-600",
+    },
+    {
+      icon: <Package className="w-8 h-8" />,
+      title: t("value.items.item3.title") || "Đóng Gói Sang Trọng",
+      description: t("value.items.item3.description") || "Mỗi sản phẩm được đóng gói tinh xảo, phù hợp làm quà tặng cao cấp.",
+      color: "from-amber-500 to-orange-500",
+    },
+    {
+      icon: <Heart className="w-8 h-8" />,
+      title: t("value.items.item4.title") || "Tâm Huyết Với Quê Hương",
+      description: t("value.items.item4.description") || "Mang lại công ăn việc làm bền vững cho người nông dân, góp phần phát triển địa phương.",
+      color: "from-rose-600 to-rose-700",
+    },
+    {
+      icon: <Globe className="w-8 h-8" />,
+      title: t("value.items.item5.title") || "Xuất Khẩu Nhật Bản",
+      description: t("value.items.item5.description") || "Được tin dùng tại thị trường Nhật Bản - minh chứng cho chất lượng và uy tín.",
+      color: "from-rose-400 to-pink-500",
+    },
+    {
+      icon: <Shield className="w-8 h-8" />,
+      title: t("value.items.item6.title") || "Dịch Vụ Tận Tâm",
+      description: t("value.items.item6.description") || "Hỗ trợ khách hàng 24/7, giao hàng nhanh chóng, đảm bảo hài lòng 100%.",
+      color: "from-emerald-600 to-teal-600",
+    },
+  ];
+
   return (
     <section className="py-24 bg-gradient-to-br from-white via-rose-50/30 to-orange-50/30 relative overflow-hidden">
       {/* Background Decor */}
@@ -65,15 +68,14 @@ export const ValuePropositionSection: React.FC = () => {
           className="text-center mb-16 max-w-3xl mx-auto"
         >
           <span className="text-rose-600 font-bold tracking-widest uppercase text-xs mb-3 block">
-            Tại Sao Chọn Chúng Tôi
+            {t("value.subtitle") || "Tại Sao Chọn Chúng Tôi"}
           </span>
           <h2 className="font-serif text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-            Giá Trị Cốt Lõi
+            {t("value.title") || "Giá Trị Cốt Lõi"}
           </h2>
           <div className="w-20 h-1 bg-rose-600 mx-auto rounded-full mb-6" />
           <p className="text-lg text-slate-600 leading-relaxed">
-            Những lý do khiến LALA-LYCHEEE trở thành lựa chọn hàng đầu cho những ai
-            yêu thích hương vị tự nhiên và chất lượng cao cấp
+            {t("value.description") || "Những lý do khiến LALA-LYCHEEE trở thành lựa chọn hàng đầu cho những ai yêu thích hương vị tự nhiên và chất lượng cao cấp"}
           </p>
         </motion.div>
 

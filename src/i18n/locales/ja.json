@@ -2,27 +2,37 @@
   "home": {
     "welcome": "ようこそ",
     "hero_title": "私たちのオンラインストア",
-    "hero_subtitle": "あなたのための高品質な製品",
-    "featured_products": "注目の製品",
-    "latest_products": "最新製品",
+    "hero_subtitle": "あなたのための高品質な商品",
+    "featured_products": "おすすめ商品",
+    "latest_products": "新着商品",
     "trending": "トレンド",
-    "view_all": "すべて表示"
+    "view_all": "すべて見る"
   },
-
   "site": {
     "cta_explore": "コレクションを見る",
-    "experience_title": "LALA-LYCHEEの体験",
-    "featured_section": "注目の製品",
+    "experience_title": "LALA-LYCHEEE体験",
+    "featured_section": "おすすめ商品",
     "collections_section": "特別コレクション",
-    "craft_section": "私たちの作り方",
-    "social_section": "コミュニティからの信頼",
-    "about_title": "LALA-LYCHEEの物語"
+    "craft_section": "ライチのふるさとを訪ねて",
+    "social_section": "お客様からの信頼",
+    "about_title": "LALA-LYCHEEEのストーリー",
+    "about_desc_1": "私は、ベトナム・ハイズオン省タインハー県ヴィンラップという「ライチの郷」と呼ばれる地域で生まれ育ちました。この地は美しい自然に恵まれている一方で、四方を川に囲まれ、流通が不便で、農家の暮らしは決して豊かとは言えませんでした。かつて私は、自分の故郷に自信を持てず、友人に出身地を話すことさえためらっていた時期もありました。",
+    "about_desc_2": "しかし、故郷のライチを日本の友人に紹介したことをきっかけに、私は気づきました。これまで自信を持てなかったこの土地こそ、実は誇るべき価値を持っているということに。そして、この地で育つ次の世代が、自信を持って「私はヴィンラップで生まれました」と言える未来をつくりたいと強く思うようになりました。",
+    "about_desc_3": "その想いから、私はタインハーの大地が育んだライチを世界へ届ける挑戦を始めました。LALA-LYCHEEEは、ヴィンラップ産ライチを世界中の人々に届けるとともに、地域に新たな雇用を生み出し、収穫期後も安定した生活を支えることを使命として誕生しました。",
+    "founder_quote": "故郷に誇りを取り戻す。",
+    "about_footer_quote": "一つひとつの商品は、厳選された素材と故郷への深い想いから生まれた作品です。",
+    "read_more_story": "ストーリーを見る",
+    "mission_title": "ミッション",
+    "mission_desc": "ヴィンラップ産ライチ――タインハーの大地が育んだ恵みを世界へ届けるとともに、地域の農家に持続可能な雇用を創出し、次世代が誇りを持って「私はヴィンラップで生まれました」と言える未来を実現します。",
+    "vision_title": "ビジョン",
+    "vision_desc": "ベトナム農産物を代表するブランドとして国際市場で認められ、その価値を高めるとともに、地域の農家により良い暮らしをもたらす企業を目指します。",
+    "we_were_born_in": "「私はヴィンラップで生まれました」",
+    "craft_subheading": "新鮮なライチから、あなたのお手元に届く最高品質の製品へ。"
   },
-
   "nav": {
     "home": "ホーム",
-    "products": "製品",
-    "all_products": "すべての製品",
+    "products": "商品",
+    "all_products": "すべての商品",
     "honey": "ハチミツ",
     "lychee_products": "ライチ製品",
     "story": "ストーリー",
@@ -30,7 +40,7 @@
     "activities": "活動",
     "contact": "お問い合わせ",
     "functions": "機能",
-    "payment": "支払い",
+    "payment": "お支払い",
     "login": "ログイン",
     "register": "登録",
     "admin": "管理",
@@ -41,24 +51,22 @@
     "language": "言語",
     "menu": "メニュー"
   },
-
   "auth": {
     "login_title": "ログイン",
-    "login_subtitle": "アカウントに続行するには",
-    "email": "メール",
+    "login_subtitle": "アカウントへ進む",
+    "email": "メールアドレス",
     "password": "パスワード",
-    "remember_me": "ログイン状態を保持",
-    "forgot_password": "パスワードを忘れた？",
+    "remember_me": "ログイン状態を保持する",
+    "forgot_password": "パスワードをお忘れですか？",
     "login_button": "ログイン",
     "login_with_google": "Googleでログイン",
-    "no_account": "アカウントをお持ちでない？",
+    "no_account": "アカウントをお持ちではありませんか？",
     "register_now": "今すぐ登録",
-    "logging_in": "ログイン中...",
-    "login_success": "ログイン成功！",
+    "logging_in": "ログインしています...",
+    "login_success": "ログインしました！",
     "login_failed": "ログインに失敗しました。認証情報を確認してください。",
-    "or_continue_with": "または続行する"
+    "or_continue_with": "または次へ"
   },
-
   "common": {
     "loading": "読み込み中...",
     "error": "エラー",
@@ -66,13 +74,589 @@
     "cancel": "キャンセル",
     "confirm": "確認",
     "save": "保存",
+    "save_draft": "下書きを保存",
+    "saving": "保存中...",
     "edit": "編集",
     "delete": "削除",
     "search": "検索",
-    "filter": "フィルター",
-    "sort": "並び替え",
+    "filter": "絞り込み",
+    "sort": "並べ替え",
     "price": "価格",
     "quantity": "数量",
-    "total": "合計"
+    "total": "合計",
+    "preview": "プレビュー",
+    "view_on_website": "ウェブサイトで見る",
+    "save_changes": "変更を保存",
+    "has_changes": "編集中",
+    "saved": "保存しました",
+    "active": "アクティブ",
+    "inactive": "非アクティブ",
+    "enabled": "有効",
+    "disabled": "無効",
+    "add": "追加",
+    "remove": "排除",
+    "update": "更新",
+    "create": "新規作成",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "close": "閉じる",
+    "open": "開く",
+    "yes": "はい",
+    "no": "いいえ",
+    "ok": "OK",
+    "apply": "適用",
+    "reset": "リセット",
+    "refresh": "更新",
+    "export": "エクスポート",
+    "import": "インポート",
+    "download": "ダウンロード",
+    "upload": "アップロード",
+    "select": "選択",
+    "select_all": "すべて選択",
+    "deselect_all": "選択を解除",
+    "actions": "操作",
+    "status": "ステータス",
+    "created_at": "作成日",
+    "updated_at": "更新日",
+    "no_data": "データがありません",
+    "no_results": "結果が見つかりません",
+    "results": "結果",
+    "of": "/",
+    "page": "ページ",
+    "per_page": "件/ページ",
+    "showing": "表示中",
+    "to": "〜",
+    "items": "件"
+  },
+  "admin": {
+    "title": "管理",
+    "dashboard": {
+      "title": "ダッシュボード",
+      "overview": "概要",
+      "statistics": "統計",
+      "recent_orders": "最近の注文",
+      "top_products": "人気商品",
+      "revenue": "収益",
+      "orders": "注文",
+      "products": "商品",
+      "customers": "お客様"
+    },
+    "cms": {
+      "title": "CMS - インターフェース管理",
+      "description": "ウェブサイトのインターフェース全体を管理およびカスタマイズします",
+      "view_website": "ウェブサイトを見る",
+      "modules": "管理モジュール",
+      "active_modules": "アクティブなモジュール",
+      "coming_soon": "近日公開",
+      "total_configs": "設定合計",
+      "modules_available": "利用可能なモジュール",
+      "system_status": "CMSシステム",
+      "quick_actions": "クイックアクション",
+      "quick_actions_desc": "CMS管理でよく使用される操作",
+      "edit_homepage": "ホームページを編集",
+      "manage_banners": "バナーを管理する",
+      "view_web": "ウェブサイトを見る",
+      "theme": {
+        "title": "テーマ設定",
+        "description": "ウェブサイトの色、フォント、余白をカスタマイズします",
+        "colors": "色",
+        "fonts": "フォント",
+        "spacing": "余白",
+        "preview": "プレビュー",
+        "reset": "リセット",
+        "save_changes": "変更を保存"
+      },
+      "navigation": {
+        "title": "ナビゲーション設定",
+        "description": "ウェブサイトのメニューとナビゲーションを管理します",
+        "menu_items": "メニューアイテム",
+        "menu_items_desc": "ナビゲーションメニューのアイテムを管理します",
+        "add_menu_item": "メニューアイテムを追加",
+        "label": "ラベル",
+        "link": "リンク (href)",
+        "visible": "表示",
+        "no_items": "メニューアイテムがありません。新しいメニューアイテムを追加してください。"
+      },
+      "seo": {
+        "title": "SEO設定",
+        "description": "SEO、メタタグ、ソーシャルメディアを設定します",
+        "site_info": "ウェブサイト情報",
+        "open_graph": "Open Graph",
+        "twitter": "Twitter",
+        "robots": "Robots & Sitemap",
+        "allow_indexing": "インデックスを許可 (Allow indexing)",
+        "allow_following": "リンクのフォローを許可 (Allow following links)",
+        "enable_sitemap": "サイトマップを有効にする (Enable sitemap)",
+        "sitemap_url": "サイトマップURL"
+      },
+      "typography": {
+        "title": "タイポグラフィの設定",
+        "description": "フォント、文字サイズ、タイポグラフィシステムを管理します",
+        "font_family": "フォントファミリー",
+        "font_sizes": "文字サイズ",
+        "font_weights": "フォントの太さ",
+        "line_heights": "行の高さ",
+        "preview": "プレビュー",
+        "heading_example": "見出しの例",
+        "body_example": "現在のタイポグラフィ設定の本文の例。"
+      },
+      "layout": {
+        "title": "レイアウト設定",
+        "description": "コンテナ、グリッドシステム、レスポンシブのブレイクポイントを設定します",
+        "container_settings": "コンテナ設定",
+        "container_desc": "コンテナの幅とパディングを設定します",
+        "max_width": "最大幅",
+        "padding": "パディング",
+        "grid_system": "グリッドシステム",
+        "grid_desc": "グリッドの列と隙間を設定します",
+        "columns": "列 (Columns)",
+        "gap": "隙間 (Gap)",
+        "breakpoints": "レスポンシブのブレイクポイント",
+        "breakpoints_desc": "レスポンシブデザインのブレイクポイントを設定します"
+      },
+      "footer": {
+        "title": "フッター設定",
+        "description": "説明",
+        "company": "会社",
+        "contact": "連絡先",
+        "links": "リンク",
+        "social": "ソーシャルメディア",
+        "other": "その他",
+        "company_info": "会社情報",
+        "company_info_desc": "ロゴ、会社名、説明を設定します",
+        "company_name": "会社名",
+        "logo": "ロゴ (オプション)",
+        "legal_info": "法的情報",
+        "legal_company_name": "会社名 (法人名)",
+        "tax_code": "納税者番号",
+        "managed_by": "管理者",
+        "contact_info": "連絡先情報",
+        "contact_desc": "住所、メール、電話番号を設定します",
+        "address": "住所",
+        "map_link": "地図リンク (Google Maps)",
+        "email": "メールアドレス",
+        "phone": "電話番号",
+        "quick_links": "クイックリンク",
+        "quick_links_desc": "フッターのリンクを管理します",
+        "add_link": "リンクを追加",
+        "no_links": "リンクがありません。新しいリンクを追加してください。",
+        "social_media": "ソーシャルメディア",
+        "social_desc": "ソーシャルメディアへのリンクを設定します",
+        "copyright": "著作権 (Copyright)",
+        "copyright_text": "著作権テキスト",
+        "certifications": "認証とバッジ",
+        "dmca_url": "DMCA URL",
+        "dmca_id": "DMCA ID",
+        "show_safety_badge": "安全バッジを表示",
+        "show_ministry_logo": "商工省ロゴを表示",
+        "preview_footer": "フッターをプレビュー",
+        "preview_desc": "ウェブサイトでフッターがどのように表示されるかプレビューします",
+        "real_time": "リアルタイム",
+        "contact_us": "お問い合わせ",
+        "quick_links_title": "クイックリンク"
+      },
+      "story": {
+        "title": "ストーリーページ",
+        "description": "ストーリーページのコンテンツと画像を管理します"
+      }
+    },
+    "story": {
+      "title": "ストーリーページ管理",
+      "description": "ストーリーページのコンテンツを編集および管理します",
+      "view_preview": "プレビュー",
+      "save_draft": "下書きを保存",
+      "publish": "公開",
+      "saving": "保存中...",
+      "publishing": "公開中...",
+      "sections": "セクション",
+      "select_section": "編集するセクションを選択してください",
+      "hero": {
+        "title": "ヒーローセクション",
+        "description": "説明",
+        "background_image": "背景画像",
+        "background_desc": "ヒーローセクションの背景画像",
+        "content": "ヒーローコンテンツ",
+        "content_desc": "メインタイトルと説明",
+        "title_label": "タイトル",
+        "subtitle": "サブタイトル",
+        "preview": "プレビュー"
+      },
+      "chapter1": {
+        "title": "第一章",
+        "description": "美しくも貧しい土地",
+        "image": "画像",
+        "location_info": "場所情報",
+        "location": "場所",
+        "location_text": "場所のテキスト",
+        "chapter_content": "章のコンテンツ",
+        "title_label": "タイトル",
+        "content_label": "コンテンツ (各行が1つの段落になります)",
+        "paragraphs": "段落",
+        "quote": "引用"
+      },
+      "chapter2": {
+        "title": "第二章",
+        "description": "異国からの視点",
+        "chapter_content": "章のコンテンツ",
+        "title_label": "タイトル",
+        "content_label": "コンテンツ (各行が1つの段落になります)",
+        "paragraphs": "段落",
+        "items_label": "アイテム (各行が1つのアイテムになります)",
+        "items_count": "アイテム",
+        "image1": "画像 1",
+        "image2": "画像 2"
+      },
+      "quote": {
+        "title": "引用",
+        "description": "注目の引用",
+        "quote_text": "引用テキスト",
+        "author": "著者"
+      },
+      "video": {
+        "title": "ビデオ",
+        "description": "YouTubeビデオ",
+        "config": "ビデオの設定",
+        "youtube_id": "YouTube ビデオID",
+        "youtube_id_help": "YouTube URLからIDを取得: https://www.youtube.com/watch?v=VIDEO_ID",
+        "title_label": "タイトル",
+        "description_label": "説明",
+        "show_video": "ビデオを表示",
+        "preview_video": "プレビュービデオ"
+      },
+      "chapter3": {
+        "title": "第三章",
+        "description": "ライチを世界へ",
+        "main_image": "メイン画像",
+        "small_image": "小さな画像",
+        "small_image_label": "小さな画像のラベル",
+        "chapter_content": "章のコンテンツ",
+        "title_label": "タイトル",
+        "content_label": "コンテンツ (各行が1つの段落になります)",
+        "cards": "カード",
+        "cards_desc": "情報カード",
+        "card_title": "タイトル",
+        "card_content": "コンテンツ",
+        "button_text": "ボタンテキスト"
+      }
+    },
+    "translations": {
+      "title": "多言語管理",
+      "refresh": "更新",
+      "add_new": "新規追加",
+      "stats": "統計",
+      "list": "リスト",
+      "form": "フォーム",
+      "search": "検索",
+      "import_export": "インポート/エクスポート"
+    }
+  },
+  "products": {
+    "title": "商品",
+    "all_products": "すべての商品",
+    "featured": "おすすめ商品",
+    "new": "新着商品",
+    "on_sale": "セール中",
+    "out_of_stock": "在庫切れ",
+    "in_stock": "在庫あり",
+    "add_to_cart": "カートに追加",
+    "buy_now": "今すぐ購入",
+    "view_details": "詳細を見る",
+    "price": "価格",
+    "original_price": "元の価格",
+    "sale_price": "セール価格",
+    "discount": "割引",
+    "quantity": "数量",
+    "description": "商品説明",
+    "specifications": "仕様",
+    "reviews": "レビュー",
+    "related_products": "関連商品",
+    "categories": "カテゴリー",
+    "brand": "ブランド",
+    "tags": "タグ",
+    "filter": "絞り込み",
+    "sort_by": "並べ替え",
+    "sort_price_low": "価格: 安い順",
+    "sort_price_high": "価格: 高い順",
+    "sort_newest": "新着順",
+    "sort_oldest": "古い順",
+    "sort_name": "名前順 (A-Z)",
+    "no_products": "商品が見つかりません",
+    "loading_products": "商品を読み込んでいます..."
+  },
+  "orders": {
+    "title": "注文",
+    "my_orders": "私の注文",
+    "order_history": "注文履歴",
+    "order_number": "注文番号",
+    "order_date": "注文日",
+    "order_status": "注文ステータス",
+    "total_amount": "合計金額",
+    "view_order": "注文を見る",
+    "track_order": "注文を追跡",
+    "cancel_order": "注文をキャンセル",
+    "reorder": "再注文",
+    "pending": "処理待ち",
+    "processing": "処理中",
+    "shipped": "発送済み",
+    "delivered": "配達完了",
+    "cancelled": "キャンセル済み",
+    "refunded": "返金済み"
+  },
+  "footer": {
+    "company_name": "Lalalycheee",
+    "company_description": "私たちは、持続可能で環境に優しい高品質なライチ製品を提供し、ベトナム農産物の価値を高めることに誇りを持っています。",
+    "contact_us": "お問い合わせ",
+    "address": "住所",
+    "email": "メールアドレス",
+    "phone": "電話番号",
+    "quick_links": "クイックリンク",
+    "company_info": "LALA - LYCHEEE CO.,LTD",
+    "tax_code": "納税者番号",
+    "managed_by": "ハイフォン市税務署14支局による管理",
+    "copyright": "© {year} Lalalycheee CO.,LTD. 無断複写・転載を禁じます。",
+    "address_value": "ハイフォン市、ハドンコミューン、トゥイー村。",
+    "news_events": "ニュースとイベント",
+    "complaints": "苦情解決",
+    "tax_code_label": "納税者番号:",
+    "short_name_label": "略称:",
+    "intl_name_label": "国際名:",
+    "status_label": "ステータス:",
+    "address_label": "住所:",
+    "source_label": "ソース:",
+    "updated_at_label": "更新日:",
+    "copyright_notice": "Lalalycheee CO.,LTD. 無断複写・転載を禁じます。",
+    "location_title": "ビンラップライチ - タンハ"
+  },
+  "header": {
+    "select_language": "言語を選択",
+    "hello": "こんにちは",
+    "employee_page": "従業員ページ",
+    "admin_page": "管理",
+    "logout": "ログアウト",
+    "logout_failed": "ログアウト失敗",
+    "logout_success": "ログアウトしました",
+    "login": "ログイン",
+    "cart": "カート",
+    "pc_mode": "PCモード",
+    "open_menu": "メニューを開く"
+  },
+  "hero": {
+    "badges": {
+      "japan_export": "日本向け輸出",
+      "quality_cert": "品質認証取得",
+      "vinh_lap_lychee": "ヴィンラップ産ライチ ― 唯一無二の味わい"
+    },
+    "stats": {
+      "happy_customers": "満足いただいたお客様",
+      "avg_rating": "平均評価"
+    }
+  },
+  "value": {
+    "subtitle": "選ばれる理由",
+    "title": "私たちの価値",
+    "description": "LALA-LYCHEEEが、自然の美味しさと高品質を求める方々に選ばれる理由です",
+    "items": {
+      "item1": {
+        "title": "ヴィンラップ産100%フレッシュライチ",
+        "description": "唯一無二の味わいを誇るヴィンラップ（タインハー）産ライチを使用。産地が明確で安心です。"
+      },
+      "item2": {
+        "title": "国際基準の品質",
+        "description": "日本基準の栽培・管理プロセスを採用し、品質認証を取得。海外輸出の実績があります。"
+      },
+      "item3": {
+        "title": "高級感あるパッケージ",
+        "description": "一つひとつ丁寧に仕上げたパッケージは、大切な方への贈り物にも最適です。"
+      },
+      "item4": {
+        "title": "地域への想い",
+        "description": "農家の持続的な雇用を創出し、地域の発展に貢献しています。"
+      },
+      "item5": {
+        "title": "日本への輸出実績",
+        "description": "日本市場で支持されていることが、品質と信頼の証です。"
+      },
+      "item6": {
+        "title": "充実したサポート",
+        "description": "迅速な対応と丁寧なサービスで、お客様に安心と満足をお届けします。"
+      }
+    }
+  },
+  "social_proof": {
+    "title": "お客様からの信頼",
+    "description": "お客様の喜びの声と、信頼あるパートナーとの協働が、私たちの品質の証です。",
+    "testimonials_title": "お客様の声",
+    "partners_title": "パートナー企業",
+    "testimonials": {
+      "t1": {
+        "quote": "LALA-LYCHEEEの商品は本当に特別です。上品な甘さと自然な香りにとても感動しました。パッケージも高級感があり素晴らしいです。",
+        "author": "Ngọc Anh",
+        "role": "フードスペシャリスト"
+      },
+      "t2": {
+        "quote": "LALA-LYCHEEEのライチはちみつを取引先のおもてなしに使用しましたが、大変好評でした。品質の高さと贈り物としての品格を感じられる商品です。",
+        "author": "Minh Tuấn",
+        "role": "企業経営者"
+      },
+      "t3": {
+        "quote": "ライチからここまで繊細な商品が生まれるとは思いませんでした。今後もLALA-LYCHEEEを愛用したいと思います。",
+        "author": "Phương Linh",
+        "role": "トラベルブロガー"
+      }
+    }
+  },
+  "certifications": {
+    "subtitle": "認証・パートナー",
+    "title": "信頼の証",
+    "partners_title": "パートナー企業",
+    "items": {
+      "cert1": {
+        "name": "品質認証",
+        "description": "国際基準の品質を満たしています"
+      },
+      "cert2": {
+        "name": "日本向け輸出実績",
+        "description": "日本市場で高く評価されています"
+      },
+      "cert3": {
+        "name": "ISO 22000:2018",
+        "description": "食品安全マネジメントシステム認証"
+      }
+    }
+  },
+  "featured_products": {
+    "subtitle": "限定コレクション",
+    "description": "LALA-LYCHEEEが生み出す特別な商品。大地の恵みと生産者の想いが詰まった、上質な味わいをお届けします。",
+    "error": "おすすめ商品の読み込みに失敗しました",
+    "retry": "再試行",
+    "empty": "現在おすすめ商品はありません",
+    "view_all": "すべての商品を見る",
+    "default_name": "商品",
+    "default_category": "商品",
+    "badges": {
+      "preorder": "予約受付中",
+      "new": "新着",
+      "bestseller": "人気商品"
+    }
+  },
+  "video_section": {
+    "section_title": "私たちのストーリー",
+    "video_title": "日越夫婦が情熱を注ぐ、ハイズオン省タインハーのライチ",
+    "video_description": "ヴィンラップ（タインハー）の特産ライチを、日本をはじめ世界へ広く発信しています。"
+  },
+  "news_section": {
+    "subtitle": "ニュース・最新情報",
+    "title": "ヴィンラップからの物語",
+    "description": "ヴィンラップ産ライチに関するストーリーや最新ニュース、LALA-LYCHEEEの取り組みをご紹介します。",
+    "view_all": "すべてのニュースを見る"
+  },
+  "our_craft": {
+    "click_hint": "（各ステップをクリックして詳細をご覧ください）",
+    "steps": {
+      "step1": {
+        "title": "厳格な選別",
+        "description": "基準を満たした農園から手作業で厳選し、最高の熟度と甘さを保証します。"
+      },
+      "step2": {
+        "title": "丁寧な加工",
+        "description": "ライチの自然な風味と栄養を保つため、最新技術を用いた衛生的な製造プロセスを採用しています。"
+      },
+      "step3": {
+        "title": "高級感のある包装",
+        "description": "すべての製品が芸術作品のように、細部までこだわった高級なパッケージに包まれています。"
+      }
+    }
+  },
+  "collection": {
+    "title": "特別コレクション",
+    "subtitle": "お客様のために丁寧に生み出された、特別な商品をご紹介します。",
+    "items": {
+      "item1": {
+        "title": "ライチの収穫",
+        "category": "人々とともに、自然の恵みを収穫します。"
+      },
+      "item2": {
+        "title": "一つひとつに宿るこだわり",
+        "category": "厳選された最高品質のライチのみを使用。"
+      },
+      "item3": {
+        "title": "太陽の恵みとともに",
+        "category": "自然乾燥で風味をそのまま閉じ込めます。"
+      },
+      "item4": {
+        "title": "甘美な仕上がり",
+        "category": "ふっくらとしたドライライチが完成します。"
+      },
+      "item5": {
+        "title": "丁寧なパッケージング",
+        "category": "一つひとつ丁寧に、高級感ある仕上がりでお届けします。"
+      }
+    }
+  },
+  "maps": {
+    "subtitle": "所在地",
+    "title": "ぜひお越しください",
+    "description": "LALA-LYCHEEEは、名高いライチの産地の中心に位置しています。ぜひ現地で新鮮な味わいをご体験ください。",
+    "old_address": "ヴィンラップ－タインハー－ハイズオン（旧行政区）",
+    "new_address_main": "トゥー村・ハドン社・ハイフォン市",
+    "new_address_note": "（新行政区）",
+    "directions": "Googleマップで見る"
+  },
+  "marquee": {
+    "item1": "🍒 ヴィンラップ - タインハー産ライチの郷",
+    "item2": "⭐ 唯一無二の味わい",
+    "item3": "🌏 日本向け輸出実績",
+    "item4": "✨ 100% 厳選された新鮮なライチ",
+    "item5": "🏆 品質認証取得",
+    "item6": "💝 高級ギフトパッケージ",
+    "item7": "🚚 全国配送対応",
+    "item8": "👥 10,000人以上のお客様が満足"
+  },
+  "sub": {
+    "craft_subheading": "ライチから生まれる至高の味わい"
+  },
+  "defaults": {
+    "hero_title": "自然が生み出す極上の味わい",
+    "hero_subtitle": "ヴィンラップ（タインハー）産ライチを厳選し、自然そのままの甘さをお届けします。",
+    "hero_cta": "今すぐ見る"
+  },
+  "story": {
+    "loading": "ストーリーを読み込み中...",
+    "hero_title": "原点への旅",
+    "hero_subtitle": "目覚め",
+    "hero_description": "異郷で抱いた劣等感から、ヴィンラップの誇りを世界へ届けたいという想いへ。",
+    "hero_tagline": "ライチのふるさとの味わい",
+    "explore": "見る",
+    "chapter1_label": "第一章",
+    "chapter1_location": "ヴィンラップ、タインハー",
+    "chapter1_location_text": "「四方を川に囲まれ、人々は一年中懸命に生きていました……」",
+    "chapter1_title": "美しくも貧しい土地",
+    "chapter1_content1": "私は、ライチのふるさとであるヴィンラップ－タインハー－ハイズオンで生まれ育ちました。しかし当時の私には、その美しさよりも人々の苦労ばかりが目に映っていました。土地は美しいものの流通は限られ、生活は決して豊かではありませんでした。",
+    "chapter1_quote": "「かつて私は、自分の故郷に自信が持てず、友人にヴィンラップ出身だと言えなかった時期がありました。」",
+    "chapter2_label": "第二章",
+    "chapter2_title": "異国の地で得た視点",
+    "chapter2_content1": "日本での10年間にわたる留学と仕事の経験は、私の人生を大きく変えました。そこで私は、日本語教師である人生の伴侶と出会いました。",
+    "chapter2_content2": "共にベトナムへ戻ったとき、彼女のまなざしが私に故郷を見つめ直すきっかけを与えてくれました。人と人との温かなつながり、水辺の穏やかな風景、そしてこれまで当たり前だと思っていたライチの格別な美味しさ。そのすべてが、かけがえのないものだと気づかせてくれたのです。",
+    "chapter2_awakening_title": "目覚め",
+    "chapter2_item1": "ヴィンラップの人々の素朴で温かな魅力",
+    "chapter2_item2": "ここでしか味わえない唯一無二のライチの風味",
+    "chapter2_item3": "何気ない日常の中に宿る誇り",
+    "chapter2_love": "愛と郷愁",
+    "quote_text": "「故郷のライチを日本の友人たちにふるまったとき、彼らの驚きに満ちた表情を見て、私は気づきました。かつて自分が恥ずかしいと思っていたこの土地こそ、最も誇るべき場所だったのだと。」",
+    "quote_author": "LALA-LYCHEEE 創業者",
+    "video_title": "映像で見るストーリー",
+    "video_description": "ヴィンラップのライチを世界へ届ける歩みを、当事者たちの視点からご覧ください。",
+    "chapter3_label": "第三章",
+    "chapter3_small_label": "タインハーの母なるライチの木",
+    "chapter3_title": "ライチを世界へ届ける",
+    "chapter3_content1": "LALA-LYCHEEEの使命は、単に果物を販売することではありません。ベトナム農産物の価値を世界に示し、ヴィンラップの若い世代が胸を張って「私はヴィンラップで生まれました」と言える未来をつくることです。",
+    "chapter3_card1_title": "品質",
+    "chapter3_card1_content": "日本基準の栽培・管理により、自然本来の美味しさを守ります。",
+    "chapter3_card2_title": "地域社会",
+    "chapter3_card2_content": "持続可能な生計を生み出し、農家が故郷を離れずに暮らせる未来を支えます。",
+    "chapter3_button": "今すぐ体験する",
+    "modal_close_hint": "ESCキーまたは背景部分をクリックすると閉じます",
+    "click_to_enlarge": "（クリックで拡大）"
   }
 }

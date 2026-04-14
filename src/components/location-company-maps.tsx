@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { MapPin, Navigation } from "lucide-react";
 import Link from "next/link";
+import useTranslations from "@/i18n/useTranslations";
 
 export const MapsLocationCompany = () => {
+  const t = useTranslations();
+
   return (
     <div className="container mx-auto mb-30">
       <motion.div
@@ -24,33 +27,32 @@ export const MapsLocationCompany = () => {
                   <MapPin className="w-5 h-5" />
                 </div>
                 <span className="font-bold tracking-widest uppercase text-xs">
-                  Vị Trí
+                  {t("maps.subtitle") || "Vị Trí"}
                 </span>
               </div>
 
               <h3 className="text-3xl font-heading font-bold text-slate-900 mb-4">
-                Ghé thăm Công Ty Chúng Tôi
+                {t("maps.title") || "Ghé thăm Công Ty Chúng Tôi"}
               </h3>
 
               <p className="font-body text-slate-600 mb-8 text-sm leading-relaxed">
-                LALA-LYCHEEE nằm ngay tại trung tâm vùng đất vải thiều trứ danh.
-                Hãy đến để cảm nhận hương vị tươi ngon tận vườn.
+                {t("maps.description") || "LALA-LYCHEEE nằm ngay tại trung tâm vùng đất vải thiều trứ danh. Hãy đến để cảm nhận hương vị tươi ngon tận vườn."}
               </p>
 
               <div className="space-y-4 font-body text-sm text-slate-700">
                 <div className="flex items-start gap-3">
                   <MapPin className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
                   <span>
-                    Vĩnh Lập – Thanh Hà – Hải Dương (địa chỉ hành chính cũ)
+                    {t("maps.old_address") || "Vĩnh Lập – Thanh Hà – Hải Dương (địa chỉ hành chính cũ)"}
                   </span>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <MapPin className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
                   <div>
-                    <span>Thôn Tú - Xã Hà Đông - Thành Phố Hải Phòng</span>
+                    <span>{t("maps.new_address_main") || "Thôn Tú - Xã Hà Đông - Thành Phố Hải Phòng"}</span>
                     <div className="font-bold italic">
-                      (địa chỉ hành chính mới)
+                      {t("maps.new_address_note") || "(địa chỉ hành chính mới)"}
                     </div>
                   </div>
                 </div>
@@ -64,7 +66,7 @@ export const MapsLocationCompany = () => {
                 suppressHydrationWarning
               >
                 <Navigation className="w-4 h-4 group-hover:animate-bounce" />
-                Chỉ đường Google Maps
+                {t("maps.directions") || "Chỉ đường Google Maps"}
               </Link>
             </div>
           </div>

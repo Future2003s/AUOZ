@@ -1,5 +1,5 @@
 "use client";
-import { useTranslations } from "@/hooks/useTranslations";
+import useTranslations from "@/i18n/useTranslations";
 import { ChevronLeft, ChevronRight, Award, Globe, Users, Star } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -326,11 +326,11 @@ export const InteractiveHeroSlider: React.FC<InteractiveHeroSliderProps> = ({
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-3 mb-4 sm:mb-6 animate-slide-up-text">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold pointer-events-auto">
               <Globe size={14} className="sm:w-4 sm:h-4" />
-              <span>Xuất khẩu Nhật Bản</span>
+              <span>{t("hero.badges.japan_export")}</span>
             </div>
             <div className="inline-flex items-center gap-2 bg-rose-600/90 backdrop-blur-sm border border-rose-400/50 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold pointer-events-auto">
               <Award size={14} className="sm:w-4 sm:h-4" />
-              <span>Chứng nhận chất lượng</span>
+              <span>{t("hero.badges.quality_cert")}</span>
             </div>
           </div>
 
@@ -341,7 +341,7 @@ export const InteractiveHeroSlider: React.FC<InteractiveHeroSliderProps> = ({
               style={{ animationDelay: "0.1s" }}
             >
               <Star size={16} className="sm:w-5 sm:h-5 fill-yellow-300 text-yellow-300" />
-              <span>Vải thiều Vĩnh Lập - Hương vị độc bản</span>
+              <span>{t("hero.badges.vinh_lap_lychee")}</span>
             </div>
           </div>
 
@@ -379,14 +379,14 @@ export const InteractiveHeroSlider: React.FC<InteractiveHeroSliderProps> = ({
                 <Users size={18} className="sm:w-5 sm:h-5 text-yellow-300" />
                 <div className="text-left">
                   <div className="text-lg sm:text-xl font-bold text-white">10,000+</div>
-                  <div className="text-xs sm:text-sm text-white/80">Khách hàng hài lòng</div>
+                  <div className="text-xs sm:text-sm text-white/80">{t("hero.stats.happy_customers")}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-3 sm:px-4 py-2">
                 <Star size={18} className="sm:w-5 sm:h-5 text-yellow-300 fill-yellow-300" />
                 <div className="text-left">
                   <div className="text-lg sm:text-xl font-bold text-white">5.0</div>
-                  <div className="text-xs sm:text-sm text-white/80">Đánh giá trung bình</div>
+                  <div className="text-xs sm:text-sm text-white/80">{t("hero.stats.avg_rating")}</div>
                 </div>
               </div>
             </div>

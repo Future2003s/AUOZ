@@ -7,21 +7,28 @@ interface VideoSectionProps {
   startTime?: number;
 }
 
+import useTranslations from "@/i18n/useTranslations";
+
 export function VideoSection({
   videoId = "zZaav6omxko",
-  title = "Vợ chồng Nhật Việt tâm huyết với quả vải Thanh Hà, Hải Dương",
-  description = "ライチ農家の日越夫婦、故郷タインハーに貢献",
+  title,
+  description,
   startTime = 337,
 }: VideoSectionProps) {
+  const t = useTranslations();
+  
+  const displayTitle = (!title || title === "Vợ chồng Nhật Việt tâm huyết với quả vải Thanh Hà, Hải Dương") ? t("video_section.video_title") : title;
+  const displayDescription = (!description || description === "ライチ農家の日越夫婦、故郷タインハーに貢献") ? t("video_section.video_description") : description;
+
   return (
     <section className="py-16 md:py-24 bg-gradient-to-br from-rose-50 via-white to-amber-50">
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-            Câu chuyện của chúng tôi
+            {t("video_section.section_title") || "Câu chuyện của chúng tôi"}
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            {description}
+            {displayDescription}
           </p>
         </div>
 
@@ -42,7 +49,7 @@ export function VideoSection({
         </div>
 
         <div className="mt-8 text-center">
-          <p className="text-slate-700 font-medium">{title}</p>
+          <p className="text-slate-700 font-medium">{displayTitle}</p>
         </div>
       </div>
     </section>

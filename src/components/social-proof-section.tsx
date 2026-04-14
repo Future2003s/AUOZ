@@ -19,33 +19,6 @@ type Testimonial = {
   avatarUrl: string;
 };
 
-const testimonials: Testimonial[] = [
-  {
-    id: 1,
-    quote:
-      "Sản phẩm của LALA-LYCHEE thực sự khác biệt. Vị ngọt thanh và hương thơm tự nhiên khiến tôi rất ấn tượng. Bao bì cũng rất sang trọng!",
-    author: "Ngọc Anh",
-    role: "Chuyên gia ẩm thực",
-    avatarUrl: "https://placehold.co/100x100/fecdd3/44403c?text=NA&font=lora",
-  },
-  {
-    id: 2,
-    quote:
-      "Tôi đã dùng mật ong hoa vải của LALA-LYCHEE để tiếp đãi đối tác và họ rất thích. Một sản phẩm chất lượng, thể hiện được sự tinh tế của người tặng.",
-    author: "Minh Tuấn",
-    role: "Giám đốc Doanh nghiệp",
-    avatarUrl: "https://placehold.co/100x100/fecdd3/44403c?text=MT&font=lora",
-  },
-  {
-    id: 3,
-    quote:
-      "Chưa bao giờ tôi nghĩ một sản phẩm từ quả vải lại có thể tinh tế đến vậy. Chắc chắn sẽ ủng hộ LALA-LYCHEE dài dài.",
-    author: "Phương Linh",
-    role: "Blogger Du lịch",
-    avatarUrl: "https://placehold.co/100x100/fecdd3/44403c?text=PL&font=lora",
-  },
-];
-
 const partners: Partner[] = [
   {
     id: 1,
@@ -73,7 +46,35 @@ const partners: Partner[] = [
   },
 ];
 
+import useTranslations from "@/i18n/useTranslations";
+
 export const SocialProofSection: React.FC = () => {
+  const t = useTranslations();
+
+  const testimonials: Testimonial[] = [
+    {
+      id: 1,
+      quote: t("social_proof.testimonials.t1.quote") || "Sản phẩm của LALA-LYCHEE thực sự khác biệt. Vị ngọt thanh và hương thơm tự nhiên khiến tôi rất ấn tượng. Bao bì cũng rất sang trọng!",
+      author: t("social_proof.testimonials.t1.author") || "Ngọc Anh",
+      role: t("social_proof.testimonials.t1.role") || "Chuyên gia ẩm thực",
+      avatarUrl: "https://placehold.co/100x100/fecdd3/44403c?text=NA&font=lora",
+    },
+    {
+      id: 2,
+      quote: t("social_proof.testimonials.t2.quote") || "Tôi đã dùng mật ong hoa vải của LALA-LYCHEE để tiếp đãi đối tác và họ rất thích. Một sản phẩm chất lượng, thể hiện được sự tinh tế của người tặng.",
+      author: t("social_proof.testimonials.t2.author") || "Minh Tuấn",
+      role: t("social_proof.testimonials.t2.role") || "Giám đốc Doanh nghiệp",
+      avatarUrl: "https://placehold.co/100x100/fecdd3/44403c?text=MT&font=lora",
+    },
+    {
+      id: 3,
+      quote: t("social_proof.testimonials.t3.quote") || "Chưa bao giờ tôi nghĩ một sản phẩm từ quả vải lại có thể tinh tế đến vậy. Chắc chắn sẽ ủng hộ LALA-LYCHEE dài dài.",
+      author: t("social_proof.testimonials.t3.author") || "Phương Linh",
+      role: t("social_proof.testimonials.t3.role") || "Blogger Du lịch",
+      avatarUrl: "https://placehold.co/100x100/fecdd3/44403c?text=PL&font=lora",
+    },
+  ];
+
   // Logic from TestimonialsSection
   const [testimonialIndex, setTestimonialIndex] = useState(0);
   const testimonialTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -145,18 +146,17 @@ export const SocialProofSection: React.FC = () => {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-800">
-              Sự Tin Tưởng Từ Cộng Đồng
+              {t("social_proof.title") || "Sự Tin Tưởng Từ Cộng Đồng"}
             </h2>
             <p className="mt-3 text-lg text-slate-500 max-w-2xl mx-auto">
-              Niềm vui của khách hàng và sự đồng hành của các thương hiệu uy tín
-              là minh chứng cho chất lượng của chúng tôi.
+              {t("social_proof.description") || "Niềm vui của khách hàng và sự đồng hành của các thương hiệu uy tín là minh chứng cho chất lượng của chúng tôi."}
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Testimonials Column */}
             <div id="testimonials">
               <h3 className="flex justify-center items-center font-serif text-2xl font-bold text-slate-700 text-center mb-8 pb-2">
-                Khách Hàng Phản Hồi ?
+                {t("social_proof.testimonials_title") || "Khách Hàng Phản Hồi ?"}
               </h3>
               <div
                 className="relative max-w-md mx-auto h-80 cursor-grab active:cursor-grabbing"
@@ -222,7 +222,7 @@ export const SocialProofSection: React.FC = () => {
             {/* Partners Column */}
             <div id="partners" className="pt-10 lg:pt-0">
               <h3 className="font-serif text-2xl font-bold text-slate-700 text-center mb-12">
-                Đối Tác Đồng Hành
+                {t("social_proof.partners_title") || "Đối Tác Đồng Hành"}
               </h3>
               <div className="scene mx-auto h-[200px] w-[200px] flex items-center justify-center">
                 <div className="carousel">

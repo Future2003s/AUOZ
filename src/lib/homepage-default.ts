@@ -22,10 +22,9 @@ export const defaultHomepageSettings: HomepageSettings = {
       data: {
         slides: [
           {
-            title: "Tinh tuý từ thiên nhiên",
-            subtitle:
-              "Sản phẩm mật ong thuần khiết được tuyển chọn cẩn thận cho gia đình bạn.",
-            cta: { label: "Khám phá ngay", href: "/vi/products" },
+            title: "",
+            subtitle: "",
+            cta: { label: "", href: "/vi/products" },
             desktopImage: {
               url: "https://res.cloudinary.com/demo/image/upload/v1720000000/hero-default.jpg",
               alt: "Hero",
@@ -39,21 +38,16 @@ export const defaultHomepageSettings: HomepageSettings = {
       enabled: true,
       order: 1,
       data: {
-        phrases: [
-          "100% Vải Tươi Tuyển Chọn",
-          "Công Thức Độc Quyền",
-          "Quà Tặng Sang Trọng",
-          "Giao Hàng Toàn Quốc",
-        ],
-        speed: 40,
+        phrases: [],
+        speed: 30,
       },
     },
     about: {
       enabled: true,
       order: 2,
       data: {
-        heading: "Câu chuyện của chúng tôi",
-        body: "Được nuôi dưỡng từ những vườn hoa tốt nhất, mỗi giọt mật mang trong mình sự tận tâm.",
+        heading: "",
+        body: "",
         media: {
           url: "https://res.cloudinary.com/demo/image/upload/v1720000000/about.jpg",
           alt: "About",
@@ -74,28 +68,24 @@ export const defaultHomepageSettings: HomepageSettings = {
       enabled: true,
       order: 6,
       data: {
-        heading: "Quy Trình Sáng Tạo",
-        subheading:
-          "Hành trình từ trái vải tươi ngon đến sản phẩm tinh hoa trên tay bạn.",
+        heading: "",
+        subheading: "",
         steps: [
           {
-            title: "Tuyển Chọn Tinh Tế",
-            description:
-              "Từng trái vải được lựa chọn thủ công từ những khu vườn đạt chuẩn, đảm bảo độ chín mọng và hương vị ngọt ngào nhất.",
+            title: "",
+            description: "",
             imageUrl:
               "https://images.unsplash.com/photo-1552010099-5dc86fcfaa38?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8ODB8fGZydWl0c3xlbnwwfHwwfHx8MA%3D%3D",
           },
           {
-            title: "Chế Biến Tỉ Mỉ",
-            description:
-              "Quy trình sản xuất khép kín, ứng dụng công nghệ hiện đại để giữ trọn vẹn dưỡng chất và hương vị tự nhiên của trái vải.",
+            title: "",
+            description: "",
             imageUrl:
               "https://plus.unsplash.com/premium_photo-1700145523324-1da4b9000d80?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8ODV8fGZydWl0c3xlbnwwfHwwfHx8MA%3D%3D",
           },
           {
-            title: "Đóng Gói Sang Trọng",
-            description:
-              "Mỗi sản phẩm là một tác phẩm nghệ thuật, được khoác lên mình bao bì đẳng cấp, tinh xảo trong từng chi tiết.",
+            title: "",
+            description: "",
             imageUrl:
               "https://images.unsplash.com/photo-1559181567-c3190ca9959b?q=80&w=800&auto=format&fit=crop",
           },
@@ -106,8 +96,8 @@ export const defaultHomepageSettings: HomepageSettings = {
       enabled: true,
       order: 7,
       data: {
-        title: "Nhà máy của chúng tôi",
-        description: "Hải Phòng, Việt Nam",
+        title: "",
+        description: "",
         coordinates: { lat: 20.85, lng: 106.68 },
       },
     },

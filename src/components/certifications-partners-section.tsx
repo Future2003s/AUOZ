@@ -77,25 +77,29 @@ const PartnerLogo = ({ partner, index }: { partner: Partner; index: number }) =>
   );
 };
 
-const certifications: Certification[] = [
-  {
-    name: "Chứng Nhận Chất Lượng",
-    description: "Đạt tiêu chuẩn chất lượng quốc tế",
-    icon: <Award className="w-6 h-6" />,
-  },
-  {
-    name: "Xuất Khẩu Nhật Bản",
-    description: "Được tin dùng tại thị trường Nhật Bản",
-    icon: <CheckCircle className="w-6 h-6" />,
-  },
-  {
-    name: "ISO 22000:2018",
-    description: "Hệ thống quản lý an toàn thực phẩm",
-    icon: <Award className="w-6 h-6" />,
-  },
-];
+import useTranslations from "@/i18n/useTranslations";
 
 export const CertificationsPartnersSection: React.FC = () => {
+  const t = useTranslations();
+
+  const certifications: Certification[] = [
+    {
+      name: t("certifications.items.cert1.name") || "Chứng Nhận Chất Lượng",
+      description: t("certifications.items.cert1.description") || "Đạt tiêu chuẩn chất lượng quốc tế",
+      icon: <Award className="w-6 h-6" />,
+    },
+    {
+      name: t("certifications.items.cert2.name") || "Xuất Khẩu Nhật Bản",
+      description: t("certifications.items.cert2.description") || "Được tin dùng tại thị trường Nhật Bản",
+      icon: <CheckCircle className="w-6 h-6" />,
+    },
+    {
+      name: t("certifications.items.cert3.name") || "ISO 22000:2018",
+      description: t("certifications.items.cert3.description") || "Hệ thống quản lý an toàn thực phẩm",
+      icon: <Award className="w-6 h-6" />,
+    },
+  ];
+
   return (
     <section className="py-24 bg-white relative overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6">
@@ -108,10 +112,10 @@ export const CertificationsPartnersSection: React.FC = () => {
           className="text-center mb-16"
         >
           <span className="text-rose-600 font-bold tracking-widest uppercase text-xs mb-3 block">
-            Chứng Nhận & Đối Tác
+            {t("certifications.subtitle") || "Chứng Nhận & Đối Tác"}
           </span>
           <h2 className="font-serif text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-            Được Công Nhận
+            {t("certifications.title") || "Được Công Nhận"}
           </h2>
           <div className="w-20 h-1 bg-rose-600 mx-auto rounded-full mb-8" />
 
@@ -146,7 +150,7 @@ export const CertificationsPartnersSection: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           <h3 className="text-2xl font-bold text-slate-900 text-center mb-8 font-serif">
-            Đối Tác Đồng Hành
+            {t("certifications.partners_title") || "Đối Tác Đồng Hành"}
           </h3>
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
             {partners.map((partner, index) => (

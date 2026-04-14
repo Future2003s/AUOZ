@@ -8,7 +8,6 @@
     "trending": "Trending",
     "view_all": "View all"
   },
-
   "site": {
     "cta_explore": "Explore the collection",
     "experience_title": "LALA-LYCHEE Experience",
@@ -16,9 +15,20 @@
     "collections_section": "Special Collections",
     "craft_section": "Our Craft Process",
     "social_section": "Trusted by the Community",
-    "about_title": "The LALA-LYCHEE Story"
+    "about_title": "The LALA-LYCHEE Story",
+    "about_desc_1": "Born and raised in the rural area of Vinh Lap - Thanh Ha - Hai Duong, known as the \"lychee land\", I deeply understand the difficult life of the farmers here. This land is beautiful but poor, surrounded by rivers, with limited trade. There was a time when I was so insecure about my hometown that I didn't dare to tell my friends I was from Vinh Lap.",
+    "about_desc_2": "We brought our hometown lychees to introduce to Japanese friends, and realized that: The land I was previously insecure about is actually a place to be extremely proud of. I understood that I must do something so the younger generation growing up here can confidently say: \"I was born in Vinh Lap.\"",
+    "about_desc_3": "From that aspiration, I began the journey of bringing lychees – the essence of Thanh Ha – to the world. LALA-LYCHEEE was born with the mission of bringing Vinh Lap lychees to international friends, creating jobs for locals, so that after each lychee season, they don't have to travel far for work.",
+    "founder_quote": "The turning point came when I had the opportunity to go to Japan... It was my wife who showed me the simple but wonderful beauty of Vinh Lap village.",
+    "about_footer_quote": "Every product is a piece of art, crystalized from selected ingredients and love for the homeland.",
+    "read_more_story": "Read more story",
+    "mission_title": "Mission",
+    "mission_desc": "Bringing Vinh Lap lychees – the essence of Thanh Ha – to the world, creating sustainable jobs for farmers, so the younger generation can proudly say: \"I was born in Vinh Lap.\"",
+    "vision_title": "Vision",
+    "vision_desc": "To become a leading Vietnamese agricultural brand recognized internationally, contributing to elevating the value of Vietnamese agricultural products and bringing a better life to hometown farmers.",
+    "we_were_born_in": "\"I was born in Vinh Lap.\"",
+    "craft_subheading": "The journey from fresh lychee to a premium product in your hands."
   },
-
   "nav": {
     "home": "Home",
     "products": "Products",
@@ -41,7 +51,6 @@
     "language": "Language",
     "menu": "Menu"
   },
-
   "auth": {
     "login_title": "Sign in",
     "login_subtitle": "to continue to your account",
@@ -58,7 +67,6 @@
     "login_failed": "Login failed. Please check your credentials.",
     "or_continue_with": "Or continue with"
   },
-
   "common": {
     "loading": "Loading...",
     "error": "Error",
@@ -74,5 +82,248 @@
     "price": "Price",
     "quantity": "Quantity",
     "total": "Total"
+  },
+  "header": {
+    "select_language": "Select language",
+    "hello": "Hello",
+    "employee_page": "Employee Page",
+    "admin_page": "Admin",
+    "logout": "Logout",
+    "logout_failed": "Logout failed",
+    "logout_success": "Logged out",
+    "login": "Login",
+    "cart": "Cart",
+    "pc_mode": "Desktop Mode",
+    "open_menu": "Open menu"
+  },
+  "hero": {
+    "badges": {
+      "japan_export": "Exported to Japan",
+      "quality_cert": "Quality Certified",
+      "vinh_lap_lychee": "Vinh Lap Lychee - Unique taste"
+    },
+    "stats": {
+      "happy_customers": "Happy customers",
+      "avg_rating": "Average rating"
+    }
+  },
+  "footer": {
+    "address_value": "Tu Y village, Ha Dong commune, Hai Phong city.",
+    "news_events": "News & Events",
+    "complaints": "Complaints",
+    "tax_code_label": "Tax code:",
+    "short_name_label": "Short name:",
+    "intl_name_label": "Intl name:",
+    "status_label": "Status:",
+    "address_label": "Address:",
+    "managed_by": "Managed By Thanh Ha - Tax branch 14 Hai Phong City",
+    "source_label": "Source:",
+    "updated_at_label": "Updated at:",
+    "copyright_notice": "Lalalycheee CO.,LTD. All rights reserved.",
+    "location_title": "Vinh Lap Lychee - Thanh Ha"
+  },
+  "value": {
+    "subtitle": "Why Choose Us",
+    "title": "Core Values",
+    "description": "Reasons why LALA-LYCHEEE is the top choice for those who love natural flavors and premium quality",
+    "items": {
+      "item1": {
+        "title": "100% Fresh Vinh Lap Lychee",
+        "description": "Clear origin from Vinh Lap - Thanh Ha, where there is a unique flavor like nowhere else."
+      },
+      "item2": {
+        "title": "International Quality",
+        "description": "Japanese standard cultivation process, achieved quality certification and successfully exported."
+      },
+      "item3": {
+        "title": "Luxury Packaging",
+        "description": "Each product is exquisitely packaged, suitable for premium gifts."
+      },
+      "item4": {
+        "title": "Devotion to Hometown",
+        "description": "Providing sustainable jobs for farmers, contributing to local development."
+      },
+      "item5": {
+        "title": "Exported to Japan",
+        "description": "Trusted in the Japanese market - a testament to quality and reputation."
+      },
+      "item6": {
+        "title": "Dedicated Service",
+        "description": "24/7 customer support, fast delivery, 100% satisfaction guaranteed."
+      }
+    }
+  },
+  "social_proof": {
+    "title": "Trusted by the Community",
+    "description": "The joy of our customers and the companionship of reputable brands are testing to our quality.",
+    "testimonials_title": "Customer Feedback",
+    "partners_title": "Our Partners",
+    "testimonials": {
+      "t1": {
+        "quote": "LALA-LYCHEE's products are truly different. The pure sweetness and natural fragrance impressed me. The packaging is also very luxurious!",
+        "author": "Ngoc Anh",
+        "role": "Culinary Expert"
+      },
+      "t2": {
+        "quote": "I used LALA-LYCHEE's lychee honey to entertain partners and they loved it. A quality product that shows the sophistication of the giver.",
+        "author": "Minh Tuan",
+        "role": "Business Director"
+      },
+      "t3": {
+        "quote": "I never thought a product made from lychee could be so delicate. I will definitely support LALA-LYCHEE for a long time.",
+        "author": "Phuong Linh",
+        "role": "Travel Blogger"
+      }
+    }
+  },
+  "certifications": {
+    "subtitle": "Certifications & Partners",
+    "title": "Recognized Accreditations",
+    "partners_title": "Our Partners",
+    "items": {
+      "cert1": {
+        "name": "Quality Certification",
+        "description": "Meets international quality standards"
+      },
+      "cert2": {
+        "name": "Exported to Japan",
+        "description": "Trusted in the Japanese market"
+      },
+      "cert3": {
+        "name": "ISO 22000:2018",
+        "description": "Food safety management system"
+      }
+    }
+  },
+  "featured_products": {
+    "subtitle": "Exclusive Collection",
+    "description": "Unique creations from <strong>LALA-LYCHEE</strong>, crystallizing the sweet flavor of nature and the dedication of farmers.",
+    "error": "Failed to load featured products",
+    "retry": "Retry",
+    "empty": "No featured products yet",
+    "view_all": "View All Products",
+    "default_name": "Product",
+    "default_category": "Product",
+    "badges": {
+      "preorder": "Pre-order",
+      "new": "New",
+      "bestseller": "Best Seller"
+    }
+  },
+  "video_section": {
+    "section_title": "Our Story",
+    "video_title": "Japanese-Vietnamese couple's dedication to Thanh Ha lychee",
+    "video_description": "Promoting the local specialty of Vinh Lap, Thanh Ha to friends locally and internationally."
+  },
+  "news_section": {
+    "subtitle": "News & Updates",
+    "title": "Stories from Vinh Lap",
+    "description": "Discover the latest stories, news, and updates about Vinh Lap lychee and the journey of LALA-LYCHEEE.",
+    "view_all": "View All News"
+  },
+  "our_craft": {
+    "click_hint": "(Click on each step to see details)",
+    "steps": {
+      "step1": {
+        "title": "Exquisite Selection",
+        "description": "Each lychee is hand-picked from certified orchards, ensuring the perfect ripeness and sweetest flavor."
+      },
+      "step2": {
+        "title": "Meticulous Processing",
+        "description": "A closed production process using modern technology to retain the lychee's natural nutrients and flavor."
+      },
+      "step3": {
+        "title": "Luxury Packaging",
+        "description": "Each product is a work of art, adorned in premium packaging crafted with intricate detail."
+      }
+    }
+  },
+  "collection": {
+    "title": "Special Collection",
+    "subtitle": "Discover unique product lines created especially for you.",
+    "items": {
+      "item1": {
+        "title": "Lychee Harvest",
+        "category": "Positive energy harvesting together."
+      },
+      "item2": {
+        "title": "Delicacy in Every Step",
+        "category": "Selecting the best lychees."
+      },
+      "item3": {
+        "title": "Combined with Sunlight",
+        "category": "Naturally sun-dried to retain full flavor."
+      },
+      "item4": {
+        "title": "Sweet Results",
+        "category": "Plump dried lychees, ready for processing."
+      },
+      "item5": {
+        "title": "Packaging",
+        "category": "Products packaged meticulously and luxuriously."
+      }
+    }
+  },
+  "maps": {
+    "subtitle": "Location",
+    "title": "Visit Our Company",
+    "description": "LALA-LYCHEEE is located right in the heart of the famous lychee region. Come to experience the fresh flavor straight from the garden.",
+    "old_address": "Vinh Lap – Thanh Ha – Hai Duong (old administrative address)",
+    "new_address_main": "Tu Village - Ha Dong Commune - Hai Phong City",
+    "new_address_note": "(new administrative address)",
+    "directions": "Google Maps Directions"
+  },
+  "marquee": {
+    "item1": "🍒 Vinh Lap - Home of Thanh Ha Lychee",
+    "item2": "⭐ Unique Flavor",
+    "item3": "🌏 Exported to Japan",
+    "item4": "✨ 100% Hand-picked Fresh Lychee",
+    "item5": "🏆 Quality Certified",
+    "item6": "💝 Luxury Gift",
+    "item7": "🚚 Nationwide Delivery",
+    "item8": "👥 10,000+ Satisfied Customers"
+  },
+  "defaults": {
+    "hero_title": "The Finest from Nature",
+    "hero_subtitle": "Vinh Lap lychee – carefully selected to bring pure sweet flavor to your family.",
+    "hero_cta": "Explore Now"
+  },
+  "story": {
+    "loading": "Loading story...",
+    "hero_title": "The Journey Home",
+    "hero_subtitle": "Awakening",
+    "hero_description": "From the self-doubt of someone far from home, to a passion for sharing the pride of Vinh Lap with the world.",
+    "explore": "Explore",
+    "chapter1_label": "Chapter I",
+    "chapter1_location": "Vinh Lap, Thanh Ha",
+    "chapter1_location_text": "\"Surrounded by rivers on all sides, the people worked hard all year round...\"",
+    "chapter1_title": "Beautiful but Poor Land",
+    "chapter1_content1": "I was born and raised in Vinh Lap – Thanh Ha – Hai Duong, the cradle of lychee trees. But back then, all I saw was hardship. This land is beautiful, but trade was limited, and people's lives lacked in many ways.",
+    "chapter1_quote": "\"There was a time I was so ashamed of my hometown that I didn't dare tell my friends I was from Vinh Lap.\"",
+    "chapter2_label": "Chapter II",
+    "chapter2_title": "A View from Afar",
+    "chapter2_content1": "Ten years of studying and working in Japan were transformative. There, I met my life partner — a Japanese language teacher.",
+    "chapter2_content2": "When we returned to Vietnam together, her eyes helped me rediscover my homeland — the beauty of community bonds, the peace of the river, and above all, the exquisite taste of lychee that I had long overlooked.",
+    "chapter2_awakening_title": "The Awakening",
+    "chapter2_item1": "The simple beauty of Vinh Lap people",
+    "chapter2_item2": "The unique lychee flavor found nowhere else",
+    "chapter2_item3": "Pride hidden in simplicity",
+    "chapter2_love": "Love & Longing",
+    "quote_text": "\"We brought our hometown lychees to share with Japanese friends. Seeing the amazement in their eyes, I realized: the place I had once been ashamed of was the place I could be most proud of.\"",
+    "quote_author": "Founder of LALA-LYCHEEE",
+    "video_title": "The Story on Screen",
+    "video_description": "Explore the journey of bringing Vinh Lap lychee to the world, through the eyes of those who lived it",
+    "chapter3_label": "Chapter III",
+    "chapter3_small_label": "The Ancient Lychee Tree of Thanh Ha",
+    "chapter3_title": "Bringing Lychee to the World",
+    "chapter3_content1": "LALA-LYCHEEE's mission is not just to sell fruit. It's a journey to establish the Vietnamese agricultural brand — so the young generation of Vinh Lap can proudly say: \"I was born in Vinh Lap.\"",
+    "chapter3_card1_title": "Quality",
+    "chapter3_card1_content": "Japanese standard farming practices to preserve the natural flavor.",
+    "chapter3_card2_title": "Community",
+    "chapter3_card2_content": "Creating sustainable livelihoods so farmers don't have to leave their homeland.",
+    "chapter3_button": "Experience Now",
+    "modal_close_hint": "Press ESC or click the dark area to close",
+    "click_to_enlarge": "(Click to enlarge)",
+    "hero_tagline": "Flavor of the Lychee Land"
   }
 }

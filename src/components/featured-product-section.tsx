@@ -52,18 +52,18 @@ export const FeaturedProductsSection: React.FC = () => {
           const mappedProducts: Product[] = result.data.map(
             (
               product: {
-              _id?: string;
-              id?: string | number;
-              name?: string;
-              price?: number;
-              salePrice?: number;
-              images?: Array<{ url: string; alt?: string }>;
-              category?: string | { name: string };
-              rating?: number;
-              averageRating?: number;
-              description?: string;
-              longDescription?: string;
-              comingSoon?: boolean;
+                _id?: string;
+                id?: string | number;
+                name?: string;
+                price?: number;
+                salePrice?: number;
+                images?: Array<{ url: string; alt?: string }>;
+                category?: string | { name: string };
+                rating?: number;
+                averageRating?: number;
+                description?: string;
+                longDescription?: string;
+                comingSoon?: boolean;
               },
               index: number
             ) => {
@@ -77,14 +77,14 @@ export const FeaturedProductsSection: React.FC = () => {
               const categoryName =
                 typeof product.category === "object" && product.category?.name
                   ? product.category.name
-                  : product.category || "Sản phẩm";
+                  : product.category || t("featured_products.default_category");
 
               // Calculate rating (default to 5 if not available)
               const rating = product.rating || product.averageRating || 5;
 
               return {
                 id: product._id || product.id || `product-${index}`,
-                name: product.name || "Sản phẩm",
+                name: product.name || t("featured_products.default_name"),
                 price: product.price || product.salePrice || 0,
                 category: categoryName,
                 image: imageUrl,
@@ -109,7 +109,7 @@ export const FeaturedProductsSection: React.FC = () => {
           "❌ FeaturedProductsSection: Error fetching featured products:",
           err
         );
-        setError("Không thể tải sản phẩm nổi bật");
+        setError(t("featured_products.error"));
         // Fallback to empty array or keep previous data
         setFeaturedProducts([]);
       } finally {
@@ -161,16 +161,20 @@ export const FeaturedProductsSection: React.FC = () => {
               transition={{ duration: 0.6 }}
             >
               <span className="text-rose-600 font-bold tracking-widest uppercase text-xs mb-3 block">
-                Bộ Sưu Tập Độc Quyền
+                {t("featured_products.subtitle") || "Bộ Sưu Tập Độc Quyền"}
               </span>
               <h2 className="font-heading text-4xl md:text-5xl font-bold text-slate-900 mb-6">
                 {t("site.featured_section")}
               </h2>
               <div className="w-20 h-1 bg-rose-600 mx-auto rounded-full mb-6" />
               <p className="font-body text-lg text-slate-500 leading-relaxed">
-                Những sáng tạo độc đáo từ{" "}
-                <strong className="text-rose-600">LALA-LYCHEE</strong>, kết tinh
-                hương vị ngọt ngào của đất trời và tâm huyết của người nông dân.
+                {(t("featured_products.description") || "Những sáng tạo độc đáo từ <strong>LALA-LYCHEE</strong>, kết tinh hương vị ngọt ngào của đất trời và tâm huyết của người nông dân.").split("<strong>").map((part, i) => {
+                  if (part.includes("</strong>")) {
+                     const [bold, rest] = part.split("</strong>");
+                     return <span key={i}><strong className="text-rose-600">{bold}</strong>{rest}</span>;
+                  }
+                  return <span key={i}>{part}</span>;
+                })}
               </p>
             </motion.div>
           </div>
@@ -193,12 +197,12 @@ export const FeaturedProductsSection: React.FC = () => {
                 onClick={() => window.location.reload()}
                 className="px-6 py-2 bg-rose-600 text-white rounded-full hover:bg-rose-700 transition-colors"
               >
-                Thử lại
+                {t("featured_products.retry") || "Thử lại"}
               </button>
             </div>
           ) : featuredProducts.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-slate-500">Chưa có sản phẩm nổi bật</p>
+              <p className="text-slate-500">{t("featured_products.empty") || "Chưa có sản phẩm nổi bật"}</p>
             </div>
           ) : (
             <div className="flex justify-center">
@@ -211,7 +215,7 @@ export const FeaturedProductsSection: React.FC = () => {
                       key={product.id}
                       product={product}
                       onQuickView={setQuickViewProduct}
-                      badge={product.comingSoon ? "Đặt Trước" : isNew ? "Mới" : isBestSeller ? "Bán chạy" : undefined}
+                      badge={product.comingSoon ? t("featured_products.badges.preorder") : isNew ? t("featured_products.badges.new") : isBestSeller ? t("featured_products.badges.bestseller") : undefined}
                     />
                   );
                 })}
@@ -230,7 +234,7 @@ export const FeaturedProductsSection: React.FC = () => {
                 href={`/${locale}/products`}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-white border-2 border-slate-900 text-slate-900 rounded-full font-bold hover:bg-slate-900 hover:text-white transition-colors duration-300 shadow-sm"
               >
-                <span>Xem Tất Cả Sản Phẩm</span>
+                <span>{t("featured_products.view_all") || "Xem Tất Cả Sản Phẩm"}</span>
                 <ShoppingBag size={18} />
               </Link>
             </motion.div>

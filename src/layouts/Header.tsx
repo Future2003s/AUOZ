@@ -80,18 +80,19 @@ const QuickLanguageToggle = () => {
   const { locale } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations();
 
   const toggleLanguage = () => {
     const newLocale = locale === "vi" ? "en" : "vi";
     const newPath = pathname.replace(`/${locale}`, `/${newLocale}`);
-    router.push(newPath);
+    router.push(newPath, { scroll: false });
   };
 
   return (
     <button
       onClick={toggleLanguage}
       className="flex items-center gap-1 px-2 py-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-xs font-medium"
-      aria-label="Chọn ngôn ngữ"
+      aria-label={t("header.select_language")}
     >
       <span>{locale === "vi" ? "🇻🇳" : "🇺🇸"}</span>
       <span>{locale.toUpperCase()}</span>
@@ -316,7 +317,7 @@ export default function Header() {
               <Link
                 href={`/${locale}/admin/dashboard`}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                title="Quản trị"
+                title={t("header.admin_page")}
                 suppressHydrationWarning
               >
                 <Shield className="w-3.5 h-3.5" />
@@ -331,7 +332,7 @@ export default function Header() {
             {/* Cart */}
             <Link
               href={`/${locale}/cart`}
-              aria-label="Giỏ hàng"
+              aria-label={t("header.cart")}
               className="relative p-2.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors duration-150"
               suppressHydrationWarning
             >
@@ -367,7 +368,7 @@ export default function Header() {
                     {/* User greeting */}
                     {(user?.firstName || user?.email) && (
                       <div className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-800">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Xin chào</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{t("header.hello")}</p>
                         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                           {user.firstName && user.lastName
                             ? `${user.firstName} ${user.lastName}`
@@ -398,7 +399,7 @@ export default function Header() {
                         <span className="w-5 h-5 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0">
                           <Settings className="w-3 h-3 text-white" />
                         </span>
-                        Trang nhân viên
+                        {t("header.employee_page")}
                       </Link>
                     )}
                     <Link
@@ -417,11 +418,11 @@ export default function Header() {
                           try {
                             setIsAccountOpen(false);
                             await logout();
-                            toast.success("Đã đăng xuất", { position: "top-center" });
+                            toast.success(t("header.logout_success"), { position: "top-center" });
                             router.push(`/${locale}/login`);
                             router.refresh();
                           } catch {
-                            toast.error("Đăng xuất thất bại", { position: "top-center" });
+                            toast.error(t("header.logout_failed"), { position: "top-center" });
                           }
                         }}
                       >
@@ -435,7 +436,7 @@ export default function Header() {
             ) : (
               <Link
                 href={`/${locale}/login`}
-                aria-label="Đăng nhập"
+                aria-label={t("header.login")}
                 className="p-2.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors duration-150"
                 suppressHydrationWarning
               >
@@ -459,7 +460,7 @@ export default function Header() {
                 }
               }}
               className="p-2.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors lg:hidden"
-              aria-label="Chế độ PC"
+              aria-label={t("header.pc_mode")}
             >
               <Monitor className="w-5 h-5" />
             </button>
@@ -474,7 +475,7 @@ export default function Header() {
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="p-2.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors lg:hidden"
-              aria-label="Mở menu"
+              aria-label={t("header.open_menu")}
             >
               <Menu className="w-5 h-5" />
             </button>
