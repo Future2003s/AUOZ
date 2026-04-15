@@ -1,0 +1,328 @@
+
+> LALA-LYCHEEE@1.0.0 build
+> next build --webpack
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 16.0.7 (webpack)
+   - Environments: .env.local, .env.production, .env
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ (serwist) Compiling for server...
+ ✓ (serwist) Compiling for server...
+ ✓ (serwist) Compiling for client (static)...
+ ○ (serwist) Service worker: D:\FeLLC\public\sw.js
+ ○ (serwist)   URL: /sw.js
+ ○ (serwist)   Scope: /
+ ⚠ Compiled with warnings in 14.1s
+
+/_next//static/media/songNuocBonBe.7595ae7f.png is 7.96 MB, and won't be precached. Configure maximumFileSizeToCacheInBytes to change this limit.
+
+/_next//static/media/cayVaiToThanhHa.b60273a9.png is 8.76 MB, and won't be precached. Configure maximumFileSizeToCacheInBytes to change this limit.
+
+/_next/static/chunks/lib-87464a54c6ca4781.js is 2.18 MB, and won't be precached. Configure maximumFileSizeToCacheInBytes to change this limit.
+
+   Running TypeScript ...
+   Collecting page data using 11 workers ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 11 workers (0/103) ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 11 workers (25/103) 
+Failed to fetch products for sitemap: TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED'
+  }
+}
+Failed to fetch news for sitemap: TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED'
+  }
+}
+   Generating static pages using 11 workers (51/103) 
+   Generating static pages using 11 workers (77/103) 
+ ✓ Generating static pages using 11 workers (103/103) in 2.1s
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                         Revalidate  Expire
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /[locale]
+├ ƒ /[locale]/account
+├ ƒ /[locale]/accounts
+├ ƒ /[locale]/activities
+├ ƒ /[locale]/activities/[id]
+├ ƒ /[locale]/admin
+├ ƒ /[locale]/admin-categories
+├ ƒ /[locale]/admin-dashboard
+├ ƒ /[locale]/admin-orders-debug
+├ ƒ /[locale]/admin-products/crud-test
+├ ƒ /[locale]/admin-test
+├ ƒ /[locale]/admin/accounts
+├ ƒ /[locale]/admin/activities
+├ ƒ /[locale]/admin/admin-products
+├ ƒ /[locale]/admin/advertisements
+├ ƒ /[locale]/admin/analytics
+├ ƒ /[locale]/admin/brands
+├ ƒ /[locale]/admin/categories
+├ ƒ /[locale]/admin/cms
+├ ƒ /[locale]/admin/cms/footer
+├ ƒ /[locale]/admin/cms/layout
+├ ƒ /[locale]/admin/cms/navigation
+├ ƒ /[locale]/admin/cms/posts
+├ ƒ /[locale]/admin/cms/posts/[id]/edit
+├ ƒ /[locale]/admin/cms/posts/create
+├ ƒ /[locale]/admin/cms/seo
+├ ƒ /[locale]/admin/cms/theme
+├ ƒ /[locale]/admin/cms/typography
+├ ƒ /[locale]/admin/comments
+├ ƒ /[locale]/admin/complaints
+├ ƒ /[locale]/admin/dashboard
+├ ƒ /[locale]/admin/homepage
+├ ƒ /[locale]/admin/inventory
+├ ƒ /[locale]/admin/news
+├ ƒ /[locale]/admin/news/[id]
+├ ƒ /[locale]/admin/news/new
+├ ƒ /[locale]/admin/orders
+├ ƒ /[locale]/admin/products
+├ ƒ /[locale]/admin/settings
+├ ƒ /[locale]/admin/story
+├ ƒ /[locale]/admin/tasks
+├ ƒ /[locale]/admin/translations
+├ ƒ /[locale]/admin/vouchers
+├ ƒ /[locale]/analytics
+├ ƒ /[locale]/cart
+├ ƒ /[locale]/category
+├ ƒ /[locale]/checkout
+├ ƒ /[locale]/checkout/success
+├ ƒ /[locale]/complaints
+├ ƒ /[locale]/contact
+├ ƒ /[locale]/dashboard
+├ ƒ /[locale]/dropdown-test
+├ ƒ /[locale]/employee
+├ ƒ /[locale]/employee/bom
+├ ƒ /[locale]/employee/bom/[id]
+├ ƒ /[locale]/employee/bom/[id]/explosion
+├ ƒ /[locale]/employee/customers
+├ ƒ /[locale]/employee/debt
+├ ƒ /[locale]/employee/documents
+├ ƒ /[locale]/employee/flower-logs
+├ ƒ /[locale]/employee/inventory
+├ ƒ /[locale]/employee/invoices
+├ ƒ /[locale]/employee/materials
+├ ƒ /[locale]/employee/metrics
+├ ƒ /[locale]/employee/metrics/incomplete-invoices
+├ ƒ /[locale]/employee/metrics/not-in-debt
+├ ƒ /[locale]/employee/metrics/undelivered-orders
+├ ƒ /[locale]/employee/metrics/unpaid-orders
+├ ƒ /[locale]/employee/notifications
+├ ƒ /[locale]/employee/offline
+├ ƒ /[locale]/employee/orders
+├ ƒ /[locale]/employee/orders/[id]
+├ ƒ /[locale]/employee/products
+├ ƒ /[locale]/employee/purchase
+├ ƒ /[locale]/employee/reports
+├ ƒ /[locale]/employee/settings
+├ ƒ /[locale]/employee/shipping
+├ ƒ /[locale]/employee/tasks
+├ ƒ /[locale]/forget-password
+├ ƒ /[locale]/gui-thu
+├ ƒ /[locale]/homepage
+├ ƒ /[locale]/in-don
+├ ƒ /[locale]/lan-share
+├ ƒ /[locale]/login
+├ ƒ /[locale]/management-test
+├ ƒ /[locale]/me
+├ ƒ /[locale]/modelBanner
+├ ƒ /[locale]/news
+├ ƒ /[locale]/news/[slug]
+├ ƒ /[locale]/news/saved
+├ ƒ /[locale]/orders
+├ ƒ /[locale]/payment-callback
+├ ƒ /[locale]/products
+├ ƒ /[locale]/products/[id]
+├ ƒ /[locale]/products/crud-test
+├ ƒ /[locale]/qr/nuoc-cot-vai-100
+├ ƒ /[locale]/qr/payment
+├ ƒ /[locale]/register
+├ ƒ /[locale]/sendMail
+├ ƒ /[locale]/settings
+├ ƒ /[locale]/shop
+├ ƒ /[locale]/short
+├ ƒ /[locale]/soluonghoa
+├ ƒ /[locale]/story
+├ ƒ /[locale]/tasks
+├ ƒ /[locale]/test-api
+├ ƒ /[locale]/thumuc
+├ ƒ /[locale]/ton-kho
+├ ƒ /[locale]/track
+├ ƒ /[locale]/translations
+├ ƒ /[locale]/translations/i18n
+├ ƒ /[locale]/translations/json-editor
+├ ƒ /api/account/me
+├ ƒ /api/activities
+├ ƒ /api/activities/[id]
+├ ƒ /api/activities/admin/[id]
+├ ƒ /api/activities/admin/all
+├ ƒ /api/activities/images
+├ ƒ /api/advertisements/active
+├ ƒ /api/advertisements/images
+├ ƒ /api/analytics/summary
+├ ƒ /api/auth/change-password
+├ ƒ /api/auth/forgot-password
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/me
+├ ƒ /api/auth/refresh
+├ ƒ /api/auth/register
+├ ƒ /api/auth/reset-password/[token]
+├ ƒ /api/auth/verify-email/[token]
+├ ƒ /api/belllc/flower-imports
+├ ƒ /api/belllc/flower-imports/[id]
+├ ƒ /api/belllc/flower-logs
+├ ƒ /api/belllc/flower-logs/[id]
+├ ƒ /api/belllc/flower-logs/catalog
+├ ƒ /api/brands
+├ ƒ /api/brands/[id]
+├ ƒ /api/brands/admin
+├ ƒ /api/brands/popular
+├ ƒ /api/brands/test-crud
+├ ƒ /api/buyers
+├ ƒ /api/cart
+├ ƒ /api/cart/merge
+├ ƒ /api/categories
+├ ƒ /api/categories/[id]
+├ ƒ /api/categories/admin
+├ ƒ /api/categories/test-crud
+├ ƒ /api/categories/tree
+├ ƒ /api/cms/footer
+├ ƒ /api/cms/layout
+├ ƒ /api/cms/navigation
+├ ƒ /api/cms/seo
+├ ƒ /api/cms/theme
+├ ƒ /api/cms/typography
+├ ƒ /api/comments
+├ ƒ /api/comments/[id]
+├ ƒ /api/comments/[id]/replies
+├ ƒ /api/comments/product/[productId]
+├ ƒ /api/complaints
+├ ƒ /api/complaints/requests
+├ ƒ /api/complaints/requests/[id]
+├ ƒ /api/contact
+├ ƒ /api/debt
+├ ƒ /api/debt/[id]
+├ ƒ /api/debt/[id]/paid
+├ ƒ /api/delivery
+├ ƒ /api/delivery/[id]
+├ ƒ /api/delivery/[id]/upload-proof
+├ ƒ /api/delivery/new
+├ ƒ /api/employee/metrics
+├ ƒ /api/employee/metrics/[type]
+├ ƒ /api/employee/nav-usage
+├ ƒ /api/employee/orders
+├ ƒ /api/employee/orders/[id]
+├ ƒ /api/employee/orders/[id]/status
+├ ƒ /api/employee/shipping/delivery
+├ ƒ /api/employee/shipping/orders
+├ ƒ /api/health
+├ ƒ /api/homepage
+├ ƒ /api/homepage/draft
+├ ƒ /api/homepage/images
+├ ƒ /api/inventory/[[...path]]
+├ ƒ /api/invoice
+├ ƒ /api/invoice/[id]/issue
+├ ƒ /api/invoice/[id]/upload
+├ ƒ /api/meta/brands
+├ ƒ /api/meta/brands/popular
+├ ƒ /api/meta/categories
+├ ƒ /api/meta/categories/tree
+├ ƒ /api/meta/tags
+├ ƒ /api/news
+├ ƒ /api/news/[slug]
+├ ƒ /api/news/admin/[id]
+├ ƒ /api/news/admin/list
+├ ƒ /api/news/images
+├ ƒ /api/notifications
+├ ƒ /api/notifications/[id]/read
+├ ƒ /api/notifications/admin-sse
+├ ƒ /api/notifications/push/subscribe
+├ ƒ /api/notifications/push/unsubscribe
+├ ƒ /api/notifications/push/vapid-key
+├ ƒ /api/notifications/read-all
+├ ƒ /api/notifications/sse
+├ ƒ /api/notifications/unread-count
+├ ƒ /api/orders
+├ ƒ /api/orders/[id]/history
+├ ƒ /api/orders/[id]/status
+├ ƒ /api/orders/admin/all
+├ ƒ /api/orders/create
+├ ƒ /api/orders/test
+├ ƒ /api/products
+├ ƒ /api/products/[id]
+├ ƒ /api/products/admin
+├ ƒ /api/products/create
+├ ƒ /api/products/featured
+├ ƒ /api/products/images
+├ ƒ /api/products/public
+├ ƒ /api/products/public/[id]
+├ ƒ /api/products/statuses
+├ ƒ /api/products/test-crud
+├ ƒ /api/reports/dashboard
+├ ƒ /api/settings/homepage
+├ ƒ /api/settings/homepage/banner
+├ ƒ /api/settings/story
+├ ƒ /api/story/images
+├ ƒ /api/tasks
+├ ƒ /api/tasks/[id]
+├ ƒ /api/tasks/[id]/toggle-status
+├ ƒ /api/tasks/date/[date]
+├ ƒ /api/test
+├ ƒ /api/test-backend
+├ ƒ /api/translations-v2/all
+├ ƒ /api/translations/sync
+├ ƒ /api/upload-proof
+├ ƒ /api/upload-proof/[orderId]
+├ ƒ /api/uploads
+├ ƒ /api/users
+├ ƒ /api/users/[id]
+├ ƒ /api/users/[id]/login-attempts
+├ ƒ /api/users/[id]/reset-login-attempts
+├ ƒ /api/users/[id]/role
+├ ƒ /api/users/[id]/status
+├ ƒ /api/users/addresses
+├ ƒ /api/users/addresses/[addressId]
+├ ƒ /api/users/addresses/[addressId]/default
+├ ƒ /api/users/avatar
+├ ƒ /api/users/profile
+├ ƒ /api/vouchers
+├ ƒ /api/vouchers/[id]
+├ ƒ /api/vouchers/apply
+├ ○ /login
+├ ○ /offline
+├ ○ /robots.txt
+├ ○ /sitemap.xml                                            1h      1y
+└ ○ /test-login
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
