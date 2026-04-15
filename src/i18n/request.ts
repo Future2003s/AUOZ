@@ -1,124 +1,182 @@
+/**
+ * request.ts — i18n
+ * Cung cấp các hàm load translations cho next-intl:
+ * 1. getTranslationsFromApi()  — Fetch từ backend /api/v1/i18n/:locale (chính)
+ * 2. getTranslationsFromLocal() — Đọc từ file JSON local (fallback)
+ * 3. getMergedTranslations()   — Merge hai nguồn: API override JSON
+ *
+ * Dùng cho getRequestConfig của next-intl (xem src/i18n.ts).
+ */
 import { defaultLocale, locales, type Locale } from "./config";
 
+// ─── Local JSON fallback ──────────────────────────────────────────────────────
+
 /**
- * Server-side function to load translations
- * This can be used in Server Components or API routes
+ * Đọc translations từ file JSON local (fallback khi API lỗi)
+ * @param locale - locale cần load
  */
-export async function getTranslations(locale: Locale = defaultLocale) {
-  try {
-    // Try to load from static JSON file first (faster)
-    const messages = await import(`./locales/${locale}.json`);
-    return messages.default || {};
-  } catch (error) {
-    console.error(`Failed to load locale ${locale}:`, error);
-    // Fallback to default locale
-    if (locale !== defaultLocale) {
-      try {
-        const defaultMessages = await import(`./locales/${defaultLocale}.json`);
-        return defaultMessages.default || {};
-      } catch {
+export async function getTranslationsFromLocal(
+    locale: Locale = defaultLocale
+): Promise<Record<string, unknown>> {
+    try {
+        const messages = await import(`./locales/${locale}.json`);
+        return (messages.default ?? {}) as Record<string, unknown>;
+    } catch (error) {
+        console.error(`[i18n] Không đọc được file JSON local cho locale "${locale}":`, error);
+
+        // Fallback về default locale
+        if (locale !== defaultLocale) {
+            try {
+                const defaultMessages = await import(`./locales/${defaultLocale}.json`);
+                return (defaultMessages.default ?? {}) as Record<string, unknown>;
+            } catch {
+                return {};
+            }
+        }
+
         return {};
-      }
     }
-    return {};
-  }
 }
 
+// ─── API fetch ────────────────────────────────────────────────────────────────
+
 /**
- * Server-side function to load translations from BackEnd
- * This fetches dynamic translations from the database
+ * Fetch translations từ backend API với ISR revalidate 60 giây
+ * Endpoint: GET {NEXT_PUBLIC_API_END_POINT}/i18n/:locale
+ *
+ * @param locale - locale cần load
+ * @returns Nested JSON object phù hợp next-intl
  */
-export async function getTranslationsFromBackend(
-  locale: Locale = defaultLocale
-): Promise<Record<string, any>> {
-  try {
+export async function getTranslationsFromApi(
+    locale: Locale = defaultLocale
+): Promise<Record<string, unknown>> {
     const baseUrl =
-      process.env.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
+        process.env.NEXT_PUBLIC_API_END_POINT ?? "http://localhost:8081/api/v1";
 
-    const response = await fetch(`${baseUrl}/translations/all?lang=${locale}`, {
-      method: "GET",
-      cache: "no-store", // Always fetch fresh translations
-    });
+    try {
+        const response = await fetch(`${baseUrl}/i18n/${locale}`, {
+            method: "GET",
+            next: { revalidate: 60 } // ISR: cache 60 giây, tự động revalidate
+        } as RequestInit);
 
-    if (!response.ok) {
-      console.warn(`Failed to fetch translations from BackEnd for ${locale}`);
-      return {};
+        if (!response.ok) {
+            console.warn(
+                `[i18n] API trả về ${response.status} cho locale "${locale}" — dùng JSON local`
+            );
+            return {};
+        }
+
+        const json = (await response.json()) as {
+            success: boolean;
+            data: Record<string, unknown>;
+        };
+
+        if (!json.success || !json.data) {
+            console.warn(`[i18n] API response không hợp lệ cho locale "${locale}"`);
+            return {};
+        }
+
+        return json.data;
+    } catch (error) {
+        console.error(
+            `[i18n] Lỗi khi fetch translations từ API cho locale "${locale}":`,
+            error
+        );
+        return {};
     }
-
-    const data = await response.json();
-
-    if (!data.success || !data.data?.translations) {
-      return {};
-    }
-
-    const translations = data.data.translations;
-
-    // Transform flat key-value to nested object structure
-    const transformed: Record<string, any> = {};
-
-    for (const [key, value] of Object.entries(translations) as any[]) {
-      if (!value || typeof value !== "string") continue;
-
-      const keys = key.split(".");
-      let current: any = transformed;
-
-      for (let i = 0; i < keys.length - 1; i++) {
-        const k = keys[i];
-        if (!current[k]) current[k] = {};
-        current = current[k];
-      }
-
-      current[keys[keys.length - 1]] = value;
-    }
-
-    return transformed;
-  } catch (error) {
-    console.error(`Error fetching translations from BackEnd for ${locale}:`, error);
-    return {};
-  }
 }
 
+// ─── Deep merge ───────────────────────────────────────────────────────────────
+
+function isObject(item: unknown): item is Record<string, unknown> {
+    return item !== null && typeof item === "object" && !Array.isArray(item);
+}
+
+function deepMerge(
+    target: Record<string, unknown>,
+    source: Record<string, unknown>
+): Record<string, unknown> {
+    const output = { ...target };
+
+    if (isObject(target) && isObject(source)) {
+        for (const key of Object.keys(source)) {
+            if (isObject(source[key]) && isObject(target[key])) {
+                output[key] = deepMerge(
+                    target[key] as Record<string, unknown>,
+                    source[key] as Record<string, unknown>
+                );
+            } else {
+                output[key] = source[key];
+            }
+        }
+    }
+
+    return output;
+}
+
+// ─── Primary entry point ──────────────────────────────────────────────────────
+
 /**
- * Merge static JSON translations with dynamic BackEnd translations
- * BackEnd translations take priority
+ * Load translations cho next-intl getRequestConfig
+ *
+ * Chiến lược:
+ * 1. Luôn load file JSON local làm base (nhanh, offline-safe)
+ * 2. Cố gắng fetch từ API (dynamic, từ MongoDB)
+ * 3. Nếu API thành công → merge, API keys override JSON keys
+ * 4. Nếu API thất bại → dùng JSON local thuần
+ *
+ * @param locale - Locale cần load
+ * @param useApi - Có fetch từ API không (mặc định true)
  */
 export async function getMergedTranslations(
-  locale: Locale = defaultLocale,
-  useBackend: boolean = false
-): Promise<Record<string, any>> {
-  // Always load static translations as base
-  const staticTranslations = await getTranslations(locale);
+    locale: Locale = defaultLocale,
+    useApi = true
+): Promise<Record<string, unknown>> {
+    // Bước 1: Load JSON local (base)
+    const localTranslations = await getTranslationsFromLocal(locale);
 
-  if (!useBackend) {
-    return staticTranslations;
-  }
-
-  // Merge with BackEnd translations
-  const backendTranslations = await getTranslationsFromBackend(locale);
-
-  // Deep merge function
-  function deepMerge(target: any, source: any): any {
-    const output = { ...target };
-    if (isObject(target) && isObject(source)) {
-      Object.keys(source).forEach((key) => {
-        if (isObject(source[key])) {
-          if (!(key in target)) {
-            Object.assign(output, { [key]: source[key] });
-          } else {
-            output[key] = deepMerge(target[key], source[key]);
-          }
-        } else {
-          Object.assign(output, { [key]: source[key] });
-        }
-      });
+    if (!useApi) {
+        return localTranslations;
     }
-    return output;
-  }
 
-  function isObject(item: any): boolean {
-    return item && typeof item === "object" && !Array.isArray(item);
-  }
+    // Bước 2: Fetch từ API
+    const apiTranslations = await getTranslationsFromApi(locale);
 
-  return deepMerge(staticTranslations, backendTranslations);
+    // Bước 3: Nếu API trả về rỗng, dùng JSON local
+    if (Object.keys(apiTranslations).length === 0) {
+        return localTranslations;
+    }
+
+    // Bước 4: Merge — API override JSON local
+    return deepMerge(localTranslations, apiTranslations);
 }
 
+// ─── Legacy compat ────────────────────────────────────────────────────────────
+// Giữ lại hàm getTranslations cũ để không breaking code cũ
+
+/**
+ * @deprecated Dùng getMergedTranslations() thay thế
+ */
+export async function getTranslations(
+    locale: Locale = defaultLocale
+): Promise<Record<string, unknown>> {
+    return getTranslationsFromLocal(locale);
+}
+
+/**
+ * @deprecated Dùng getTranslationsFromApi() thay thế
+ */
+export async function getTranslationsFromBackend(
+    locale: Locale = defaultLocale
+): Promise<Record<string, unknown>> {
+    return getTranslationsFromApi(locale);
+}
+
+// ─── Validate locale ──────────────────────────────────────────────────────────
+
+/**
+ * Kiểm tra locale có hợp lệ không
+ */
+export function isValidLocale(locale: string | undefined): locale is Locale {
+    return !!locale && (locales as readonly string[]).includes(locale);
+}

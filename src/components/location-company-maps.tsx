@@ -51,7 +51,7 @@ export const MapsLocationCompany = () => {
                   <MapPin className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
                   <div>
                     <span>{t("maps.new_address_main") || "Thôn Tú - Xã Hà Đông - Thành Phố Hải Phòng"}</span>
-                    <div className="font-bold italic">
+                    <div className="font-bold">
                       {t("maps.new_address_note") || "(địa chỉ hành chính mới)"}
                     </div>
                   </div>
