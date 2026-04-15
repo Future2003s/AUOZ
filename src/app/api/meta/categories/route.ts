@@ -3,10 +3,13 @@ import { envConfig } from "@/config";
 
 export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const queryString = searchParams.toString();
     const cookieStore = await cookies();
     const token = cookieStore.get("sessionToken")?.value || "";
+    const endpoint = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/categories`;
     const res = await fetch(
-      `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/categories`,
+      queryString ? `${endpoint}?${queryString}` : endpoint,
       {
         cache: "no-store",
         headers: {

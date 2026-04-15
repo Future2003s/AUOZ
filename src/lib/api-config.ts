@@ -137,9 +137,9 @@ export const API_CONFIG = {
     SEARCH: "/translations/search",
     STATS: "/translations/stats",
     EXPORT: "/translations/export",
-    IMPORT: "/translations/import",
+    IMPORT: "/translations/bulk-import",
   },
-  
+
   // Translation V2 endpoints
   TRANSLATIONS_V2: {
     BY_KEY: "/translations-v2/key/:key",

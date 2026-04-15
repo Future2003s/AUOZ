@@ -27,19 +27,19 @@ export interface Product {
   categoryName?: string;
   // relations
   category:
-    | string
-    | {
-        _id: string;
-        name: string;
-        slug: string;
-      };
+  | string
+  | {
+    _id: string;
+    name: string;
+    slug: string;
+  };
   brand?:
-    | string
-    | {
-        _id: string;
-        name: string;
-        slug: string;
-      };
+  | string
+  | {
+    _id: string;
+    name: string;
+    slug: string;
+  };
   // optional variants (if the backend supports variant pricing)
   variants?: Array<{
     _id?: string;
@@ -94,6 +94,7 @@ export interface ProductQueryParams {
   featured?: boolean;
   status?: "active" | "draft" | "archived";
   search?: string;
+  locale?: string;
 }
 
 // Helper functions to convert ApiResponse to expected types
@@ -112,36 +113,36 @@ const convertToProductsResponse = (
       const dataArr = Array.isArray(response.data)
         ? (response.data as Product[])
         : Array.isArray(response?.data?.items)
-        ? (response.data.items as Product[])
-        : Array.isArray(response?.data?.content)
-        ? (response.data.content as Product[])
-        : [];
+          ? (response.data.items as Product[])
+          : Array.isArray(response?.data?.content)
+            ? (response.data.content as Product[])
+            : [];
 
       // Support pagination located at response.pagination, response.data.pagination, or response.data (page/size/totalElements/totalPages)
       const p =
         response.pagination ||
         response?.data?.pagination ||
         (response?.data &&
-        ("page" in response.data ||
-          "size" in response.data ||
-          "total" in response.data ||
-          "totalElements" in response.data ||
-          "totalPages" in response.data)
+          ("page" in response.data ||
+            "size" in response.data ||
+            "total" in response.data ||
+            "totalElements" in response.data ||
+            "totalPages" in response.data)
           ? response.data
           : null);
       const pagination = p
         ? {
-            page: Number(p.page ?? p.currentPage ?? 1),
-            limit: Number(p.limit ?? p.size ?? p.pageSize ?? dataArr.length),
-            total: Number(p.total ?? p.totalElements ?? 0),
-            pages: Number(
-              p.totalPages ??
-                p.pages ??
-                (p.total && (p.limit ?? p.size)
-                  ? Math.ceil(p.total / (p.limit ?? p.size))
-                  : 1)
-            ),
-          }
+          page: Number(p.page ?? p.currentPage ?? 1),
+          limit: Number(p.limit ?? p.size ?? p.pageSize ?? dataArr.length),
+          total: Number(p.total ?? p.totalElements ?? 0),
+          pages: Number(
+            p.totalPages ??
+            p.pages ??
+            (p.total && (p.limit ?? p.size)
+              ? Math.ceil(p.total / (p.limit ?? p.size))
+              : 1)
+          ),
+        }
         : undefined;
 
       return {
@@ -157,21 +158,21 @@ const convertToProductsResponse = (
       const dataArr = Array.isArray(response.data)
         ? (response.data as Product[])
         : Array.isArray(response?.data?.items)
-        ? (response.data.items as Product[])
-        : [];
+          ? (response.data.items as Product[])
+          : [];
 
       const p = response.pagination || response?.data?.pagination || null;
       const pagination = p
         ? {
-            page: Number(p.page ?? p.currentPage ?? 1),
-            limit: Number(p.limit ?? p.size ?? p.pageSize ?? dataArr.length),
-            total: Number(p.total ?? p.totalElements ?? 0),
-            pages: Number(
-              p.totalPages ??
-                p.pages ??
-                (p.total && p.limit ? Math.ceil(p.total / p.limit) : 1)
-            ),
-          }
+          page: Number(p.page ?? p.currentPage ?? 1),
+          limit: Number(p.limit ?? p.size ?? p.pageSize ?? dataArr.length),
+          total: Number(p.total ?? p.totalElements ?? 0),
+          pages: Number(
+            p.totalPages ??
+            p.pages ??
+            (p.total && p.limit ? Math.ceil(p.total / p.limit) : 1)
+          ),
+        }
         : undefined;
 
       return { success: true, message: "", data: dataArr, pagination };
@@ -224,8 +225,8 @@ export const productApiRequest = {
   },
 
   // Get single product by ID
-  getProduct: (id: string): Promise<ProductResponse> => {
-    return httpClient.get(`/products/${id}`).then(convertToProductResponse);
+  getProduct: (id: string, locale?: string): Promise<ProductResponse> => {
+    return httpClient.get(`/products/${id}${locale ? `?locale=${locale}` : ''}`).then(convertToProductResponse);
   },
 
   // Search products
@@ -258,9 +259,8 @@ export const productApiRequest = {
     const queryString = params
       ? new URLSearchParams(params as any).toString()
       : "";
-    const url = `/products/category/${categoryId}${
-      queryString ? `?${queryString}` : ""
-    }`;
+    const url = `/products/category/${categoryId}${queryString ? `?${queryString}` : ""
+      }`;
     return httpClient.get(url).then(convertToProductsResponse);
   },
 
@@ -272,9 +272,8 @@ export const productApiRequest = {
     const queryString = params
       ? new URLSearchParams(params as any).toString()
       : "";
-    const url = `/products/brand/${brandId}${
-      queryString ? `?${queryString}` : ""
-    }`;
+    const url = `/products/brand/${brandId}${queryString ? `?${queryString}` : ""
+      }`;
     return httpClient.get(url).then(convertToProductsResponse);
   },
 
@@ -284,7 +283,7 @@ export const productApiRequest = {
     productData: Partial<Product>
   ): Promise<ProductResponse> => {
     // Use Next.js API route to handle authentication via cookies
-    
+
     const res = await fetch(`/api/products/create`, {
       method: "POST",
       headers: {
@@ -366,10 +365,10 @@ export const productApiRequest = {
       const contentType = res.headers.get("content-type") || "application/json";
       const text = await res.text();
       let data: any;
-      
+
       try {
-        data = contentType.includes("application/json") && text 
-          ? JSON.parse(text) 
+        data = contentType.includes("application/json") && text
+          ? JSON.parse(text)
           : text || null;
       } catch (parseError) {
         console.error("Failed to parse delete response:", parseError);
@@ -377,11 +376,11 @@ export const productApiRequest = {
       }
 
       if (!res.ok) {
-        const errorMessage = 
+        const errorMessage =
           (data && typeof data === "object" && "message" in data
             ? (data as any).message
             : data?.error) || "Failed to delete product";
-        
+
         return {
           success: false,
           message: errorMessage,
@@ -393,7 +392,7 @@ export const productApiRequest = {
         data && typeof data === "object" && "success" in data
           ? (data as ApiResponse<any>)
           : { success: res.ok, message: "Product deleted successfully", data };
-      
+
       return convertToDeleteResponse(apiResp);
     } catch (error: any) {
       console.error("Delete product error:", error);

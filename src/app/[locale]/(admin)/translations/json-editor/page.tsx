@@ -261,20 +261,20 @@ export default function JsonEditorPage() {
 
   const filteredSections: Sections = searchQuery
     ? (Object.fromEntries(
-      (Object.entries(sections) as [string, Record<string, string>][])
-        .map(([section, keys]): [string, Record<string, string>] => [
-          section,
-          Object.fromEntries(
-            Object.entries(keys).filter(
-              ([k, v]) =>
-                k.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                v.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                section.toLowerCase().includes(searchQuery.toLowerCase())
-            )
-          ) as Record<string, string>,
-        ])
-        .filter(([, keys]) => Object.keys(keys).length > 0)
-    ) as Sections)
+        (Object.entries(sections) as [string, Record<string, string>][])
+          .map(([section, keys]): [string, Record<string, string>] => [
+            section,
+            Object.fromEntries(
+              Object.entries(keys).filter(
+                ([k, v]) =>
+                  k.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  v.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  section.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+            ) as Record<string, string>,
+          ])
+          .filter(([, keys]) => Object.keys(keys).length > 0)
+      ) as Sections)
     : sections;
 
   const dirtyCount = Object.values(dirtyKeys).reduce(
@@ -286,7 +286,7 @@ export default function JsonEditorPage() {
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
-
+      
       {/* Toast notifications */}
       <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
         {toasts.map((t) => (
@@ -295,11 +295,11 @@ export default function JsonEditorPage() {
             className={`flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium backdrop-blur-sm border transition-all pointer-events-auto
               ${t.type === "success" ? "bg-emerald-50 text-emerald-800 border-emerald-200" :
                 t.type === "error" ? "bg-red-50 text-red-800 border-red-200" :
-                  "bg-blue-50 text-blue-800 border-blue-200"}`}
+                "bg-blue-50 text-blue-800 border-blue-200"}`}
           >
             {t.type === "success" ? <CheckCircle2 className="w-4 h-4 shrink-0" /> :
-              t.type === "error" ? <AlertCircle className="w-4 h-4 shrink-0" /> :
-                <Globe className="w-4 h-4 shrink-0" />}
+             t.type === "error" ? <AlertCircle className="w-4 h-4 shrink-0" /> :
+             <Globe className="w-4 h-4 shrink-0" />}
             {t.message}
           </div>
         ))}
@@ -346,10 +346,11 @@ export default function JsonEditorPage() {
             <button
               key={lang.code}
               onClick={() => { setCurrentLang(lang.code); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${currentLang === lang.code
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                currentLang === lang.code
                   ? "bg-rose-50 text-rose-700 font-semibold shadow-sm border border-rose-100"
                   : "text-slate-600 hover:bg-slate-100 border border-transparent"
-                }`}
+              }`}
             >
               <span className="text-xl">{lang.flag}</span>
               <span>{lang.label}</span>

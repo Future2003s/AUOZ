@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Loader } from "@/components/ui/loader";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface Category {
   id: string;
@@ -32,6 +33,7 @@ interface Category {
   metaKeywords?: string;
   createdAt?: string;
   updatedAt?: string;
+  translations?: any;
 }
 
 export default function AdminCategoriesPage() {
@@ -52,6 +54,10 @@ export default function AdminCategoriesPage() {
     metaTitle: "",
     metaDescription: "",
     metaKeywords: "",
+    translations: {
+      en: { name: "", description: "" },
+      ja: { name: "", description: "" },
+    },
   });
 
   // Search and filter states
@@ -107,6 +113,10 @@ export default function AdminCategoriesPage() {
       metaTitle: "",
       metaDescription: "",
       metaKeywords: "",
+      translations: {
+        en: { name: "", description: "" },
+        ja: { name: "", description: "" },
+      },
     });
   };
 
@@ -136,6 +146,7 @@ export default function AdminCategoriesPage() {
       if (formData.metaKeywords.trim())
         categoryData.metaKeywords = formData.metaKeywords.trim();
       if (formData.parentId) categoryData.parentId = formData.parentId;
+      if (formData.translations) categoryData.translations = formData.translations;
 
       const response = await fetch("/api/categories/admin", {
         method: "POST",
@@ -195,6 +206,7 @@ export default function AdminCategoriesPage() {
       if (formData.metaKeywords.trim())
         categoryData.metaKeywords = formData.metaKeywords.trim();
       if (formData.parentId) categoryData.parentId = formData.parentId;
+      if (formData.translations) categoryData.translations = formData.translations;
 
       const response = await fetch(`/api/categories/${editing.id}`, {
         method: "PUT",
@@ -268,6 +280,10 @@ export default function AdminCategoriesPage() {
       metaTitle: category.metaTitle || "",
       metaDescription: category.metaDescription || "",
       metaKeywords: category.metaKeywords || "",
+      translations: category.translations || {
+        en: { name: "", description: "" },
+        ja: { name: "", description: "" },
+      },
     });
   };
 
@@ -301,15 +317,13 @@ export default function AdminCategoriesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pt-25">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Quản lý Danh mục
-          </h1>
-          <p className="text-lg text-gray-600">
-            Quản lý danh mục sản phẩm và thông tin SEO
-          </p>
+
+          <h5 className="text-lg text-gray-600">
+            Danh mục sản phẩm và thông tin SEO
+          </h5>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -400,8 +414,8 @@ export default function AdminCategoriesPage() {
                                 <span className="font-medium">Cập nhật:</span>
                                 {category.updatedAt
                                   ? new Date(
-                                      category.updatedAt
-                                    ).toLocaleDateString("vi-VN")
+                                    category.updatedAt
+                                  ).toLocaleDateString("vi-VN")
                                   : "N/A"}
                               </div>
                             </div>
@@ -459,34 +473,120 @@ export default function AdminCategoriesPage() {
                   }}
                 >
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Tên danh mục *</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData({ ...formData, name: e.target.value })
-                        }
-                        placeholder="Nhập tên danh mục"
-                        required
-                      />
-                    </div>
+                    <Tabs defaultValue="vi" className="w-full">
+                      <TabsList className="mb-4">
+                        <TabsTrigger value="vi">Tiếng Việt</TabsTrigger>
+                        <TabsTrigger value="en">Tiếng Anh (EN)</TabsTrigger>
+                        <TabsTrigger value="ja">Tiếng Nhật (JA)</TabsTrigger>
+                      </TabsList>
 
-                    <div>
-                      <Label htmlFor="description">Mô tả</Label>
-                      <Textarea
-                        id="description"
-                        value={formData.description}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            description: e.target.value,
-                          })
-                        }
-                        placeholder="Mô tả danh mục"
-                        rows={3}
-                      />
-                    </div>
+                      <TabsContent value="vi" className="space-y-4">
+                        <div>
+                          <Label htmlFor="name">Tên danh mục *</Label>
+                          <Input
+                            id="name"
+                            value={formData.name}
+                            onChange={(e) =>
+                              setFormData({ ...formData, name: e.target.value })
+                            }
+                            placeholder="Nhập tên danh mục"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="description">Mô tả</Label>
+                          <Textarea
+                            id="description"
+                            value={formData.description}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                description: e.target.value,
+                              })
+                            }
+                            placeholder="Mô tả danh mục"
+                            rows={3}
+                          />
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="en" className="space-y-4">
+                        <div>
+                          <Label htmlFor="name_en">Tên danh mục (EN)</Label>
+                          <Input
+                            id="name_en"
+                            value={formData.translations.en.name}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                translations: {
+                                  ...formData.translations,
+                                  en: { ...formData.translations.en, name: e.target.value },
+                                },
+                              })
+                            }
+                            placeholder="Enter category name"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="description_en">Mô tả (EN)</Label>
+                          <Textarea
+                            id="description_en"
+                            value={formData.translations.en.description}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                translations: {
+                                  ...formData.translations,
+                                  en: { ...formData.translations.en, description: e.target.value },
+                                },
+                              })
+                            }
+                            placeholder="Enter description"
+                            rows={3}
+                          />
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="ja" className="space-y-4">
+                        <div>
+                          <Label htmlFor="name_ja">Tên danh mục (JA)</Label>
+                          <Input
+                            id="name_ja"
+                            value={formData.translations.ja.name}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                translations: {
+                                  ...formData.translations,
+                                  ja: { ...formData.translations.ja, name: e.target.value },
+                                },
+                              })
+                            }
+                            placeholder="カテゴリ名を入力してください"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="description_ja">Mô tả (JA)</Label>
+                          <Textarea
+                            id="description_ja"
+                            value={formData.translations.ja.description}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                translations: {
+                                  ...formData.translations,
+                                  ja: { ...formData.translations.ja, description: e.target.value },
+                                },
+                              })
+                            }
+                            placeholder="説明を入力してください"
+                            rows={3}
+                          />
+                        </div>
+                      </TabsContent>
+                    </Tabs>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -601,8 +701,8 @@ export default function AdminCategoriesPage() {
                         {creating
                           ? "Đang lưu..."
                           : editing
-                          ? "Cập nhật"
-                          : "Tạo mới"}
+                            ? "Cập nhật"
+                            : "Tạo mới"}
                       </Button>
                     </div>
                   </div>

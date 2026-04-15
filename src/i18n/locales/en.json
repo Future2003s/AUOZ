@@ -1,33 +1,33 @@
 {
   "home": {
     "welcome": "Welcome",
-    "hero_title": "Our online store",
+    "hero_title": "Our Online Store",
     "hero_subtitle": "Quality products for you",
     "featured_products": "Featured Products",
-    "latest_products": "Latest Products",
+    "latest_products": "New Products",
     "trending": "Trending",
-    "view_all": "View all"
+    "view_all": "View All"
   },
   "site": {
-    "cta_explore": "Explore the collection",
-    "experience_title": "LALA-LYCHEE Experience",
+    "cta_explore": "Explore the Collection",
+    "experience_title": "Experience LALA-LYCHEE",
     "featured_section": "Featured Products",
-    "collections_section": "Special Collections",
-    "craft_section": "Our Craft Process",
+    "collections_section": "Special Collection",
+    "craft_section": "About the Lychee Homeland",
     "social_section": "Trusted by the Community",
-    "about_title": "The LALA-LYCHEE Story",
-    "about_desc_1": "Born and raised in the rural area of Vinh Lap - Thanh Ha - Hai Duong, known as the \"lychee land\", I deeply understand the difficult life of the farmers here. This land is beautiful but poor, surrounded by rivers, with limited trade. There was a time when I was so insecure about my hometown that I didn't dare to tell my friends I was from Vinh Lap.",
-    "about_desc_2": "We brought our hometown lychees to introduce to Japanese friends, and realized that: The land I was previously insecure about is actually a place to be extremely proud of. I understood that I must do something so the younger generation growing up here can confidently say: \"I was born in Vinh Lap.\"",
-    "about_desc_3": "From that aspiration, I began the journey of bringing lychees – the essence of Thanh Ha – to the world. LALA-LYCHEEE was born with the mission of bringing Vinh Lap lychees to international friends, creating jobs for locals, so that after each lychee season, they don't have to travel far for work.",
-    "founder_quote": "The turning point came when I had the opportunity to go to Japan... It was my wife who showed me the simple but wonderful beauty of Vinh Lap village.",
-    "about_footer_quote": "Every product is a piece of art, crystalized from selected ingredients and love for the homeland.",
-    "read_more_story": "Read more story",
+    "about_title": "The Story of LALA-LYCHEE",
+    "about_desc_1": "Born and raised in Vinh Lap – Thanh Ha – Hai Duong, known as the “land of lychee,” I deeply understand the many hardships faced by local farmers here. This land is beautiful but poor, surrounded by rivers on all sides, with limited trade and transport. There was a time when I felt so insecure about my hometown that I did not dare tell my friends I was from Vinh Lap.",
+    "about_desc_2": "When we brought our hometown lychees to introduce to friends in Japan, I realized something important: the place I once felt insecure about was in fact a place to be truly proud of. I understood that I had to do something so that the younger generation growing up here could confidently say: “I was born in Vinh Lap.”",
+    "about_desc_3": "From that aspiration, I began the journey of bringing lychee – the essence of Thanh Ha’s land and sky – to the world. LALA-LYCHEEE was founded with the mission of bringing Vinh Lap lychees to international friends, creating more jobs for local people, so that after each lychee season they would no longer face unemployment or have to leave home to earn a living.",
+    "founder_quote": "Bringing pride back to our homeland.",
+    "about_footer_quote": "Each product is a work of art, crafted from carefully selected ingredients and a deep love for our homeland.",
+    "read_more_story": "Read More",
     "mission_title": "Mission",
-    "mission_desc": "Bringing Vinh Lap lychees – the essence of Thanh Ha – to the world, creating sustainable jobs for farmers, so the younger generation can proudly say: \"I was born in Vinh Lap.\"",
+    "mission_desc": "To bring Vinh Lap lychee – the essence of Thanh Ha’s land and sky – to the world, creating sustainable jobs for local farmers so that future generations of Vinh Lap can proudly say: “I was born in Vinh Lap.”",
     "vision_title": "Vision",
-    "vision_desc": "To become a leading Vietnamese agricultural brand recognized internationally, contributing to elevating the value of Vietnamese agricultural products and bringing a better life to hometown farmers.",
+    "vision_desc": "To become a leading Vietnamese agricultural brand recognized in international markets, helping elevate the value of Vietnamese farm products and bringing a better life to local farmers.",
     "we_were_born_in": "\"I was born in Vinh Lap.\"",
-    "craft_subheading": "The journey from fresh lychee to a premium product in your hands."
+    "craft_subheading": "The journey from fresh lychees to refined products in your hands."
   },
   "nav": {
     "home": "Home",
@@ -52,19 +52,19 @@
     "menu": "Menu"
   },
   "auth": {
-    "login_title": "Sign in",
+    "login_title": "Login",
     "login_subtitle": "to continue to your account",
     "email": "Email",
     "password": "Password",
     "remember_me": "Remember me",
     "forgot_password": "Forgot password?",
-    "login_button": "Sign in",
-    "login_with_google": "Sign in with Google",
+    "login_button": "Login",
+    "login_with_google": "Login with Google",
     "no_account": "Don't have an account?",
-    "register_now": "Sign up now",
-    "logging_in": "Signing in...",
+    "register_now": "Register now",
+    "logging_in": "Logging in...",
     "login_success": "Login successful!",
-    "login_failed": "Login failed. Please check your credentials.",
+    "login_failed": "Login failed. Please check your information.",
     "or_continue_with": "Or continue with"
   },
   "common": {
@@ -74,6 +74,8 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "save": "Save",
+    "save_draft": "Save Draft",
+    "saving": "Saving...",
     "edit": "Edit",
     "delete": "Delete",
     "search": "Search",
@@ -81,10 +83,379 @@
     "sort": "Sort",
     "price": "Price",
     "quantity": "Quantity",
-    "total": "Total"
+    "total": "Total",
+    "preview": "Preview",
+    "view_on_website": "View on Website",
+    "save_changes": "Save Changes",
+    "has_changes": "Editing",
+    "saved": "Saved",
+    "active": "Active",
+    "inactive": "Inactive",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "add": "Add",
+    "remove": "Remove",
+    "update": "Update",
+    "create": "Create New",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "open": "Open",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "apply": "Apply",
+    "reset": "Reset",
+    "refresh": "Refresh",
+    "export": "Export",
+    "import": "Import",
+    "download": "Download",
+    "upload": "Upload",
+    "select": "Select",
+    "select_all": "Select All",
+    "deselect_all": "Deselect All",
+    "actions": "Actions",
+    "status": "Status",
+    "created_at": "Created At",
+    "updated_at": "Updated At",
+    "no_data": "No data",
+    "no_results": "No results found",
+    "results": "Results",
+    "of": "of",
+    "page": "Page",
+    "per_page": "Per page",
+    "showing": "Showing",
+    "to": "to",
+    "items": "items"
+  },
+  "admin": {
+    "title": "Admin",
+    "dashboard": {
+      "title": "Dashboard",
+      "overview": "Overview",
+      "statistics": "Statistics",
+      "recent_orders": "Recent Orders",
+      "top_products": "Top Products",
+      "revenue": "Revenue",
+      "orders": "Orders",
+      "products": "Products",
+      "customers": "Customers"
+    },
+    "cms": {
+      "title": "CMS - Interface Management",
+      "description": "Manage and customize your entire website interface",
+      "view_website": "View Website",
+      "modules": "Management Modules",
+      "active_modules": "Active Modules",
+      "coming_soon": "Coming Soon",
+      "total_configs": "Total Configurations",
+      "modules_available": "Available Modules",
+      "system_status": "CMS System",
+      "quick_actions": "Quick Actions",
+      "quick_actions_desc": "Frequently used actions in CMS management",
+      "edit_homepage": "Edit Homepage",
+      "manage_banners": "Manage Banners",
+      "view_web": "View Website",
+      "theme": {
+        "title": "Theme Settings",
+        "description": "Customize website colors, fonts, and spacing",
+        "colors": "Colors",
+        "fonts": "Fonts",
+        "spacing": "Spacing",
+        "preview": "Preview",
+        "reset": "Reset",
+        "save_changes": "Save Changes"
+      },
+      "navigation": {
+        "title": "Navigation Settings",
+        "description": "Manage your website menu and navigation",
+        "menu_items": "Menu Items",
+        "menu_items_desc": "Manage items in the navigation menu",
+        "add_menu_item": "Add Menu Item",
+        "label": "Label",
+        "link": "Link (href)",
+        "visible": "Visible",
+        "no_items": "No menu items yet. Add a new menu item."
+      },
+      "seo": {
+        "title": "SEO Settings",
+        "description": "Configure SEO, meta tags, and social media",
+        "site_info": "Website Information",
+        "open_graph": "Open Graph",
+        "twitter": "Twitter",
+        "robots": "Robots & Sitemap",
+        "allow_indexing": "Allow indexing",
+        "allow_following": "Allow following links",
+        "enable_sitemap": "Enable sitemap",
+        "sitemap_url": "Sitemap URL"
+      },
+      "typography": {
+        "title": "Typography Settings",
+        "description": "Manage fonts, font sizes, and the typography system",
+        "font_family": "Font Family",
+        "font_sizes": "Font Sizes",
+        "font_weights": "Font Weights",
+        "line_heights": "Line Heights",
+        "preview": "Preview",
+        "heading_example": "Heading Example",
+        "body_example": "Body text example with current typography settings."
+      },
+      "layout": {
+        "title": "Layout Settings",
+        "description": "Configure container, grid system, and responsive breakpoints",
+        "container_settings": "Container Settings",
+        "container_desc": "Configure container width and padding",
+        "max_width": "Max Width",
+        "padding": "Padding",
+        "grid_system": "Grid System",
+        "grid_desc": "Configure grid columns and gaps",
+        "columns": "Columns",
+        "gap": "Gap",
+        "breakpoints": "Responsive Breakpoints",
+        "breakpoints_desc": "Configure breakpoints for responsive design"
+      },
+      "footer": {
+        "title": "Footer Settings",
+        "description": "Description",
+        "company": "Company",
+        "contact": "Contact",
+        "links": "Links",
+        "social": "Social Media",
+        "other": "Other",
+        "company_info": "Company Information",
+        "company_info_desc": "Configure logo, company name, and description",
+        "company_name": "Company Name",
+        "logo": "Logo (optional)",
+        "legal_info": "Legal Information",
+        "legal_company_name": "Legal Company Name",
+        "tax_code": "Tax Code",
+        "managed_by": "Managed By",
+        "contact_info": "Contact Information",
+        "contact_desc": "Configure address, email, and phone number",
+        "address": "Address",
+        "map_link": "Map Link (Google Maps)",
+        "email": "Email",
+        "phone": "Phone",
+        "quick_links": "Quick Links",
+        "quick_links_desc": "Manage footer links",
+        "add_link": "Add Link",
+        "no_links": "No links yet. Add a new link.",
+        "social_media": "Social Media",
+        "social_desc": "Configure social media links",
+        "copyright": "Copyright",
+        "copyright_text": "Copyright Text",
+        "certifications": "Certifications & Badges",
+        "dmca_url": "DMCA URL",
+        "dmca_id": "DMCA ID",
+        "show_safety_badge": "Show Safety Badge",
+        "show_ministry_logo": "Show Ministry of Industry and Trade Logo",
+        "preview_footer": "Preview Footer",
+        "preview_desc": "Preview how the footer will appear on the website",
+        "real_time": "Real-time",
+        "contact_us": "Contact Us",
+        "quick_links_title": "Quick Links"
+      },
+      "story": {
+        "title": "Story Page",
+        "description": "Manage the content and images of the story page"
+      }
+    },
+    "story": {
+      "title": "Story Page Management",
+      "description": "Edit and manage your story page content",
+      "view_preview": "Preview",
+      "save_draft": "Save Draft",
+      "publish": "Publish",
+      "saving": "Saving...",
+      "publishing": "Publishing...",
+      "sections": "Sections",
+      "select_section": "Select a section to edit",
+      "hero": {
+        "title": "Hero Section",
+        "description": "Description",
+        "background_image": "Background Image",
+        "background_desc": "Background image for the hero section",
+        "content": "Hero Content",
+        "content_desc": "Main title and description",
+        "title_label": "Title",
+        "subtitle": "Subtitle",
+        "preview": "Preview"
+      },
+      "chapter1": {
+        "title": "Chapter 1",
+        "description": "A Beautiful Yet Poor Land",
+        "image": "Image",
+        "location_info": "Location Information",
+        "location": "Location",
+        "location_text": "Location Text",
+        "chapter_content": "Chapter Content",
+        "title_label": "Title",
+        "content_label": "Content (each line is a paragraph)",
+        "paragraphs": "paragraphs",
+        "quote": "Quote"
+      },
+      "chapter2": {
+        "title": "Chapter 2",
+        "description": "A View from Abroad",
+        "chapter_content": "Chapter Content",
+        "title_label": "Title",
+        "content_label": "Content (each line is a paragraph)",
+        "paragraphs": "paragraphs",
+        "items_label": "Items (each line is an item)",
+        "items_count": "items",
+        "image1": "Image 1",
+        "image2": "Image 2"
+      },
+      "quote": {
+        "title": "Quote",
+        "description": "Featured Quote",
+        "quote_text": "Quote Text",
+        "author": "Author"
+      },
+      "video": {
+        "title": "Video",
+        "description": "YouTube Video",
+        "config": "Video Configuration",
+        "youtube_id": "YouTube Video ID",
+        "youtube_id_help": "Get the ID from the YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID",
+        "title_label": "Title",
+        "description_label": "Description",
+        "show_video0": "Show Video",
+        "preview_video": "Preview Video"
+      },
+      "chapter3": {
+        "title": "Chapter 3",
+        "description": "Bringing Lychee to the World",
+        "main_image": "Main Image",
+        "small_image": "Small Image",
+        "small_image_label": "Small Image Label",
+        "chapter_content": "Chapter Content",
+        "title_label": "Title",
+        "content_label": "Content (each line is a paragraph)",
+        "cards": "Cards",
+        "cards_desc": "Information Cards",
+        "card_title": "Title",
+        "card_content": "Content",
+        "button_text": "Button Text"
+      }
+    },
+    "translations": {
+      "title": "Translation Management",
+      "refresh": "Refresh",
+      "add_new": "Add New",
+      "stats": "Statistics",
+      "list": "List",
+      "form": "Form",
+      "search": "Search",
+      "import_export": "Import/Export"
+    }
+  },
+  "products": {
+    "title": "Products",
+    "all_products": "All Products",
+    "featured": "Featured Products",
+    "new": "New Products",
+    "on_sale": "On Sale",
+    "out_of_stock": "Out of Stock",
+    "in_stock": "In Stock",
+    "add_to_cart": "Add to Cart",
+    "buy_now": "Buy Now",
+    "view_details": "View Details",
+    "price": "Price",
+    "original_price": "Original Price",
+    "sale_price": "Sale Price",
+    "discount": "Discount",
+    "quantity": "Quantity",
+    "description": "Description",
+    "specifications": "Specifications",
+    "reviews": "Reviews",
+    "related_products": "Related Products",
+    "categories": "Categories",
+    "brand": "Brand",
+    "tags": "Tags",
+    "filter": "Filter",
+    "sort_by": "Sort By",
+    "sort_price_low": "Price: Low to High",
+    "sort_price_high": "Price: High to Low",
+    "sort_newest": "Newest",
+    "sort_oldest": "Oldest",
+    "sort_name": "Name A-Z",
+    "no_products": "No products found",
+    "loading_products": "Loading products...",
+    "shop": {
+      "search_placeholder": "Search products…",
+      "filter_btn": "Filter",
+      "price_range": "Price Range",
+      "categories": "Categories",
+      "brands": "Brands",
+      "all": "All",
+      "sort_section": "Sort",
+      "clear_filters": "Clear filters",
+      "clear_all_filters": "Clear all",
+      "active_filter_label": "Filters:",
+      "grid_view": "Grid view",
+      "list_view": "List view",
+      "results_loading": "Loading…",
+      "results_count": "{count} products",
+      "results_price_range": "in range {min}–{max}",
+      "empty_title": "No products found",
+      "empty_subtitle": "Try changing your filters or search keywords",
+      "sort_newest": "Newest",
+      "sort_price_asc": "Price low → high",
+      "sort_price_desc": "Price high → low",
+      "sort_name_asc": "Name A–Z",
+      "sort_name_desc": "Name Z–A",
+      "price_max": "5M+",
+      "price_min_label": "0"
+    }
+  },
+  "orders": {
+    "title": "Orders",
+    "my_orders": "My Orders",
+    "order_history": "Order History",
+    "order_number": "Order Number",
+    "order_date": "Order Date",
+    "order_status": "Status",
+    "total_amount": "Total Amount",
+    "view_order": "View Order",
+    "track_order": "Track Order",
+    "cancel_order": "Cancel Order",
+    "reorder": "Reorder",
+    "pending": "Pending",
+    "processing": "Processing",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled",
+    "refunded": "Refunded"
+  },
+  "footer": {
+    "company_name": "Lalalycheee",
+    "company_description": "We are proud to bring high-quality, sustainable, and environmentally friendly lychee products that help elevate the value of Vietnamese agricultural products.",
+    "contact_us": "Contact Us",
+    "address": "Address",
+    "email": "Email",
+    "phone": "Phone",
+    "quick_links": "Quick Links",
+    "company_info": "LALA - LYCHEEE CO., LTD",
+    "tax_code": "Tax Code",
+    "managed_by": "Managed by Thanh Ha - Tax Office Unit 14, Hai Phong City",
+    "copyright": "© {year} Lalalycheee CO., LTD. All rights reserved.",
+    "address_value": "Tu Y Hamlet, Ha Dong Commune, Hai Phong City.",
+    "news_events": "News & Events",
+    "complaints": "Complaint Resolution",
+    "tax_code_label": "Tax Code:",
+    "short_name_label": "Short Name:",
+    "intl_name_label": "International Name:",
+    "status_label": "Status:",
+    "address_label": "Address:",
+    "source_label": "Source:",
+    "updated_at_label": "Updated at:",
+    "copyright_notice": "Lalalycheee CO., LTD. All rights reserved.",
+    "location_title": "Vinh Lap Lychee - Thanh Ha"
   },
   "header": {
-    "select_language": "Select language",
+    "select_language": "Select Language",
     "hello": "Hello",
     "employee_page": "Employee Page",
     "admin_page": "Admin",
@@ -93,55 +464,40 @@
     "logout_success": "Logged out",
     "login": "Login",
     "cart": "Cart",
-    "pc_mode": "Desktop Mode",
-    "open_menu": "Open menu"
+    "pc_mode": "PC Mode",
+    "open_menu": "Open Menu"
   },
   "hero": {
     "badges": {
       "japan_export": "Exported to Japan",
       "quality_cert": "Quality Certified",
-      "vinh_lap_lychee": "Vinh Lap Lychee - Unique taste"
+      "vinh_lap_lychee": "Vinh Lap Lychee - A Signature Flavor"
     },
     "stats": {
-      "happy_customers": "Happy customers",
-      "avg_rating": "Average rating"
+      "happy_customers": "Happy Customers",
+      "avg_rating": "Average Rating"
     }
-  },
-  "footer": {
-    "address_value": "Tu Y village, Ha Dong commune, Hai Phong city.",
-    "news_events": "News & Events",
-    "complaints": "Complaints",
-    "tax_code_label": "Tax code:",
-    "short_name_label": "Short name:",
-    "intl_name_label": "Intl name:",
-    "status_label": "Status:",
-    "address_label": "Address:",
-    "managed_by": "Managed By Thanh Ha - Tax branch 14 Hai Phong City",
-    "source_label": "Source:",
-    "updated_at_label": "Updated at:",
-    "copyright_notice": "Lalalycheee CO.,LTD. All rights reserved.",
-    "location_title": "Vinh Lap Lychee - Thanh Ha"
   },
   "value": {
     "subtitle": "Why Choose Us",
     "title": "Core Values",
-    "description": "Reasons why LALA-LYCHEEE is the top choice for those who love natural flavors and premium quality",
+    "description": "The reasons why LALA-LYCHEEE is the top choice for those who love natural flavors and premium quality",
     "items": {
       "item1": {
         "title": "100% Fresh Vinh Lap Lychee",
-        "description": "Clear origin from Vinh Lap - Thanh Ha, where there is a unique flavor like nowhere else."
+        "description": "Clearly sourced from Vinh Lap - Thanh Ha, a land with a signature flavor found nowhere else."
       },
       "item2": {
         "title": "International Quality",
-        "description": "Japanese standard cultivation process, achieved quality certification and successfully exported."
+        "description": "Cultivated under Japanese-standard processes, quality-certified, and successfully exported."
       },
       "item3": {
         "title": "Luxury Packaging",
-        "description": "Each product is exquisitely packaged, suitable for premium gifts."
+        "description": "Each product is elegantly packaged, perfect as a premium gift."
       },
       "item4": {
-        "title": "Devotion to Hometown",
-        "description": "Providing sustainable jobs for farmers, contributing to local development."
+        "title": "Devotion to Our Homeland",
+        "description": "Creating sustainable jobs for local farmers and contributing to community development."
       },
       "item5": {
         "title": "Exported to Japan",
@@ -149,28 +505,28 @@
       },
       "item6": {
         "title": "Dedicated Service",
-        "description": "24/7 customer support, fast delivery, 100% satisfaction guaranteed."
+        "description": "24/7 customer support, fast delivery, and 100% satisfaction guaranteed."
       }
     }
   },
   "social_proof": {
     "title": "Trusted by the Community",
-    "description": "The joy of our customers and the companionship of reputable brands are testing to our quality.",
-    "testimonials_title": "Customer Feedback",
-    "partners_title": "Our Partners",
+    "description": "Customer satisfaction and the partnership of trusted brands are proof of our quality.",
+    "testimonials_title": "Customer Feedback?",
+    "partners_title": "Partner Brands",
     "testimonials": {
       "t1": {
-        "quote": "LALA-LYCHEE's products are truly different. The pure sweetness and natural fragrance impressed me. The packaging is also very luxurious!",
+        "quote": "LALA-LYCHEE products are truly different. The light sweetness and natural aroma impressed me greatly. The packaging is also very luxurious!",
         "author": "Ngoc Anh",
-        "role": "Culinary Expert"
+        "role": "Food Expert"
       },
       "t2": {
-        "quote": "I used LALA-LYCHEE's lychee honey to entertain partners and they loved it. A quality product that shows the sophistication of the giver.",
+        "quote": "I used LALA-LYCHEE lychee blossom honey to welcome partners, and they loved it. A quality product that reflects the sophistication of the giver.",
         "author": "Minh Tuan",
         "role": "Business Director"
       },
       "t3": {
-        "quote": "I never thought a product made from lychee could be so delicate. I will definitely support LALA-LYCHEE for a long time.",
+        "quote": "I never thought a product made from lychee could be this refined. I will definitely continue supporting LALA-LYCHEE.",
         "author": "Phuong Linh",
         "role": "Travel Blogger"
       }
@@ -178,8 +534,8 @@
   },
   "certifications": {
     "subtitle": "Certifications & Partners",
-    "title": "Recognized Accreditations",
-    "partners_title": "Our Partners",
+    "title": "Recognized",
+    "partners_title": "Partner Brands",
     "items": {
       "cert1": {
         "name": "Quality Certification",
@@ -197,8 +553,8 @@
   },
   "featured_products": {
     "subtitle": "Exclusive Collection",
-    "description": "Unique creations from <strong>LALA-LYCHEE</strong>, crystallizing the sweet flavor of nature and the dedication of farmers.",
-    "error": "Failed to load featured products",
+    "description": "Unique creations from <strong>LALA-LYCHEE</strong>, combining the sweet taste of nature with the dedication of local farmers.",
+    "error": "Unable to load featured products",
     "retry": "Retry",
     "empty": "No featured products yet",
     "view_all": "View All Products",
@@ -212,29 +568,29 @@
   },
   "video_section": {
     "section_title": "Our Story",
-    "video_title": "Japanese-Vietnamese couple's dedication to Thanh Ha lychee",
-    "video_description": "Promoting the local specialty of Vinh Lap, Thanh Ha to friends locally and internationally."
+    "video_title": "A Japanese-Vietnamese Couple Dedicated to Thanh Ha Lychee, Hai Duong",
+    "video_description": "Helping promote the specialty products of Vinh Lap and Thanh Ha to friends at home and abroad."
   },
   "news_section": {
     "subtitle": "News & Updates",
     "title": "Stories from Vinh Lap",
-    "description": "Discover the latest stories, news, and updates about Vinh Lap lychee and the journey of LALA-LYCHEEE.",
+    "description": "Discover the latest stories, news, and updates about Vinh Lap lychee and the journey of LALA-LYCHEEE",
     "view_all": "View All News"
   },
   "our_craft": {
-    "click_hint": "(Click on each step to see details)",
+    "click_hint": "(Click each step to view details)",
     "steps": {
       "step1": {
-        "title": "Exquisite Selection",
-        "description": "Each lychee is hand-picked from certified orchards, ensuring the perfect ripeness and sweetest flavor."
+        "title": "Careful Selection",
+        "description": "Each lychee is hand-selected from certified orchards, ensuring the best ripeness and sweetest flavor."
       },
       "step2": {
         "title": "Meticulous Processing",
-        "description": "A closed production process using modern technology to retain the lychee's natural nutrients and flavor."
+        "description": "A closed production process using modern technology to preserve the nutrients and natural flavor of lychee."
       },
       "step3": {
         "title": "Luxury Packaging",
-        "description": "Each product is a work of art, adorned in premium packaging crafted with intricate detail."
+        "description": "Each product is a work of art, wrapped in premium packaging with exquisite attention to detail."
       }
     }
   },
@@ -244,15 +600,15 @@
     "items": {
       "item1": {
         "title": "Lychee Harvest",
-        "category": "Positive energy harvesting together."
+        "category": "Positive energy as everyone joins the harvest."
       },
       "item2": {
-        "title": "Delicacy in Every Step",
-        "category": "Selecting the best lychees."
+        "title": "Refined in Every Step",
+        "category": "Selecting only the best lychees."
       },
       "item3": {
-        "title": "Combined with Sunlight",
-        "category": "Naturally sun-dried to retain full flavor."
+        "title": "Combined with Sunshine",
+        "category": "Naturally sun-dried to preserve the full flavor."
       },
       "item4": {
         "title": "Sweet Results",
@@ -260,70 +616,130 @@
       },
       "item5": {
         "title": "Packaging",
-        "category": "Products packaged meticulously and luxuriously."
+        "category": "Products are packaged carefully and elegantly."
       }
     }
   },
   "maps": {
     "subtitle": "Location",
     "title": "Visit Our Company",
-    "description": "LALA-LYCHEEE is located right in the heart of the famous lychee region. Come to experience the fresh flavor straight from the garden.",
+    "description": "LALA-LYCHEEE is located right in the heart of the famous lychee region. Come and experience the fresh taste straight from the orchard.",
     "old_address": "Vinh Lap – Thanh Ha – Hai Duong (old administrative address)",
-    "new_address_main": "Tu Village - Ha Dong Commune - Hai Phong City",
+    "new_address_main": "Tu Hamlet - Ha Dong Commune - Hai Phong City",
     "new_address_note": "(new administrative address)",
     "directions": "Google Maps Directions"
   },
   "marquee": {
-    "item1": "🍒 Vinh Lap - Home of Thanh Ha Lychee",
-    "item2": "⭐ Unique Flavor",
+    "item1": "🍒 Vinh Lap - The Lychee Land of Thanh Ha",
+    "item2": "⭐ Signature Flavor",
     "item3": "🌏 Exported to Japan",
-    "item4": "✨ 100% Hand-picked Fresh Lychee",
+    "item4": "✨ 100% Carefully Selected Fresh Lychees",
     "item5": "🏆 Quality Certified",
-    "item6": "💝 Luxury Gift",
+    "item6": "💝 Premium Gift Packaging",
     "item7": "🚚 Nationwide Delivery",
-    "item8": "👥 10,000+ Satisfied Customers"
+    "item8": "👥 10,000+ Happy Customers"
+  },
+  "sub": {
+    "craft_subheading": "The Essence of Lychee"
   },
   "defaults": {
-    "hero_title": "The Finest from Nature",
-    "hero_subtitle": "Vinh Lap lychee – carefully selected to bring pure sweet flavor to your family.",
+    "hero_title": "The Pure Essence of Nature",
+    "hero_subtitle": "Carefully selected Vinh Lap – Thanh Ha lychees bring pure natural sweetness to your family.",
     "hero_cta": "Explore Now"
   },
   "story": {
     "loading": "Loading story...",
     "hero_title": "The Journey Home",
     "hero_subtitle": "Awakening",
-    "hero_description": "From the self-doubt of someone far from home, to a passion for sharing the pride of Vinh Lap with the world.",
+    "hero_description": "From the self-doubt of someone far from home to the aspiration of bringing Vinh Lap pride to the world.",
     "explore": "Explore",
     "chapter1_label": "Chapter I",
     "chapter1_location": "Vinh Lap, Thanh Ha",
-    "chapter1_location_text": "\"Surrounded by rivers on all sides, the people worked hard all year round...\"",
-    "chapter1_title": "Beautiful but Poor Land",
-    "chapter1_content1": "I was born and raised in Vinh Lap – Thanh Ha – Hai Duong, the cradle of lychee trees. But back then, all I saw was hardship. This land is beautiful, but trade was limited, and people's lives lacked in many ways.",
-    "chapter1_quote": "\"There was a time I was so ashamed of my hometown that I didn't dare tell my friends I was from Vinh Lap.\"",
+    "chapter1_location_text": "\"Surrounded by rivers, where people worked hard all year round...\"",
+    "chapter1_title": "A Beautiful Yet Poor Land",
+    "chapter1_content1": "I was born and raised in Vinh Lap – Thanh Ha – Hai Duong, the cradle of the lychee tree. But back then, all I could see was hardship. This land was beautiful, yet trade was limited and life was full of difficulties.",
+    "chapter1_quote": "\"There was a time when I felt so insecure about my hometown that I did not dare tell my friends I was from Vinh Lap.\"",
     "chapter2_label": "Chapter II",
-    "chapter2_title": "A View from Afar",
-    "chapter2_content1": "Ten years of studying and working in Japan were transformative. There, I met my life partner — a Japanese language teacher.",
-    "chapter2_content2": "When we returned to Vietnam together, her eyes helped me rediscover my homeland — the beauty of community bonds, the peace of the river, and above all, the exquisite taste of lychee that I had long overlooked.",
-    "chapter2_awakening_title": "The Awakening",
-    "chapter2_item1": "The simple beauty of Vinh Lap people",
-    "chapter2_item2": "The unique lychee flavor found nowhere else",
-    "chapter2_item3": "Pride hidden in simplicity",
+    "chapter2_title": "A View from Abroad",
+    "chapter2_content1": "Ten years of studying and working in Japan changed my life. There, I met my life partner — a Japanese language teacher.",
+    "chapter2_content2": "When we returned to Vietnam together, it was through her eyes that I saw my hometown again. She showed me the beauty of neighborhood bonds, the peacefulness of the rivers, and above all, the extraordinary flavor of the lychee I had long taken for granted.",
+    "chapter2_awakening_title": "Awakening",
+    "chapter2_item1": "The genuine beauty of Vinh Lap’s people",
+    "chapter2_item2": "A one-of-a-kind lychee flavor found nowhere else",
+    "chapter2_item3": "The pride hidden in simplicity",
     "chapter2_love": "Love & Longing",
-    "quote_text": "\"We brought our hometown lychees to share with Japanese friends. Seeing the amazement in their eyes, I realized: the place I had once been ashamed of was the place I could be most proud of.\"",
-    "quote_author": "Founder of LALA-LYCHEEE",
-    "video_title": "The Story on Screen",
-    "video_description": "Explore the journey of bringing Vinh Lap lychee to the world, through the eyes of those who lived it",
+    "quote_text": "\"We shared our hometown lychees with friends in Japan. From the surprise in their eyes, I realized that the place I once felt insecure about was actually the place I should be most proud of.\"",
+    "quote_author": "Founder LALA-LYCHEEE",
+    "video_title": "Our Story on Screen",
+    "video_description": "Discover the journey of bringing Vinh Lap lychee to the world through the eyes of those who lived it",
     "chapter3_label": "Chapter III",
-    "chapter3_small_label": "The Ancient Lychee Tree of Thanh Ha",
+    "chapter3_small_label": "The Original Thanh Ha Lychee Tree",
     "chapter3_title": "Bringing Lychee to the World",
-    "chapter3_content1": "LALA-LYCHEEE's mission is not just to sell fruit. It's a journey to establish the Vietnamese agricultural brand — so the young generation of Vinh Lap can proudly say: \"I was born in Vinh Lap.\"",
+    "chapter3_content1": "The mission of LALA-LYCHEEE is not simply to sell fruit. It is a journey to affirm the value of Vietnamese agriculture, so that future generations of Vinh Lap can proudly say: \"I was born in Vinh Lap.\"",
     "chapter3_card1_title": "Quality",
-    "chapter3_card1_content": "Japanese standard farming practices to preserve the natural flavor.",
+    "chapter3_card1_content": "Japanese-standard cultivation processes that preserve the fruit’s natural flavor.",
     "chapter3_card2_title": "Community",
-    "chapter3_card2_content": "Creating sustainable livelihoods so farmers don't have to leave their homeland.",
+    "chapter3_card2_content": "Creating sustainable livelihoods so that farmers do not have to leave their hometowns.",
     "chapter3_button": "Experience Now",
-    "modal_close_hint": "Press ESC or click the dark area to close",
+    "modal_close_hint": "Press ESC or click on the dark area to close",
     "click_to_enlarge": "(Click to enlarge)",
-    "hero_tagline": "Flavor of the Lychee Land"
-  }
+    "hero_tagline": "The Taste of Lychee Land"
+  },
+  "contact": {
+    "hero_title": "Contact Us",
+    "hero_subtitle": "We are always ready to listen and support you. Send us a message or contact us directly using the methods below.",
+    "badge_response": "⚡ Response within 30 minutes",
+    "badge_customers": "✅ Trusted by 500+ customers",
+    "badge_support": "🕐 Support available daily from 8:00 to 20:00",
+    "info_address_title": "Address",
+    "info_address_content": "Tu Y Hamlet, Ha Dong Commune, Hai Phong City",
+    "info_phone_title": "Phone",
+    "info_phone_content": "(+84) 0962-215-666",
+    "info_email_title": "Email",
+    "info_email_content": "info@lalalycheee.vn",
+    "info_hours_title": "Business Hours",
+    "info_hours_content": "Monday - Saturday: 7:00 - 20:00",
+    "info_view_map": "View Map →",
+    "form_title": "Send Us a Message",
+    "form_subtitle": "Fill in the information below and we will respond within 30 minutes during business hours.",
+    "field_name": "Full Name *",
+    "field_name_placeholder": "Enter your full name",
+    "field_phone": "Phone Number *",
+    "field_phone_placeholder": "Enter your phone number",
+    "field_email": "Email *",
+    "field_email_placeholder": "example@email.com",
+    "field_request_type": "Request Type *",
+    "field_request_placeholder": "Select a request type",
+    "request_product": "Product Inquiry",
+    "request_wholesale": "Orders - Partnership",
+    "request_order": "Order Tracking",
+    "request_complaint": "Complaint / Feedback",
+    "request_other": "Other",
+    "field_message": "Message *",
+    "field_message_placeholder": "Enter your message...",
+    "char_remaining": "characters remaining",
+    "submit_button": "Send Message",
+    "submitting": "Sending...",
+    "success_title": "Sent Successfully!",
+    "success_message": "Thank you for contacting us. We will respond as soon as possible.",
+    "toast_success": "Message sent successfully! We will get back to you as soon as possible.",
+    "toast_error": "Failed to send message. Please try again or contact us directly by phone.",
+    "cta_title": "We’re Always Ready to Support You",
+    "cta_subtitle": "Whether you have questions about products, orders, or anything else, our team will respond within 30 minutes during business hours.",
+    "cta_call": "Call Now",
+    "cta_zalo": "Chat on Zalo",
+    "faq_title": "Frequently Asked Questions",
+    "faq_subtitle": "The most common questions from our customers",
+    "faq_q1": "How long does delivery take?",
+    "faq_a1": "Order processing time: 1-2 business days for Northern Vietnam and 2-3 business days for Southern Vietnam.",
+    "faq_q2": "Does your company offer partnership programs?",
+    "faq_a2": "We offer partnership programs for agents, partners, and corporate customers.",
+    "faq_q3": "Are your products quality certified?",
+    "faq_a3": "All LALA-LYCHEEE products meet food safety standards, are tested according to Japanese standards, and come with full certification documents.",
+    "faq_q4": "What is your return policy?",
+    "faq_a4": "We support returns or exchanges within 24 hours of delivery if the product has a quality issue. Please contact us immediately via Zalo or phone."
+  },
+  " results": "Results",
+  "search_placeholder": "Search products…",
+  "filter_btn": "Filter"
 }

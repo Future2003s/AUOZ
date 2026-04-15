@@ -69,6 +69,13 @@ export const I18nProvider: React.FC<{
   const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
   const [messages, setMessages] = useState<Messages>(initialMessages ?? {});
 
+  // Sync messages state if initialMessages prop changes (e.g. from server action, navigation or HMR)
+  useEffect(() => {
+    if (initialMessages && Object.keys(initialMessages).length > 0) {
+      setMessages(initialMessages);
+    }
+  }, [initialMessages]);
+
   // update locale whenever the pathname changes (handles client-side navigation)
   useEffect(() => {
     // if initialLocale provided, prefer it on first render
@@ -88,7 +95,8 @@ export const I18nProvider: React.FC<{
 
   useEffect(() => {
     // only load messages client-side if not provided by server
-    if (initialMessages) return;
+    if (initialMessages && Object.keys(initialMessages).length > 0) return;
+
     let mounted = true;
     import(`./locales/${locale}.json`)
       .then((m) => {

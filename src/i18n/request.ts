@@ -56,7 +56,7 @@ export async function getTranslationsFromApi(
     try {
         const response = await fetch(`${baseUrl}/i18n/${locale}`, {
             method: "GET",
-            next: { revalidate: 60 } // ISR: cache 60 giây, tự động revalidate
+            cache: "no-store", // Tắt cache để cập nhật tức thì dữ liệu từ admin
         } as RequestInit);
 
         if (!response.ok) {

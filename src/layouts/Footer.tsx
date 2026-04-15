@@ -12,9 +12,9 @@ import useTranslations from "@/i18n/useTranslations";
 function Footer() {
   const t = useTranslations();
   const [isMounted, setIsMounted] = useState(false);
-  const [businessData, setBusinessData] = useState<{ 
-    id: string; 
-    name: string; 
+  const [businessData, setBusinessData] = useState<{
+    id: string;
+    name: string;
     address: string;
     internationalName: string;
     shortName: string;
@@ -31,7 +31,7 @@ function Footer() {
 
   useEffect(() => {
     const timer = setTimeout(() => setIsMounted(true), 0);
-    
+
     const fetchBusinessData = async () => {
       try {
         const response = await fetch("https://api.vietqr.io/v2/business/0801381660");
@@ -46,7 +46,7 @@ function Footer() {
         console.error("Failed to fetch business data:", error);
       }
     };
-    
+
     fetchBusinessData();
 
     return () => clearTimeout(timer);
@@ -183,11 +183,11 @@ function Footer() {
 
           {businessMetadata && (
             <div className="bg-slate-800/50 rounded-lg p-3 mb-5 border border-slate-700/50">
-               <p className="text-xs text-gray-400 leading-relaxed mb-1.5">{businessMetadata.disclaimer}</p>
-               <div className="flex flex-col gap-1 text-[11px] text-gray-500">
-                  <p>{t("footer.source_label")} <a href={businessMetadata.source} target="_blank" rel="noopener noreferrer" className="hover:text-rose-400 transition-colors">{businessMetadata.source}</a></p>
-                  <p>{t("footer.updated_at_label")} {new Date(businessMetadata.updatedAt).toLocaleDateString("vi-VN")}</p>
-               </div>
+              <p className="text-xs text-gray-400 leading-relaxed mb-1.5">{businessMetadata.disclaimer}</p>
+              <div className="flex flex-col gap-1 text-[11px] text-gray-500">
+                <p>{t("footer.source_label")} <a href={businessMetadata.source} target="_blank" rel="noopener noreferrer" className="hover:text-rose-400 transition-colors">{businessMetadata.source}</a></p>
+                <p>{t("footer.updated_at_label")} {new Date(businessMetadata.updatedAt).toLocaleDateString("vi-VN")}</p>
+              </div>
             </div>
           )}
 

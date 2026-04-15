@@ -3,8 +3,10 @@ import { envConfig } from "@/config";
 
 export async function GET(request: NextRequest) {
   try {
+    const queryString = request.nextUrl.searchParams.toString();
+    const endpoint = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/categories/tree`;
     const response = await fetch(
-      `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/categories/tree`,
+      queryString ? `${endpoint}?${queryString}` : endpoint,
       {
         cache: "no-store",
         headers: {

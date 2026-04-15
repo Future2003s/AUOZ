@@ -10,10 +10,10 @@ interface PageProps {
 // ──────────────────────────────────────────────────────────
 // Server-side product fetch (revalidate every 30s)
 // ──────────────────────────────────────────────────────────
-async function fetchProduct(id: string): Promise<Product | null> {
+async function fetchProduct(id: string, locale: string): Promise<Product | null> {
   const baseUrl = envConfig.NEXT_PUBLIC_URL || "http://localhost:3001";
   try {
-    const res = await fetch(`${baseUrl}/api/products/public/${id}`, {
+    const res = await fetch(`${baseUrl}/api/products/public/${id}?locale=${locale}`, {
       next: { revalidate: 30 },
     });
     if (!res.ok) return null;
@@ -46,7 +46,7 @@ function getMainImage(product: Product | null): string {
 // ──────────────────────────────────────────────────────────
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id, locale } = await params;
-  const product = await fetchProduct(id);
+  const product = await fetchProduct(id, locale);
   const siteUrl = envConfig.NEXT_PUBLIC_URL || "https://lala-lycheee.com";
   const canonical = `${siteUrl}/${locale}/products/${id}`;
 
@@ -123,14 +123,14 @@ function buildJsonLd(product: Product, locale: string, id: string): object {
     },
     ...(avgRating != null && avgRating > 0
       ? {
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue: avgRating,
-            reviewCount: Math.max(1, reviewCount),
-            bestRating: 5,
-            worstRating: 1,
-          },
-        }
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: avgRating,
+          reviewCount: Math.max(1, reviewCount),
+          bestRating: 5,
+          worstRating: 1,
+        },
+      }
       : {}),
   };
 }
@@ -140,7 +140,7 @@ function buildJsonLd(product: Product, locale: string, id: string): object {
 // ──────────────────────────────────────────────────────────
 export default async function ProductDetailPage({ params }: PageProps) {
   const { id, locale } = await params;
-  const product = await fetchProduct(id);
+  const product = await fetchProduct(id, locale);
   const jsonLd = product ? buildJsonLd(product, locale, id) : null;
 
   return (

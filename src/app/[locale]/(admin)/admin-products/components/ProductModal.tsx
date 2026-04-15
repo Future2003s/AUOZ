@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Loader } from "@/components/ui/loader";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   X,
   Save,
@@ -58,6 +59,10 @@ export default function ProductModal({
     isFeatured: false,
     comingSoon: false,
     images: [] as string[],
+    translations: {
+      en: { name: "", description: "" },
+      ja: { name: "", description: "" },
+    },
   });
   const [formData, setFormData] = useState(createEmptyFormData);
   const [loading, setLoading] = useState(false);
@@ -103,14 +108,14 @@ export default function ProductModal({
         incomingStatus === "ACTIVE"
           ? "active"
           : incomingStatus === "INACTIVE"
-          ? "archived"
-          : incomingStatus === "DRAFT"
-          ? "draft"
-          : incomingStatus === "ACTIVE"
-          ? "active"
-          : incomingStatus === "ARCHIVED"
-          ? "archived"
-          : "draft"; // Always fallback to draft if unknown
+            ? "archived"
+            : incomingStatus === "DRAFT"
+              ? "draft"
+              : incomingStatus === "ACTIVE"
+                ? "active"
+                : incomingStatus === "ARCHIVED"
+                  ? "archived"
+                  : "draft"; // Always fallback to draft if unknown
 
       setFormData({
         name: product.name || "",
@@ -120,9 +125,9 @@ export default function ProductModal({
         sku: product.sku || "",
         categoryId: String(
           product.categoryId ||
-            product.category?.id ||
-            product.category?._id ||
-            ""
+          product.category?.id ||
+          product.category?._id ||
+          ""
         ),
         brandId: String(
           product.brandId || product.brand?.id || product.brand?._id || ""
@@ -132,9 +137,13 @@ export default function ProductModal({
         comingSoon: product.comingSoon ?? false,
         images: Array.isArray(product.images)
           ? product.images.map((img: any) =>
-              typeof img === "string" ? img : img.url
-            )
+            typeof img === "string" ? img : img.url
+          )
           : [],
+        translations: product.translations || {
+          en: { name: "", description: "" },
+          ja: { name: "", description: "" },
+        },
       });
     } else {
       setFormData(createEmptyFormData());
@@ -209,6 +218,7 @@ export default function ProductModal({
         allowBackorder: false,
         isVisible: true,
         tags: [],
+        translations: formData.translations,
       };
 
       // Debug category validation
@@ -219,9 +229,9 @@ export default function ProductModal({
       if (formData.categoryId) {
         productData.category = formData.categoryId;
       } else {
-         setError("Vui lòng chọn danh mục sản phẩm");
-         setLoading(false);
-         return;
+        setError("Vui lòng chọn danh mục sản phẩm");
+        setLoading(false);
+        return;
       }
 
       if (formData.brandId) {
@@ -383,65 +393,157 @@ export default function ProductModal({
         </CardHeader>
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="name"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Tên sản phẩm *
-                </Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="Nhập tên sản phẩm"
-                  required
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label
-                  htmlFor="sku"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  SKU
-                </Label>
-                <Input
-                  id="sku"
-                  value={formData.sku}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, sku: e.target.value }))
-                  }
-                  placeholder="Nhập SKU"
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-            </div>
+            <Tabs defaultValue="vi" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="vi">Tiếng Việt</TabsTrigger>
+                <TabsTrigger value="en">Tiếng Anh (EN)</TabsTrigger>
+                <TabsTrigger value="ja">Tiếng Nhật (JA)</TabsTrigger>
+              </TabsList>
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="description"
-                className="text-sm font-medium text-gray-700"
-              >
-                Mô tả
-              </Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-                placeholder="Nhập mô tả sản phẩm"
-                rows={3}
-                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
+              {/* Tiếng Việt Form Fields */}
+              <TabsContent value="vi" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                      Tên sản phẩm *
+                    </Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, name: e.target.value }))
+                      }
+                      placeholder="Nhập tên sản phẩm"
+                      required
+                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sku" className="text-sm font-medium text-gray-700">
+                      SKU
+                    </Label>
+                    <Input
+                      id="sku"
+                      value={formData.sku}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, sku: e.target.value }))
+                      }
+                      placeholder="Nhập SKU"
+                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+                    Mô tả
+                  </Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
+                    placeholder="Nhập mô tả sản phẩm"
+                    rows={3}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+              </TabsContent>
+
+              {/* Tiếng Anh Form Fields */}
+              <TabsContent value="en" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name_en" className="text-sm font-medium text-gray-700">
+                    Tên sản phẩm (EN)
+                  </Label>
+                  <Input
+                    id="name_en"
+                    value={formData.translations.en.name}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        translations: {
+                          ...prev.translations,
+                          en: { ...prev.translations.en, name: e.target.value },
+                        },
+                      }))
+                    }
+                    placeholder="Enter product name"
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description_en" className="text-sm font-medium text-gray-700">
+                    Mô tả (EN)
+                  </Label>
+                  <Textarea
+                    id="description_en"
+                    value={formData.translations.en.description}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        translations: {
+                          ...prev.translations,
+                          en: { ...prev.translations.en, description: e.target.value },
+                        },
+                      }))
+                    }
+                    placeholder="Enter description"
+                    rows={3}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+              </TabsContent>
+
+              {/* Tiếng Nhật Form Fields */}
+              <TabsContent value="ja" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name_ja" className="text-sm font-medium text-gray-700">
+                    Tên sản phẩm (JA)
+                  </Label>
+                  <Input
+                    id="name_ja"
+                    value={formData.translations.ja.name}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        translations: {
+                          ...prev.translations,
+                          ja: { ...prev.translations.ja, name: e.target.value },
+                        },
+                      }))
+                    }
+                    placeholder="製品名を入力してください"
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description_ja" className="text-sm font-medium text-gray-700">
+                    Mô tả (JA)
+                  </Label>
+                  <Textarea
+                    id="description_ja"
+                    value={formData.translations.ja.description}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        translations: {
+                          ...prev.translations,
+                          ja: { ...prev.translations.ja, description: e.target.value },
+                        },
+                      }))
+                    }
+                    placeholder="説明を入力してください"
+                    rows={3}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -639,11 +741,10 @@ export default function ProductModal({
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                  dragActive
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragActive
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-300 hover:border-gray-400"
-                } ${uploadingImage ? "opacity-50 pointer-events-none" : ""}`}
+                  } ${uploadingImage ? "opacity-50 pointer-events-none" : ""}`}
               >
                 <input
                   type="file"

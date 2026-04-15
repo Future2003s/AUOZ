@@ -44,6 +44,7 @@ export interface CategoryQueryParams {
   withProductCount?: boolean;
   sort?: "name" | "order" | "createdAt";
   order?: "asc" | "desc";
+  locale?: string;
 }
 
 // Category API requests
@@ -61,18 +62,18 @@ export const categoryApiRequest = {
   },
 
   // Get single category by ID
-  getCategory: (id: string): Promise<CategoryResponse> => {
-    return http.get(API_CONFIG.CATEGORIES.BY_ID.replace(":id", id));
+  getCategory: (id: string, locale?: string): Promise<CategoryResponse> => {
+    return http.get(`${API_CONFIG.CATEGORIES.BY_ID.replace(":id", id)}${locale ? `?locale=${locale}` : ""}`);
   },
 
   // Get category by slug
-  getCategoryBySlug: (slug: string): Promise<CategoryResponse> => {
-    return http.get(API_CONFIG.CATEGORIES.BY_SLUG.replace(":slug", slug));
+  getCategoryBySlug: (slug: string, locale?: string): Promise<CategoryResponse> => {
+    return http.get(`${API_CONFIG.CATEGORIES.BY_SLUG.replace(":slug", slug)}${locale ? `?locale=${locale}` : ""}`);
   },
 
   // Get category tree (hierarchical structure)
-  getCategoryTree: (): Promise<CategoryTreeResponse> => {
-    return http.get(API_CONFIG.CATEGORIES.TREE);
+  getCategoryTree: (locale?: string): Promise<CategoryTreeResponse> => {
+    return http.get(`${API_CONFIG.CATEGORIES.TREE}${locale ? `?locale=${locale}` : ""}`);
   },
 
   // Get main categories (top-level)

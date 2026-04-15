@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   const brandId = searchParams.get("brandId");
   const page = searchParams.get("page") ?? "1";
   const size = searchParams.get("size") ?? "24";
+  const locale = searchParams.get("locale");
 
   // Map to new backend endpoints: /api/v1/products, /api/v1/products/search, /api/v1/products/category/:categoryId
   let backendUrl: string;
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
     p.set("limit", size);
     p.set("status", "active");
     p.set("isVisible", "true");
+    if (locale) p.set("locale", locale);
     return p;
   };
 
@@ -94,11 +96,11 @@ export async function GET(request: NextRequest) {
         data: list,
         pagination: raw?.data
           ? {
-              page: raw.data.page || 1,
-              size: raw.data.size || 24,
-              totalElements: raw.data.totalElements || list.length,
-              totalPages: raw.data.totalPages || 1,
-            }
+            page: raw.data.page || 1,
+            size: raw.data.size || 24,
+            totalElements: raw.data.totalElements || list.length,
+            totalPages: raw.data.totalPages || 1,
+          }
           : null,
       }),
       {

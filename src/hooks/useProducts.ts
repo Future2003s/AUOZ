@@ -5,6 +5,7 @@ import {
   ProductsResponse,
   ProductQueryParams,
 } from "@/apiRequests/products";
+import { useI18n } from "@/i18n/I18nProvider";
 
 // Product state interface
 interface ProductState {
@@ -55,6 +56,8 @@ export const useProducts = (): UseProductsReturn => {
     error: null,
     pagination: null,
   });
+
+  const { locale } = useI18n();
 
   // Clear error
   const clearError = useCallback(() => {
@@ -107,27 +110,27 @@ export const useProducts = (): UseProductsReturn => {
   const getProducts = useCallback(
     async (filters?: ProductQueryParams) => {
       await handleApiCall(
-        () => productApiRequest.getProducts(filters),
+        () => productApiRequest.getProducts({ ...filters, locale }),
         (response: ProductsResponse) => ({
           products: response.data,
           pagination: response.pagination || null,
         })
       );
     },
-    [handleApiCall]
+    [handleApiCall, locale]
   );
 
   // Get product by ID
   const getProductById = useCallback(
     async (productId: string) => {
       await handleApiCall(
-        () => productApiRequest.getProduct(productId),
+        () => productApiRequest.getProduct(productId, locale),
         (response: any) => ({
           currentProduct: response.data,
         })
       );
     },
-    [handleApiCall]
+    [handleApiCall, locale]
   );
 
   // Get featured products
@@ -151,14 +154,14 @@ export const useProducts = (): UseProductsReturn => {
       filters?: Partial<ProductQueryParams>
     ) => {
       await handleApiCall(
-        () => productApiRequest.searchProducts(query, filters),
+        () => productApiRequest.searchProducts(query, { ...filters, locale }),
         (response: ProductsResponse) => ({
           products: response.data,
           pagination: response.pagination || null,
         })
       );
     },
-    [handleApiCall]
+    [handleApiCall, locale]
   );
 
   // Get products by category
@@ -171,7 +174,7 @@ export const useProducts = (): UseProductsReturn => {
         () =>
           productApiRequest.getProductsByCategory(
             categoryId,
-            filters
+            { ...filters, locale }
           ),
         (response: ProductsResponse) => ({
           products: response.data,
@@ -179,21 +182,21 @@ export const useProducts = (): UseProductsReturn => {
         })
       );
     },
-    [handleApiCall]
+    [handleApiCall, locale]
   );
 
   // Get products by brand
   const getProductsByBrand = useCallback(
     async (brand: string, filters?: ProductQueryParams) => {
       await handleApiCall(
-        () => productApiRequest.getProductsByBrand(brand, filters),
+        () => productApiRequest.getProductsByBrand(brand, { ...filters, locale }),
         (response: ProductsResponse) => ({
           products: response.data,
           pagination: response.pagination || null,
         })
       );
     },
-    [handleApiCall]
+    [handleApiCall, locale]
   );
 
   return {

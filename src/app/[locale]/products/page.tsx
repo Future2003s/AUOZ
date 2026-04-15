@@ -4,6 +4,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Product } from "@/apiRequests/products";
 import { metaApi } from "@/apiRequests/meta";
 import { useI18n } from "@/i18n/I18nProvider";
+import useTranslations from "@/i18n/useTranslations";
 import { Search, SlidersHorizontal, Grid3X3, List, X, ChevronDown, Check } from "lucide-react";
 import { SearchOverlay } from "@/components/SearchOverlay";
 import ProductCard from "@/components/ProductCard";
@@ -11,14 +12,6 @@ import type { Category, Brand } from "@/types/meta";
 
 type ViewMode = "grid" | "list";
 type SortOption = "newest" | "price-asc" | "price-desc" | "name-asc" | "name-desc";
-
-const SORT_LABELS: Record<SortOption, string> = {
-  newest: "Mới nhất",
-  "price-asc": "Giá thấp → cao",
-  "price-desc": "Giá cao → thấp",
-  "name-asc": "Tên A–Z",
-  "name-desc": "Tên Z–A",
-};
 
 const MAX_PRICE = 5_000_000; // 5 triệu VNĐ
 
@@ -95,6 +88,17 @@ function PriceRangeSlider({
 
 function ShopPageInner() {
   const { locale } = useI18n();
+  const t = useTranslations();
+
+  // Dynamic sort labels from i18n
+  const sortLabels: Record<SortOption, string> = {
+    newest: t("products.shop.sort_newest") || "Mới nhất",
+    "price-asc": t("products.shop.sort_price_asc") || "Giá thấp → cao",
+    "price-desc": t("products.shop.sort_price_desc") || "Giá cao → thấp",
+    "name-asc": t("products.shop.sort_name_asc") || "Tên A–Z",
+    "name-desc": t("products.shop.sort_name_desc") || "Tên Z–A",
+  };
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -182,7 +186,7 @@ function ShopPageInner() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [catRes, brandRes] = await Promise.all([metaApi.categories(), metaApi.brands()]);
+        const [catRes, brandRes] = await Promise.all([metaApi.categories(locale), metaApi.brands()]);
         const norm = (r: unknown): any[] => {
           if (!r) return [];
           if (Array.isArray(r)) return r;
@@ -194,7 +198,7 @@ function ShopPageInner() {
       } catch { setCategories([]); setBrands([]); }
     };
     load();
-  }, []);
+  }, [locale]);
 
   // Load products (server-side filter by category/brand/search)
   useEffect(() => {
@@ -206,6 +210,7 @@ function ShopPageInner() {
         if (q) ps.set("q", q);
         if (selectedCategory !== "all") ps.set("categoryId", selectedCategory);
         if (selectedBrand !== "all") ps.set("brandId", selectedBrand);
+        if (locale) ps.set("locale", locale);
         ps.set("page", "1");
         ps.set("size", "100");
         const res = await fetch(`/api/products/public?${ps}`);
@@ -220,7 +225,7 @@ function ShopPageInner() {
     };
     load();
     return () => { cancelled = true; };
-  }, [q, selectedCategory, selectedBrand]);
+  }, [q, selectedCategory, selectedBrand, locale]);
 
   // Client-side: sort + price filter
   const sorted = useMemo(() => {
@@ -285,7 +290,7 @@ function ShopPageInner() {
             className="flex-1 flex items-center gap-2.5 h-11 px-4 bg-gray-100 hover:bg-gray-200/80 rounded-full text-sm text-gray-500 transition-colors text-left"
           >
             <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
-            <span className="flex-1 truncate">{searchQuery || "Tìm kiếm sản phẩm…"}</span>
+            <span className="flex-1 truncate">{searchQuery || t("products.shop.search_placeholder", "Tìm kiếm sản phẩm…")}</span>
             {searchQuery && (
               <span className="text-xs bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full font-medium">{sorted.length}</span>
             )}
@@ -298,7 +303,7 @@ function ShopPageInner() {
               : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"}`}
           >
             <SlidersHorizontal className="w-4 h-4" />
-            <span className="hidden sm:inline">Bộ lọc</span>
+            <span className="hidden sm:inline">{t("products.shop.filter_btn", "Bộ lọc")}</span>
             {activeFilterCount > 0 && (
               <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
                 {activeFilterCount}
@@ -311,12 +316,12 @@ function ShopPageInner() {
               onClick={() => setSortOpen(!sortOpen)}
               className="flex items-center gap-1.5 h-11 px-4 rounded-full border border-gray-200 bg-white text-sm text-gray-600 font-medium hover:bg-gray-50 transition-all"
             >
-              {SORT_LABELS[sortBy]}
+              {sortLabels[sortBy]}
               <ChevronDown className={`w-4 h-4 transition-transform ${sortOpen ? "rotate-180" : ""}`} />
             </button>
             {sortOpen && (
               <div className="absolute right-0 top-full mt-1.5 bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden w-48 z-50 py-1">
-                {(Object.entries(SORT_LABELS) as [SortOption, string][]).map(([val, label]) => (
+                {(Object.entries(sortLabels) as [SortOption, string][]).map(([val, label]) => (
                   <button
                     key={val}
                     onClick={() => handleSortChange(val)}
@@ -331,10 +336,10 @@ function ShopPageInner() {
           </div>
 
           <div className="flex items-center bg-gray-100 rounded-full p-1 gap-0.5">
-            <button onClick={() => setViewMode("grid")} title="Dạng lưới" className={`p-2 rounded-full transition-all ${viewMode === "grid" ? "bg-white shadow-sm text-rose-500" : "text-gray-400 hover:text-gray-600"}`}>
+            <button onClick={() => setViewMode("grid")} title={t("grid_view", "Dạng lưới")} className={`p-2 rounded-full transition-all ${viewMode === "grid" ? "bg-white shadow-sm text-rose-500" : "text-gray-400 hover:text-gray-600"}`}>
               <Grid3X3 className="w-4 h-4" />
             </button>
-            <button onClick={() => setViewMode("list")} title="Dạng danh sách" className={`p-2 rounded-full transition-all ${viewMode === "list" ? "bg-white shadow-sm text-rose-500" : "text-gray-400 hover:text-gray-600"}`}>
+            <button onClick={() => setViewMode("list")} title={t("list_view", "Dạng danh sách")} className={`p-2 rounded-full transition-all ${viewMode === "list" ? "bg-white shadow-sm text-rose-500" : "text-gray-400 hover:text-gray-600"}`}>
               <List className="w-4 h-4" />
             </button>
           </div>
@@ -348,7 +353,7 @@ function ShopPageInner() {
               {/* ── PRICE RANGE SLIDER ── */}
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                  Khoảng giá
+                  {t("products.shop.price_range")}
                   {hasPriceFilter && (
                     <span className="ml-2 text-rose-500 normal-case font-medium">
                       {fmtPrice(minPrice)} – {fmtPrice(maxPrice)}
@@ -364,18 +369,18 @@ function ShopPageInner() {
                   onMaxChange={(v) => handlePriceChange(minPrice, v)}
                 />
                 <div className="flex justify-between text-[10px] text-gray-400 mt-1">
-                  <span>0đ</span>
-                  <span>5 triệu+</span>
+                  <span>{t("products.shop.price_min_label")}</span>
+                  <span>{t("products.shop.price_max")}</span>
                 </div>
               </div>
 
               {/* ── CATEGORIES ── */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Danh mục</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t("products.shop.categories", "Danh mục")}</p>
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => handleCategoryChange("all")}
                     className={`h-8 px-4 rounded-full text-sm font-medium border transition-all ${selectedCategory === "all" ? "bg-rose-500 text-white border-rose-500 shadow-sm" : "bg-white text-gray-600 border-gray-200 hover:border-rose-300 hover:text-rose-600"}`}>
-                    Tất cả
+                    {t("products.shop.all")}
                   </button>
                   {categories.filter(c => catId(c)).map(cat => (
                     <button key={catId(cat)} onClick={() => handleCategoryChange(catId(cat))}
@@ -389,11 +394,11 @@ function ShopPageInner() {
               {/* ── BRANDS ── */}
               {brands.filter(b => brandId(b)).length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Thương hiệu</p>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t("products.brand", "Thương hiệu")}</p>
                   <div className="flex flex-wrap gap-2">
                     <button onClick={() => handleBrandChange("all")}
                       className={`h-8 px-4 rounded-full text-sm font-medium border transition-all ${selectedBrand === "all" ? "bg-amber-500 text-white border-amber-500 shadow-sm" : "bg-white text-gray-600 border-gray-200 hover:border-amber-300 hover:text-amber-600"}`}>
-                      Tất cả
+                      {t("products.shop.all")}
                     </button>
                     {brands.filter(b => brandId(b)).map(brand => (
                       <button key={brandId(brand)} onClick={() => handleBrandChange(brandId(brand))}
@@ -407,9 +412,9 @@ function ShopPageInner() {
 
               {/* ── SORT (mobile) ── */}
               <div className="sm:hidden">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Sắp xếp</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t("sort_section", "Sắp xếp")}</p>
                 <div className="flex flex-wrap gap-2">
-                  {(Object.entries(SORT_LABELS) as [SortOption, string][]).map(([val, label]) => (
+                  {(Object.entries(sortLabels) as [SortOption, string][]).map(([val, label]) => (
                     <button key={val} onClick={() => handleSortChange(val)}
                       className={`h-8 px-4 rounded-full text-sm font-medium border transition-all ${sortBy === val ? "bg-gray-800 text-white border-gray-800" : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"}`}>
                       {label}
@@ -420,7 +425,7 @@ function ShopPageInner() {
 
               {activeFilterCount > 0 && (
                 <button onClick={clearAll} className="flex items-center gap-1.5 text-sm text-rose-600 hover:text-rose-700 font-medium">
-                  <X className="w-3.5 h-3.5" /> Xóa bộ lọc
+                  <X className="w-3.5 h-3.5" /> {t("products.shop.clear_filters", "Xóa bộ lọc")}
                 </button>
               )}
             </div>
@@ -433,7 +438,7 @@ function ShopPageInner() {
         {/* Active filter chips */}
         {activeFilterCount > 0 && (
           <div className="flex items-center gap-2 flex-wrap mb-5">
-            <span className="text-xs text-gray-500 font-medium">Bộ lọc:</span>
+            <span className="text-xs text-gray-500 font-medium">{t("active_filter_label", "Bộ lọc:")}</span>
             {selectedCategory !== "all" && (
               <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-rose-50 border border-rose-200 rounded-full text-xs text-rose-700 font-medium">
                 {catLabel(categories.find(c => catId(c) === selectedCategory)!)}
@@ -454,19 +459,19 @@ function ShopPageInner() {
             )}
             {sortBy !== "newest" && (
               <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-gray-100 border border-gray-200 rounded-full text-xs text-gray-700 font-medium">
-                {SORT_LABELS[sortBy]}
+                {sortLabels[sortBy]}
                 <button onClick={() => handleSortChange("newest")} className="hover:text-gray-900"><X className="w-3 h-3" /></button>
               </span>
             )}
-            <button onClick={clearAll} className="text-xs text-gray-400 hover:text-rose-600 underline transition-colors">Xóa tất cả</button>
+            <button onClick={clearAll} className="text-xs text-gray-400 hover:text-rose-600 underline transition-colors">{t("clear_all_filters", "Xóa tất cả")}</button>
           </div>
         )}
 
         <div className="flex items-center justify-between mb-5">
           <p className="text-sm text-gray-500">
-            {loading ? "Đang tải…" : (
-              <><span className="font-semibold text-gray-800">{sorted.length}</span> sản phẩm
-                {hasPriceFilter && <span className="text-gray-400"> trong khoảng {fmtPrice(minPrice)}–{fmtPrice(maxPrice)}</span>}
+            {loading ? t("results_loading") : (
+              <><span className="font-semibold text-gray-800">{sorted.length}</span> {t("products.shop.results_count", "{count} sản phẩm").replace("{count}", "")}
+                {hasPriceFilter && <span className="text-gray-400"> {t("products.shop.results_price_range", "trong khoảng {min}–{max}").replace("{min}", fmtPrice(minPrice)).replace("{max}", fmtPrice(maxPrice))}</span>}
               </>
             )}
           </p>
@@ -505,11 +510,11 @@ function ShopPageInner() {
             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
               <Search className="w-7 h-7 text-gray-400" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-1">Không tìm thấy sản phẩm</h2>
-            <p className="text-sm text-gray-500 mb-6 max-w-xs">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+            <h2 className="text-lg font-semibold text-gray-800 mb-1">{t("empty_title", "Không tìm thấy sản phẩm")}</h2>
+            <p className="text-sm text-gray-500 mb-6 max-w-xs">{t("empty_subtitle", "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm")}</p>
             {activeFilterCount > 0 && (
               <button onClick={clearAll} className="h-9 px-5 rounded-full bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 transition-colors shadow-sm">
-                Xóa bộ lọc
+                {t("products.shop.clear_filters", "Xóa bộ lọc")}
               </button>
             )}
           </div>

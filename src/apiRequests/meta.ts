@@ -2,7 +2,7 @@ import { http } from "@/lib/http";
 
 export const metaApi = {
   // Use frontend API routes for public meta to avoid CORS/auth issues in browser
-  categories: () => http.get("/api/meta/categories", { baseUrl: "" }),
+  categories: (locale?: string) => http.get(`/api/meta/categories${locale ? `?locale=${locale}` : ""}`, { baseUrl: "" }),
   categoryTree: () => http.get("/api/meta/categories/tree", { baseUrl: "" }),
   brands: () => http.get("/api/meta/brands", { baseUrl: "" }),
   popularBrands: () => http.get("/api/meta/brands/popular", { baseUrl: "" }),

@@ -125,12 +125,12 @@ export default function Header() {
   // Fetch categories
   useEffect(() => {
     categoryApiRequest
-      .getCategories({ isActive: true, sort: "order", order: "asc" })
+      .getCategories({ isActive: true, sort: "order", order: "asc", locale })
       .then((res) => {
         if (res.success && res.data) setCategories(res.data);
       })
       .catch(console.error);
-  }, []);
+  }, [locale]);
 
   const navLinks = getNavLinks(t, locale, categories);
 

@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 
 const baseUrl = envConfig.NEXT_PUBLIC_URL || "https://lala-lycheee.com";
 
-async function getProduct(id: string): Promise<{
+async function getProduct(id: string, locale: string): Promise<{
   name: string;
   description?: string;
   price: number;
@@ -15,7 +15,7 @@ async function getProduct(id: string): Promise<{
     const headersList = await headers();
     const host = headersList.get("host");
     const proto = headersList.get("x-forwarded-proto") ?? "http";
-    const url = `${proto}://${host}/api/products/public/${id}`;
+    const url = `${proto}://${host}/api/products/public/${id}?locale=${locale}`;
 
     const res = await fetch(url, {
       next: { revalidate: 300 }, // Cache 5 phút cho metadata
@@ -39,7 +39,7 @@ export async function generateMetadata({
   params: Promise<{ id: string; locale?: string }>;
 }): Promise<Metadata> {
   const { id, locale = "vi" } = await params;
-  const product = await getProduct(id);
+  const product = await getProduct(id, locale);
 
   if (!product) {
     return {

@@ -438,6 +438,16 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                     </div>
                   ))}
                 </div>
+
+                {/* Product Description */}
+                {item.description && (
+                  <div className="pt-6 border-t border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">Mô tả sản phẩm</h3>
+                    <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
+                      {item.description}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Inline Checkout Panel */}
@@ -466,7 +476,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                         <h3 className="text-xl lg:text-2xl font-bold text-gray-900 flex items-center gap-3"><Package className="h-6 w-6 text-orange-500" />Thông tin đặt hàng</h3>
                         <div className="text-lg font-bold text-orange-600">Tổng: {formatCurrency(price * qty)}</div>
                       </div>
-                      
+
                       <div className="bg-white rounded-2xl border border-gray-100/80 px-5 py-4 flex items-center gap-4 shadow-sm">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={getImageUrl(0)} alt={item.name} className="w-16 h-16 object-contain rounded-xl bg-gray-50 p-1 border border-gray-100 flex-shrink-0" />
@@ -502,7 +512,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                       <div className="bg-white rounded-2xl p-6 border border-gray-100/80 shadow-sm space-y-5">
                         <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Thông tin giao hàng</p>
                         {orderError && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm font-medium text-red-600 flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>{orderError}</div>}
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           {[
                             { label: "Họ và tên", value: fullName, setter: setFullName, placeholder: "Nguyễn Văn A", required: true },
@@ -515,7 +525,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                             </div>
                           ))}
                         </div>
-                        
+
                         {[
                           { label: "Địa chỉ nhận hàng", value: address, setter: setAddress, placeholder: "Số nhà, đường, phường/xã...", required: true },
                           { label: "Ghi chú", value: note, setter: setNote, placeholder: "Ghi chú thêm (tuỳ chọn)...", required: false },

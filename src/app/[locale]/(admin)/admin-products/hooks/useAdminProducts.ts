@@ -108,11 +108,12 @@ export function useAdminProducts() {
           : backend.brand?._id || fallback?.brandId,
       images: Array.isArray(backend.images)
         ? backend.images.map((img: any) =>
-            typeof img === "string" ? img : img.url
-          )
+          typeof img === "string" ? img : img.url
+        )
         : fallback?.images || [],
       isFeatured: backend.isFeatured ?? fallback?.isFeatured ?? false,
       isVisible: backend.isVisible ?? fallback?.isVisible ?? true,
+      translations: backend.translations ?? fallback?.translations,
       createdAt: backend.createdAt ?? fallback?.createdAt,
       updatedAt: backend.updatedAt ?? new Date().toISOString(),
     };
@@ -175,10 +176,10 @@ export function useAdminProducts() {
           statusFilter === "ACTIVE"
             ? "active"
             : statusFilter === "INACTIVE"
-            ? "archived"
-            : statusFilter === "DRAFT"
-            ? "draft"
-            : statusFilter.toLowerCase();
+              ? "archived"
+              : statusFilter === "DRAFT"
+                ? "draft"
+                : statusFilter.toLowerCase();
         params.set("status", backendStatus);
       }
       params.set("page", String(currentPage));
@@ -213,10 +214,10 @@ export function useAdminProducts() {
                 p.status === "active"
                   ? "ACTIVE"
                   : p.status === "archived"
-                  ? "INACTIVE"
-                  : p.status === "draft"
-                  ? "DRAFT"
-                  : p.status || "ACTIVE",
+                    ? "INACTIVE"
+                    : p.status === "draft"
+                      ? "DRAFT"
+                      : p.status || "ACTIVE",
               sku: p.sku || p.code || "",
               brand: p.brandName || p.brand?.name || "",
               isVisible: p.isVisible ?? true,
@@ -226,6 +227,7 @@ export function useAdminProducts() {
               brandId: p.brandId || p.brand?._id || p.brand?.id || (typeof p.brand === "string" ? p.brand : "") || "",
               images: p.images || [],
               isFeatured: p.isFeatured ?? false,
+              translations: p.translations || undefined,
               createdAt: p.createdAt,
               updatedAt: p.updatedAt,
             }))
@@ -331,7 +333,7 @@ export function useAdminProducts() {
           } else if (errorData.message) {
             errorMessage = errorData.message;
           }
-        } catch {}
+        } catch { }
         throw new Error(errorMessage);
       }
     } catch (error: any) {
@@ -396,7 +398,7 @@ export function useAdminProducts() {
     try {
       setSaving(true);
       setError(null);
-      
+
       // Ensure status is valid before sending
       const finalPayload = ensurePayloadStatus(productData);
       const response = await productApiRequest.createProduct("", finalPayload);
@@ -429,7 +431,7 @@ export function useAdminProducts() {
             .join(", ");
           errorMessage = `Lỗi xác thực: ${details}`;
         }
-        
+
         toast.error(errorMessage);
         setError(errorMessage);
         return false;
@@ -455,7 +457,7 @@ export function useAdminProducts() {
       applyProductUpdate(targetId, payloadWithStatus, currentProduct);
 
       const response = await productApiRequest.updateProduct("", targetId, payloadWithStatus as any);
-      
+
       if (!response.success) {
         // Revert optimistic update on failure
         applyProductUpdate(targetId, currentProduct, currentProduct);
@@ -525,7 +527,7 @@ export function useAdminProducts() {
     try {
       setError(null);
       const response = await productApiRequest.updateProduct("", productId, updateDataWithStatus as any);
-      
+
       if (!response.success) {
         // Revert optimistic update
         applyProductUpdate(productId, product, product);

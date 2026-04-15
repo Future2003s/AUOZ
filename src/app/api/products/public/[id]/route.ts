@@ -23,10 +23,11 @@ export async function GET(
   }
 
   try {
+    const locale = _request.nextUrl.searchParams.get("locale");
     const base =
       envConfig.NEXT_PUBLIC_API_END_POINT ||
       `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
-    const backendUrl = `${base}/products/${id}`;
+    const backendUrl = `${base}/products/${id}${locale ? `?locale=${locale}` : ""}`;
 
     const res = await fetch(backendUrl, { cache: "no-store" });
 

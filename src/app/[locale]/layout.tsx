@@ -59,14 +59,16 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  // load messages server-side to hydrate provider
-  // Try to merge static JSON with BackEnd translations
+  // load messages server-side để hydrate provider
+  // Chiến lược: API (MongoDB) làm chính, JSON local làm fallback
+  // getMergedTranslations sẽ merge: API override JSON, revalidate 60s
   let messages = {};
   try {
     const { getMergedTranslations } = await import("@/i18n/request");
-    // Use BackEnd translations if enabled (can be controlled via env var)
-    const useBackend = process.env.NEXT_PUBLIC_USE_BACKEND_TRANSLATIONS === "true";
-    messages = await getMergedTranslations(locale, useBackend);
+    // useApi=true: fetch từ backend /i18n/:locale với cache 60s
+    // Nếu API lỗi → tự động fallback về JSON local
+    const useApi = process.env.NEXT_PUBLIC_USE_BACKEND_TRANSLATIONS !== "false";
+    messages = await getMergedTranslations(locale, useApi);
   } catch (error) {
     console.error(`Failed to load locale ${locale}:`, error);
     // Fallback to static JSON only
@@ -76,6 +78,7 @@ export default async function LocaleLayout({
       messages = (await import(`@/i18n/locales/${defaultLocale}.json`)).default;
     }
   }
+
 
   return (
     <I18nProvider
