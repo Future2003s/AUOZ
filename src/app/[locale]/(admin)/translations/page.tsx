@@ -5,6 +5,11 @@ import { useTranslations } from "@/hooks/useTranslations";
 import { useTranslationsV2Admin } from "@/hooks/useTranslationsV2Admin";
 import { TranslationV2Data } from "@/apiRequests/translationsV2";
 import {
+  SupportedLocales,
+  parseTranslationKey,
+  buildTranslationKey,
+} from "@/i18n/configV2";
+import {
   TranslationStats,
   TranslationList,
   TranslationForm,
@@ -22,11 +27,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, RefreshCw, Upload, Download, X } from "lucide-react";
 import { toast } from "sonner";
-import {
-  SupportedLocales,
-  buildTranslationKey,
-  parseTranslationKey,
-} from "@/i18n/configV2";
+
 import {
   Dialog,
   DialogContent,
@@ -240,8 +241,7 @@ export default function TranslationsPage() {
 
       const result = await v2BulkImport(translations);
       toast.success(
-        `Imported ${result.success} translations${
-          result.failed > 0 ? `, ${result.failed} failed` : ""
+        `Imported ${result.success} translations${result.failed > 0 ? `, ${result.failed} failed` : ""
         }`
       );
       setShowBulkImport(false);
@@ -830,8 +830,8 @@ export default function TranslationsPage() {
                     {v2Loading
                       ? "Đang lưu..."
                       : editingV2Translation
-                      ? "Cập nhật"
-                      : "Tạo mới"}
+                        ? "Cập nhật"
+                        : "Tạo mới"}
                   </Button>
                 </div>
               </form>

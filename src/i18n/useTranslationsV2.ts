@@ -1,7 +1,5 @@
-"use client";
-
 import { useI18n } from "./I18nProvider";
-import { SupportedLocales, parseTranslationKey, buildTranslationKey, resolveTranslationKey } from "./configV2";
+import { SupportedLocales, parseTranslationKey, buildTranslationKey } from "@/i18n/configV2";
 import { useEffect, useState } from "react";
 import { envConfig } from "@/config";
 
