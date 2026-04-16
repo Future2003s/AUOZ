@@ -75,6 +75,7 @@ const request = async (
 
   try {
     const res = await fetch(fullUrl, {
+      ...options,
       headers: {
         ...baseHeaders,
         ...options?.headers,
@@ -83,8 +84,6 @@ const request = async (
       method,
       signal: controller.signal,
       credentials: "include", // Always include cookies for authentication
-      // Prevent stale UI after mutations due to browser/proxy caching of GET requests
-      cache: method === "GET" ? "no-store" : undefined,
     });
 
     // Clear timeout

@@ -57,7 +57,8 @@ export const categoryApiRequest = {
       ? new URLSearchParams(params as any).toString()
       : "";
     return http.get(
-      `${API_CONFIG.CATEGORIES.ALL}${queryString ? `?${queryString}` : ""}`
+      `${API_CONFIG.CATEGORIES.ALL}${queryString ? `?${queryString}` : ""}`,
+      { next: { revalidate: 3600 } }
     );
   },
 
@@ -73,12 +74,12 @@ export const categoryApiRequest = {
 
   // Get category tree (hierarchical structure)
   getCategoryTree: (locale?: string): Promise<CategoryTreeResponse> => {
-    return http.get(`${API_CONFIG.CATEGORIES.TREE}${locale ? `?locale=${locale}` : ""}`);
+    return http.get(`${API_CONFIG.CATEGORIES.TREE}${locale ? `?locale=${locale}` : ""}`, { next: { revalidate: 3600 } });
   },
 
   // Get main categories (top-level)
   getMainCategories: (): Promise<CategoriesResponse> => {
-    return http.get(API_CONFIG.CATEGORIES.ALL);
+    return http.get(API_CONFIG.CATEGORIES.ALL, { next: { revalidate: 3600 } });
   },
 
   // Get sub-categories of a parent

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import type { Product } from "@/apiRequests/products";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cart-context";
 import { useCartSidebar } from "@/context/cart-sidebar-context";
@@ -13,9 +14,16 @@ import {
 import { toast } from "sonner";
 import ProductCommentsSection from "@/components/product-comments";
 import { envConfig } from "@/config";
+import useTranslations from "@/i18n/useTranslations";
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
+const baseFormatCurrency = (amount: number, locale: string = "vi") => {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
 
 interface Props {
   id: string;
@@ -24,10 +32,21 @@ interface Props {
 }
 
 export default function ProductDetailClient({ id, locale, initialData = null }: Props) {
+  const formatCurrency = useCallback((amount: number) => baseFormatCurrency(amount, locale), [locale]);
   const router = useRouter();
   const { addItem } = useCart();
   const { openSidebar } = useCartSidebar();
   const { isAuthenticated, user } = useAuth();
+  const tFull = useTranslations();
+  const t = useCallback((key: string, variables?: Record<string, string | number>) => {
+    let text = tFull(`products.detail.${key}`);
+    if (variables) {
+      Object.entries(variables).forEach(([k, v]) => {
+        text = text.replace(`{${k}}`, String(v));
+      });
+    }
+    return text;
+  }, [tFull]);
 
   const [item, setItem] = useState<Product | null>(initialData);
   const [loading, setLoading] = useState(!initialData);
@@ -74,9 +93,9 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
         const data = await res.json();
         if (cancelled) return;
         if (data?.data) setItem(data.data as Product);
-        else setError("Không thể tải thông tin sản phẩm");
+        else setError(t("cannot_load"));
       } catch (err: unknown) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
+        if (!cancelled) setError(err instanceof Error ? err.message : t("error_generic"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -121,26 +140,26 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
       imageUrl: getImageUrl(0),
     });
     openSidebar();
-    toast.success("Đã thêm vào giỏ hàng!");
-  }, [item, selectedVariant, qty, getImageUrl, addItem, openSidebar]);
+    toast.success(t("added_to_cart"));
+  }, [item, selectedVariant, qty, getImageUrl, addItem, openSidebar, t]);
 
   const handleShare = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
-      toast.success("Đã sao chép liên kết sản phẩm!");
+      toast.success(t("link_copied"));
       setTimeout(() => setCopied(false), 2000);
-    } catch { toast.error("Không thể sao chép liên kết"); }
-  }, []);
+    } catch { toast.error(t("copy_failed")); }
+  }, [t]);
 
   const handlePlaceOrder = useCallback(async () => {
     if (!item) return;
     if (!fullName.trim() || !phone.trim() || !address.trim()) {
-      setOrderError("Vui lòng điền đầy đủ thông tin bắt buộc (*)");
+      setOrderError(t("validation_required"));
       return;
     }
     if (!/^[0-9]{10,11}$/.test(phone.trim())) {
-      setOrderError("Số điện thoại không hợp lệ (10-11 chữ số)");
+      setOrderError(t("validation_phone"));
       return;
     }
     setIsSubmitting(true);
@@ -164,7 +183,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
         if (result?.checkoutUrl) {
           window.location.href = result.checkoutUrl;
         } else {
-          throw new Error(result?.message || "Không tạo được link thanh toán");
+          throw new Error(result?.message || t("error_payment_link"));
         }
       } else {
         const response = await fetch("/api/orders", {
@@ -178,15 +197,15 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
           }),
         });
         const result = await response.json();
-        if (!response.ok) throw new Error(result?.message || "Đặt hàng thất bại");
+        if (!response.ok) throw new Error(result?.message || t("error_order_failed"));
         setOrderSuccess({ orderNumber: result?.data?.orderNumber || "N/A", total: grandTotal });
       }
     } catch (err) {
-      setOrderError(err instanceof Error ? err.message : "Có lỗi xảy ra, vui lòng thử lại");
+      setOrderError(err instanceof Error ? err.message : t("error_generic"));
     } finally {
       setIsSubmitting(false);
     }
-  }, [item, fullName, phone, address, note, price, qty, paymentMethod]);
+  }, [item, fullName, phone, address, note, price, qty, paymentMethod, t]);
 
   if (loading) {
     return (
@@ -211,9 +230,9 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
     return (
       <div className="min-h-screen bg-[#f5f5f5] pt-25 flex items-center justify-center">
         <div className="text-center space-y-3">
-          <div className="text-xl font-semibold">Không tải được sản phẩm</div>
-          <div className="text-sm text-gray-600">Vui lòng thử lại sau hoặc quay lại danh sách sản phẩm.</div>
-          <button onClick={() => router.back()} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Quay lại</button>
+          <div className="text-xl font-semibold">{t("cannot_load")}</div>
+          <div className="text-sm text-gray-600">{t("try_again_later")}</div>
+          <button onClick={() => router.back()} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">{t("go_back")}</button>
         </div>
       </div>
     );
@@ -227,10 +246,10 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
           <nav className="flex items-center gap-1.5 flex-wrap" aria-label="Breadcrumb">
             <button onClick={() => router.push(`/${locale}`)} className="group flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-orange-600 transition-all duration-200 px-3 py-1.5 rounded-full hover:bg-orange-50">
               <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-              Trang chủ
+              {t("home")}
             </button>
             <ArrowRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
-            <button onClick={() => router.push(`/${locale}/products`)} className="text-sm font-medium text-gray-500 hover:text-orange-600 transition-all px-3 py-1.5 rounded-full hover:bg-orange-50">Sản phẩm</button>
+            <button onClick={() => router.push(`/${locale}/products`)} className="text-sm font-medium text-gray-500 hover:text-orange-600 transition-all px-3 py-1.5 rounded-full hover:bg-orange-50">{tFull("nav.products")}</button>
             {item.category && (
               <>
                 <ArrowRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
@@ -255,11 +274,18 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                 className="relative aspect-square bg-gradient-to-br from-orange-50/50 to-amber-50/30 rounded-2xl overflow-hidden mb-4 border border-gray-100 group"
                 onClick={() => { setLightboxIndex(selectedImageIndex); setLightboxOpen(true); }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={getImageUrl(selectedImageIndex)} alt={item.name} className="w-full h-full object-contain p-8 transition-all duration-300" style={{ cursor: "zoom-in" }} />
+                <Image
+                  src={getImageUrl(selectedImageIndex) || '/placeholder.png'}
+                  alt={item.name || 'Product'}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 480px"
+                  priority
+                  className="object-contain p-8 transition-all duration-300"
+                  style={{ cursor: "zoom-in" }}
+                />
                 {isOutOfStock && (
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                    <span className="bg-white text-gray-800 font-bold px-8 py-3 rounded-full text-lg shadow-lg">Hết hàng</span>
+                    <span className="bg-white text-gray-800 font-bold px-8 py-3 rounded-full text-lg shadow-lg">{tFull("products.out_of_stock")}</span>
                   </div>
                 )}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -281,7 +307,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                 )}
                 <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                   {item.quantity && item.quantity > 0 && item.quantity < 10 && (
-                    <span className="bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">Sắp hết hàng</span>
+                    <span className="bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">{t("almost_out")}</span>
                   )}
                 </div>
                 {allImageUrls.length > 1 && (
@@ -298,9 +324,8 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scroll-smooth snap-x snap-mandatory">
                   {allImageUrls.map((url, i) => (
                     <button key={i} onClick={() => setSelectedImageIndex(i)}
-                      className={`flex-shrink-0 snap-start rounded-xl border-2 overflow-hidden transition-all ${allImageUrls.length > 5 ? "w-[60px] h-[60px]" : "w-[72px] h-[72px]"} ${i === selectedImageIndex ? "border-orange-500 shadow-md scale-105" : "border-gray-200 hover:border-orange-300 opacity-60 hover:opacity-100"}`}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={url} alt={`Ảnh ${i + 1}`} className="w-full h-full object-contain bg-white p-1" />
+                      className={`relative flex-shrink-0 snap-start rounded-xl border-2 overflow-hidden transition-all ${allImageUrls.length > 5 ? "w-[60px] h-[60px]" : "w-[72px] h-[72px]"} ${i === selectedImageIndex ? "border-orange-500 shadow-md scale-105" : "border-gray-200 hover:border-orange-300 opacity-60 hover:opacity-100"}`}>
+                      <Image src={url || '/placeholder.png'} alt={`Ảnh ${i + 1}`} fill sizes="72px" className="object-contain bg-white p-1" />
                     </button>
                   ))}
                 </div>
@@ -313,7 +338,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                 <div className="flex items-start justify-between gap-3">
                   <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-snug flex-1">{item.name}</h1>
                   <button
-                    onClick={() => { setIsWishlisted(!isWishlisted); toast.success(isWishlisted ? "Đã xoá khỏi yêu thích" : "Đã thêm vào yêu thích"); }}
+                    onClick={() => { setIsWishlisted(!isWishlisted); toast.success(isWishlisted ? t("unwishlisted") : t("wishlisted")); }}
                     className={`flex-shrink-0 w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${isWishlisted ? "border-red-400 bg-red-50 text-red-400" : "border-gray-200 hover:border-red-300 hover:bg-red-50 hover:text-red-400"}`}>
                     <Heart className={`h-4 w-4 transition-all ${isWishlisted ? "fill-red-400" : ""}`} />
                   </button>
@@ -336,7 +361,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                   )}
                   {typeof item.quantity === "number" && (
                     <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${item.quantity > 0 ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-500 border border-red-100"}`}>
-                      {item.quantity > 0 ? `✓ Còn ${item.quantity} sản phẩm` : "✗ Hết hàng"}
+                      {item.quantity > 0 ? `✓ ${t("in_stock_count", { qty: item.quantity })}` : `✗ ${tFull("products.out_of_stock")}`}
                     </span>
                   )}
                 </div>
@@ -360,9 +385,9 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                       <span className="text-4xl lg:text-5xl font-black text-orange-500 tracking-tight">{formatCurrency(price)}</span>
                     </div>
                     <div className="flex items-center gap-4 mt-2">
-                      <span className="text-xs text-gray-400 flex items-center gap-1"><Truck className="h-3 w-3" />Miễn phí vận chuyển</span>
+                      <span className="text-xs text-gray-400 flex items-center gap-1"><Truck className="h-3 w-3" />{t("free_shipping")}</span>
                       <span className="text-xs text-gray-400">•</span>
-                      <span className="text-xs text-gray-400">Đã bao gồm VAT</span>
+                      <span className="text-xs text-gray-400">{t("vat_included")}</span>
                     </div>
                   </div>
                 )}
@@ -370,7 +395,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                 {/* Variants */}
                 {(item.variants?.length ?? 0) > 0 && (
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2.5">Chọn loại:</p>
+                    <p className="text-sm font-semibold text-gray-700 mb-2.5">{t("select_type")}</p>
                     <div className="flex flex-wrap gap-2">
                       {item.variants?.map((variant) => (
                         <button key={variant._id || variant.id}
@@ -401,7 +426,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                       </div>
                       <button onClick={handleAddToCart} disabled={isOutOfStock}
                         className="flex-1 h-11 rounded-xl border-2 border-orange-400 text-orange-500 bg-white font-semibold text-sm hover:bg-orange-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
-                        <ShoppingCart className="h-4 w-4" /> Thêm vào giỏ
+                        <ShoppingCart className="h-4 w-4" /> {t("add_to_cart")}
                       </button>
                     </div>
 
@@ -410,27 +435,27 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                       onClick={() => { if (isOutOfStock) return; setCheckoutOpen(prev => !prev); setOrderSuccess(null); setOrderError(null); }}
                       disabled={isOutOfStock}
                       className={`w-full h-14 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2.5 shadow-lg active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${checkoutOpen ? "bg-gray-800 hover:bg-gray-900 text-white" : "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-orange-300"}`}>
-                      {checkoutOpen ? <><ChevronUp className="h-5 w-5" />Đóng thông tin đặt hàng</> : <><Package className="h-5 w-5" />Mua ngay — Đặt hàng nhanh<ArrowRight className="h-4 w-4 ml-1" /></>}
+                      {checkoutOpen ? <><ChevronUp className="h-5 w-5" />{t("close_checkout")}</> : <><Package className="h-5 w-5" />{t("buy_now_fast")}<ArrowRight className="h-4 w-4 ml-1" /></>}
                     </button>
                   </>
                 ) : (
                   /* Nút Đặt Trước khi comingSoon = true */
                   <button
                     onClick={() => {
-                      toast.success("🔔 Cảm ơn bạn! Chúng tôi sẽ thông báo khi sản phẩm ra mắt.", { duration: 4000 });
+                      toast.success(t("preorder_toast"), { duration: 4000 });
                     }}
                     className="w-full h-14 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2.5 shadow-lg active:scale-[0.98] bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white shadow-rose-300"
                   >
-                    🔔 Đặt Trước — Nhận thông báo ra mắt
+                    {t("preorder_btn")}
                   </button>
                 )}
 
                 {/* Trust badges desktop */}
                 <div className="hidden lg:grid grid-cols-3 gap-3 pt-1 border-t border-gray-100">
                   {[
-                    { icon: Truck, bg: "bg-blue-50", color: "text-blue-500", label: "Miễn phí", sub: "vận chuyển" },
-                    { icon: Shield, bg: "bg-green-50", color: "text-green-500", label: "Hàng chính", sub: "hãng 100%" },
-                    { icon: RotateCcw, bg: "bg-orange-50", color: "text-orange-500", label: "Đổi trả", sub: "30 ngày" },
+                    { icon: Truck, bg: "bg-blue-50", color: "text-blue-500", label: t("trust_free_ship_label"), sub: t("trust_free_ship_sub") },
+                    { icon: Shield, bg: "bg-green-50", color: "text-green-500", label: t("trust_authentic_label"), sub: t("trust_authentic_sub") },
+                    { icon: RotateCcw, bg: "bg-orange-50", color: "text-orange-500", label: t("trust_return_label"), sub: t("trust_return_sub") },
                   ].map(({ icon: Icon, bg, color, label, sub }) => (
                     <div key={label} className="flex items-center gap-2.5">
                       <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center flex-shrink-0`}><Icon className={`h-5 w-5 ${color}`} /></div>
@@ -442,7 +467,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                 {/* Product Description */}
                 {item.description && (
                   <div className="pt-6 border-t border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">Mô tả sản phẩm</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">{t("description_title")}</h3>
                     <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
                       {item.description}
                     </div>
@@ -459,39 +484,41 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                         <CheckCircle2 className="h-12 w-12 text-green-500" />
                       </div>
                       <div>
-                        <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">Đặt hàng thành công! 🎉</h3>
-                        <p className="text-base text-gray-500 mt-2">Cảm ơn bạn đã tin tưởng LALA-LYCHEEE</p>
+                        <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">{t("order_success_title")}</h3>
+                        <p className="text-base text-gray-500 mt-2">{t("order_success_sub")}</p>
                       </div>
                       <div className="bg-white rounded-2xl border border-green-100 px-8 py-6 w-full max-w-md shadow-sm">
-                        <div className="text-sm text-gray-400 mb-2">Mã đơn hàng</div>
+                        <div className="text-sm text-gray-400 mb-2">{t("order_code_label")}</div>
                         <div className="text-2xl font-black text-green-600 tracking-wide">{orderSuccess.orderNumber}</div>
-                        <div className="text-sm text-gray-400 mt-5 mb-2">Tổng thanh toán khi nhận hàng</div>
+                        <div className="text-sm text-gray-400 mt-5 mb-2">{t("order_total_label")}</div>
                         <div className="text-3xl font-bold text-gray-900">{formatCurrency(orderSuccess.total)}</div>
                       </div>
-                      <button onClick={() => { setCheckoutOpen(false); setOrderSuccess(null); setQty(1); }} className="mt-4 text-base text-orange-500 hover:text-orange-700 font-semibold underline underline-offset-4">Tiếp tục mua sắm</button>
+                      <button onClick={() => { setCheckoutOpen(false); setOrderSuccess(null); setQty(1); }} className="mt-4 text-base text-orange-500 hover:text-orange-700 font-semibold underline underline-offset-4">{t("continue_shopping")}</button>
                     </div>
                   ) : (
                     <div className="p-6 lg:p-8 space-y-8">
                       <div className="flex items-center justify-between border-b border-orange-100/50 pb-4">
-                        <h3 className="text-xl lg:text-2xl font-bold text-gray-900 flex items-center gap-3"><Package className="h-6 w-6 text-orange-500" />Thông tin đặt hàng</h3>
-                        <div className="text-lg font-bold text-orange-600">Tổng: {formatCurrency(price * qty)}</div>
+                        <h3 className="text-xl lg:text-2xl font-bold text-gray-900 flex items-center gap-3"><Package className="h-6 w-6 text-orange-500" />{t("checkout_title")}</h3>
+                        <div className="text-lg font-bold text-orange-600">{t("checkout_total", { amount: formatCurrency(price * qty) })}</div>
                       </div>
 
                       <div className="bg-white rounded-2xl border border-gray-100/80 px-5 py-4 flex items-center gap-4 shadow-sm">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={getImageUrl(0)} alt={item.name} className="w-16 h-16 object-contain rounded-xl bg-gray-50 p-1 border border-gray-100 flex-shrink-0" />
+                        <div className="relative w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
+                          <Image src={getImageUrl(0) || '/placeholder.png'} alt={item.name} fill sizes="64px" className="object-contain p-1" />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-base lg:text-lg font-bold text-gray-800 truncate">{item.name}</p>
-                          <p className="text-sm text-gray-500 mt-0.5">Số lượng: {qty} <span className="mx-1.5 text-gray-300">×</span> {formatCurrency(price)}</p>
+                          <p className="text-sm text-gray-500 mt-0.5">{t("checkout_qty", { qty })} <span className="mx-1.5 text-gray-300">×</span> {formatCurrency(price)}</p>
                         </div>
                         <div className="text-lg font-black text-orange-600 flex-shrink-0">{formatCurrency(price * qty)}</div>
                       </div>
 
                       {/* Payment tabs */}
                       <div className="pt-2">
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Hình thức thanh toán</p>
+                        <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">{t("payment_method_title")}</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {([["cod", "COD", "Thanh toán khi nhận", Banknote, "orange"], ["bank", "Chuyển khoản", "Thanh toán online", CreditCard, "blue"]] as const).map(([val, title, sub, Icon, color]) => (
+                          {([["cod", t("payment_cod_title"), t("payment_cod_sub"), Banknote, "orange"], ["bank", t("payment_bank_title"), t("payment_bank_sub"), CreditCard, "blue"]] as const).map(([val, title, sub, Icon, color]) => (
                             <button key={val} onClick={() => setPaymentMethod(val as "cod" | "bank")}
                               className={`flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left transition-all group ${paymentMethod === val
                                 ? `border-${color}-500 bg-${color}-50 shadow-sm`
@@ -510,13 +537,13 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
 
                       {/* Fields */}
                       <div className="bg-white rounded-2xl p-6 border border-gray-100/80 shadow-sm space-y-5">
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Thông tin giao hàng</p>
+                        <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">{t("shipping_info_title")}</p>
                         {orderError && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm font-medium text-red-600 flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>{orderError}</div>}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           {[
-                            { label: "Họ và tên", value: fullName, setter: setFullName, placeholder: "Nguyễn Văn A", required: true },
-                            { label: "Số điện thoại", value: phone, setter: (v: string) => setPhone(v.replace(/\D/g, "").slice(0, 11)), placeholder: "0901234567", required: true },
+                            { label: t("field_fullname"), value: fullName, setter: setFullName, placeholder: "Nguyễn Văn A", required: true },
+                            { label: t("field_phone"), value: phone, setter: (v: string) => setPhone(v.replace(/\D/g, "").slice(0, 11)), placeholder: "0901234567", required: true },
                           ].map(({ label, value, setter, placeholder, required }) => (
                             <div key={label}>
                               <label className="text-sm font-bold text-gray-700 mb-2 block">{label} {required && <span className="text-red-500">*</span>}</label>
@@ -527,11 +554,11 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                         </div>
 
                         {[
-                          { label: "Địa chỉ nhận hàng", value: address, setter: setAddress, placeholder: "Số nhà, đường, phường/xã...", required: true },
-                          { label: "Ghi chú", value: note, setter: setNote, placeholder: "Ghi chú thêm (tuỳ chọn)...", required: false },
+                          { label: t("field_address"), value: address, setter: setAddress, placeholder: "Số nhà, đường, phường/xã...", required: true },
+                          { label: t("field_note"), value: note, setter: setNote, placeholder: t("field_optional"), required: false },
                         ].map(({ label, value, setter, placeholder, required }) => (
                           <div key={label}>
-                            <label className="text-sm font-bold text-gray-700 mb-2 block">{label} {required && <span className="text-red-500">*</span>}<span className="text-gray-400 font-normal">{!required ? " (tuỳ chọn)" : ""}</span></label>
+                            <label className="text-sm font-bold text-gray-700 mb-2 block">{label} {required && <span className="text-red-500">*</span>}<span className="text-gray-400 font-normal">{!required ? ` ${t("field_optional")}` : ""}</span></label>
                             <input type="text" value={value} onChange={(e) => setter(e.target.value)} placeholder={placeholder}
                               className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 text-base font-medium bg-gray-50/50 focus:bg-white focus:outline-none focus:border-orange-500 transition-all placeholder:text-gray-400 placeholder:font-normal" />
                           </div>
@@ -540,7 +567,7 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
 
                       <button onClick={handlePlaceOrder} disabled={isSubmitting}
                         className="w-full h-14 lg:h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-lg lg:text-xl transition-all shadow-xl shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-3">
-                        {isSubmitting ? <><svg className="animate-spin h-6 w-6 text-white" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Đang xử lý...</> : "Xác nhận đặt hàng →"}
+                        {isSubmitting ? <><svg className="animate-spin h-6 w-6 text-white" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>{t("processing")}</> : t("confirm_order")}
                       </button>
                     </div>
                   )}

@@ -4,6 +4,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { Product } from "@/apiRequests/products";
 import { envConfig } from "@/config";
+import useTranslations from "@/i18n/useTranslations";
+
+const baseFormatCurrency = (amount: number, locale: string = "vi") => {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
 
 // ─── Module-level cache: tồn tại suốt phiên trình duyệt, không mất khi component unmount ───
 // TTL 5 phút — sau đó sẽ re-fetch để hiển thị sản phẩm mới
@@ -43,6 +53,9 @@ export default function ProductsMegaMenu({
   items,
   locale,
 }: ProductsMegaMenuProps) {
+  const tFull = useTranslations();
+  const t = (key: string) => tFull(`productsMegaMenu.${key}`);
+
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [imageOpacity, setImageOpacity] = useState(1);
@@ -94,6 +107,7 @@ export default function ProductsMegaMenu({
         pageParams.set("page", "1");
         pageParams.set("status", "active");
         pageParams.set("isVisible", "true");
+        if (locale) pageParams.set("locale", locale);
 
         if (item.categoryId) {
           pageParams.set("categoryId", item.categoryId);
@@ -109,6 +123,9 @@ export default function ProductsMegaMenu({
         try {
           const response = await fetch(`/api/products/public?${pageParams.toString()}`, {
             cache: "no-store",
+            headers: {
+              "Accept-Language": locale,
+            },
           });
           if (response.ok) {
             const data = await response.json();
@@ -251,7 +268,7 @@ export default function ProductsMegaMenu({
       <div className="border-r border-gray-100 dark:border-gray-800 py-4 px-3">
         <div className="mb-3 px-3 pb-3 border-b border-gray-100 dark:border-gray-800">
           <h3 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-            DANH MỤC
+            {t("category_title")}
           </h3>
         </div>
         <div className="space-y-0.5">
@@ -280,7 +297,7 @@ export default function ProductsMegaMenu({
         {isLoading && (
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/30 rounded-full">
             <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-rose-600 border-t-transparent"></div>
-            <span className="text-xs text-rose-600 dark:text-rose-400 font-medium">Đang tải...</span>
+            <span className="text-xs text-rose-600 dark:text-rose-400 font-medium">{t("loading")}</span>
           </div>
         )}
 
@@ -312,7 +329,7 @@ export default function ProductsMegaMenu({
                       <svg className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
-                      <span className="text-xs font-semibold text-slate-900 dark:text-white">Nổi bật</span>
+                      <span className="text-xs font-semibold text-slate-900 dark:text-white">{t("featured")}</span>
                     </div>
 
                     {/* Shine effect */}
@@ -327,22 +344,17 @@ export default function ProductsMegaMenu({
 
                     {featureProduct.comingSoon ? (
                       <p className="text-base font-bold text-blue-600">
-                        Comming Soon
+                        {t("coming_soon")}
                       </p>
                     ) : featureProduct.price > 0 && (
                       <p className="text-base font-bold text-gray-900 dark:text-white">
-                        {new Intl.NumberFormat("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        }).format(featureProduct.price)}
+                        {baseFormatCurrency(featureProduct.price, locale)}
                       </p>
                     )}
 
                     {/* CTA Button */}
                     <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                      <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">Xem chi tiết</span>
+                      <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">{t("view_details")}</span>
                       <svg
                         className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 transform group-hover:translate-x-1 transition-transform"
                         fill="none"
@@ -387,7 +399,7 @@ export default function ProductsMegaMenu({
                       {/* Quick view badge */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <span className="px-2.5 py-1 bg-white/95 dark:bg-gray-900/95 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                          Xem
+                          {t("view")}
                         </span>
                       </div>
                     </div>
@@ -398,15 +410,10 @@ export default function ProductsMegaMenu({
                         {product.title}
                       </h4>
                       {product.comingSoon ? (
-                        <p className="text-xs font-bold text-blue-600">Comming Soon</p>
+                        <p className="text-xs font-bold text-blue-600">{t("coming_soon")}</p>
                       ) : product.price > 0 ? (
                         <p className="text-sm font-bold text-gray-900 dark:text-white">
-                          {new Intl.NumberFormat("vi-VN", {
-                            style: "currency",
-                            currency: "VND",
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          }).format(product.price)}
+                          {baseFormatCurrency(product.price, locale)}
                         </p>
                       ) : null}
                     </div>
@@ -424,7 +431,7 @@ export default function ProductsMegaMenu({
                 href={previewData.categoryHref}
                 className="mt-4 flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition-colors duration-150 text-sm font-semibold"
               >
-                Xem tất cả sản phẩm
+                {t("view_all")}
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -451,16 +458,16 @@ export default function ProductsMegaMenu({
               </div>
             </div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-              Chưa có sản phẩm
+              {t("empty_title")}
             </h3>
             <p className="text-sm text-slate-500 dark:text-gray-400 mb-6 max-w-xs mx-auto">
-              Danh mục này hiện chưa có sản phẩm. Vui lòng quay lại sau!
+              {t("empty_desc")}
             </p>
             <Link
               href={previewData.categoryHref}
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white rounded-xl transition-all duration-300 text-sm font-semibold shadow-lg hover:shadow-xl"
             >
-              Xem danh mục
+              {t("view_category")}
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -483,7 +490,7 @@ export default function ProductsMegaMenu({
               <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border-2 border-rose-400/30"></div>
             </div>
             <p className="mt-4 text-sm text-slate-500 dark:text-gray-400 font-medium">
-              Đang tải sản phẩm...
+              {t("loading_products")}
             </p>
           </div>
         )}

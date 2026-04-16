@@ -11,7 +11,9 @@ const LanguageSwitcher = dynamic(
   () => import("@/components/LanguageSwitcher"),
   { ssr: false }
 );
-import ProductsMegaMenu from "@/components/ProductsMegaMenu";
+const ProductsMegaMenu = dynamic(() => import("@/components/ProductsMegaMenu"), {
+  ssr: true,
+});
 import type { ComponentType } from "react";
 const MobileNavSheet = dynamic(() => import("./MobileNav"), {
   ssr: false,
