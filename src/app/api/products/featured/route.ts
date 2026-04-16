@@ -9,16 +9,17 @@ import { envConfig } from "@/config";
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const limit = searchParams.get("limit") || "8";
-
     const baseUrl =
       envConfig.NEXT_PUBLIC_API_END_POINT ||
       `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
 
-    const backendUrl = `${baseUrl}/products/featured?limit=${limit}`;
+    const backendUrl = new URL(`${baseUrl}/products/featured`);
+    const { searchParams } = new URL(request.url);
+    searchParams.forEach((value, key) => {
+      backendUrl.searchParams.set(key, value);
+    });
 
-    const response = await fetch(backendUrl, {
+    const response = await fetch(backendUrl.toString(), {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

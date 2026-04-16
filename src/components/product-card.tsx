@@ -103,13 +103,12 @@ export const ProductCard = ({
 
         {badge && (
           <span
-            className={`absolute top-4 right-4 ${
-              badge === "Mới"
+            className={`absolute top-4 right-4 ${badge === "Mới"
                 ? "bg-green-500 text-white"
                 : badge === "Đặt Trước"
-                ? "bg-rose-600 text-white font-bold tracking-wide"
-                : "bg-rose-600 text-white"
-            } text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm`}
+                  ? "bg-rose-600 text-white font-bold tracking-wide"
+                  : "bg-rose-600 text-white"
+              } text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm`}
           >
             {badge}
           </span>
@@ -149,7 +148,7 @@ export const ProductCard = ({
         </h3>
         {product.comingSoon ? (
           <p className="font-body text-blue-600 font-bold italic">
-            Comming Soon
+            Coming Soon
           </p>
         ) : (
           <p className="font-body text-gray-900 font-bold">

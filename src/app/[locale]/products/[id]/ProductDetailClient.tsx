@@ -370,13 +370,13 @@ export default function ProductDetailClient({ id, locale, initialData = null }: 
                 {item.comingSoon ? (
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl px-5 py-4 border border-blue-100/80">
                     <div className="flex items-center gap-3">
-                      <span className="text-4xl lg:text-5xl font-black text-blue-500 tracking-tight">Comming Soon</span>
+                      <span className="text-4xl lg:text-5xl font-black text-blue-500 tracking-tight">Coming Soon</span>
                     </div>
                     <div className="flex items-center gap-2 mt-3">
                       <span className="inline-flex items-center gap-1.5 bg-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">
-                        🔔 Đặt Trước — Sắp ra mắt
+                        {t("coming_soon_badge")}
                       </span>
-                      <span className="text-xs text-gray-400">Sản phẩm sẽ sớm có mặt!</span>
+                      <span className="text-xs text-gray-400">{t("coming_soon_note")}</span>
                     </div>
                   </div>
                 ) : (

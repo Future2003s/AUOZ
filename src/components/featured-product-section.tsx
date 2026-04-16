@@ -27,7 +27,7 @@ export const FeaturedProductsSection: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        const apiUrl = "/api/products/featured?limit=8";
+        const apiUrl = `/api/products/featured?limit=8&locale=${locale}`;
 
         const response = await fetch(apiUrl, {
           cache: "no-store",
@@ -170,8 +170,8 @@ export const FeaturedProductsSection: React.FC = () => {
               <p className="font-body text-lg text-slate-500 leading-relaxed">
                 {(t("featured_products.description") || "Những sáng tạo độc đáo từ <strong>LALA-LYCHEE</strong>, kết tinh hương vị ngọt ngào của đất trời và tâm huyết của người nông dân.").split("<strong>").map((part, i) => {
                   if (part.includes("</strong>")) {
-                     const [bold, rest] = part.split("</strong>");
-                     return <span key={i}><strong className="text-rose-600">{bold}</strong>{rest}</span>;
+                    const [bold, rest] = part.split("</strong>");
+                    return <span key={i}><strong className="text-rose-600">{bold}</strong>{rest}</span>;
                   }
                   return <span key={i}>{part}</span>;
                 })}

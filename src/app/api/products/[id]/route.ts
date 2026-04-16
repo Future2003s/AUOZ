@@ -43,7 +43,11 @@ export async function GET(
     const base =
       envConfig.NEXT_PUBLIC_API_END_POINT ||
       `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
-    const backendUrl = `${base}/products/${id}`;
+    const backendUrl = new URL(`${base}/products/${id}`);
+    const { searchParams } = new URL(request.url);
+    searchParams.forEach((value, key) => {
+      backendUrl.searchParams.set(key, value);
+    });
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -56,7 +60,7 @@ export async function GET(
       headers.Authorization = authHeader;
     }
 
-    const res = await fetch(backendUrl, {
+    const res = await fetch(backendUrl.toString(), {
       method: "GET",
       headers,
       cache: "no-store",
