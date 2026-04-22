@@ -106,13 +106,10 @@ const request = async (
 
     // Handle non-2xx responses
     if (!res.ok) {
-      // Auto-redirect to login when session expired or invalid token
+      // Emit standard error to let components/hooks handle the 401 gracefully
       if (res.status === 401 && typeof window !== "undefined") {
-        const locale = window.location.pathname.split("/")[1] || "vi";
-        // Avoid redirect loop if already on login page
-        if (!window.location.pathname.includes("/login")) {
-          window.location.href = `/${locale}/login`;
-        }
+        // Dispatch an event so useAuth or global listeners can handle session expiration
+        window.dispatchEvent(new CustomEvent('session-expired'));
       }
       throw new HttpError({
         statusCode: res.status,

@@ -21,6 +21,7 @@ import {
   Ticket,
   Briefcase,
   Newspaper,
+  Image as ImageIcon
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -154,6 +155,12 @@ export default async function AdminLayout({
       icon: <Newspaper size={18} />,
     },
     {
+      id: "pastoral",
+      label: "Đồng Quê",
+      href: `/${locale}/admin/pastoral`,
+      icon: <ImageIcon size={18} />,
+    },
+    {
       id: "cms",
       label: "Quản lý CMS",
       href: `/${locale}/admin/cms/posts`,
@@ -166,9 +173,15 @@ export default async function AdminLayout({
       icon: <Megaphone size={18} />,
     },
     {
-      id: "activities",
+      id: "promos",
+      label: "Banner Sản Phẩm",
+      href: `/${locale}/admin/promos`,
+      icon: <ImageIcon size={18} />,
+    },
+    {
+      id: "pastoral",
       label: "Hoạt Động",
-      href: `/${locale}/admin/activities`,
+      href: `/${locale}/admin/pastoral`,
       icon: <Calendar size={18} />,
     },
     {

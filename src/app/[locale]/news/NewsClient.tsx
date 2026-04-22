@@ -24,7 +24,7 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
         categorySet.add(article.category.trim());
       }
     });
-    
+
     // Sắp xếp categories và tạo array với "Tất cả" ở đầu
     const categoryArray = Array.from(categorySet).sort();
     return [
@@ -44,7 +44,7 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
     // Tìm category name từ id
     const selectedCategory = categories.find(c => c.id === currentCategory);
     if (!selectedCategory) return articles;
-    
+
     // So sánh với category name thực tế (case-insensitive và trim)
     return articles.filter(n => {
       const articleCategory = n.category?.trim() || '';
@@ -52,10 +52,10 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
     });
   }, [articles, currentCategory, categories]);
 
-  const featuredNews = displayedNews.length > 0 
+  const featuredNews = displayedNews.length > 0
     ? (displayedNews.find(n => n.isFeatured) || displayedNews[0])
     : null;
-  const otherNews = featuredNews 
+  const otherNews = featuredNews
     ? displayedNews.filter(n => n._id !== featuredNews._id)
     : displayedNews;
 
@@ -68,7 +68,7 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
     <div className="min-h-screen mt-25 bg-white font-sans text-gray-900 selection:bg-red-100 selection:text-red-900">
       <main>
         <div className="container mx-auto px-4 py-8 animate-fade-in">
-          
+
           {/* Category Navigation */}
           <div className="mb-8 flex flex-wrap items-center gap-2 border-b border-gray-200 pb-4">
             {categories.length > 1 && (
@@ -77,11 +77,10 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
                   <button
                     key={category.id}
                     onClick={() => handleSetCategory(category.id)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      currentCategory === category.id
-                        ? 'bg-red-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${currentCategory === category.id
+                      ? 'bg-red-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
                     {category.name}
                   </button>
@@ -105,7 +104,7 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
               <FeaturedArticle article={featuredNews} locale={locale} />
             </div>
           )}
-          
+
           {/* Empty State */}
           {articles.length === 0 && (
             <div className="text-center py-20 text-gray-500 bg-gray-50 rounded-xl">
@@ -116,21 +115,21 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
 
           {/* Main Grid Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            
+
             {/* Left Content (Latest News) */}
             <div className="lg:col-span-2">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold flex items-center">
                   <span className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
-                  {currentCategory === 'all' 
-                    ? 'Tin tức LALA-LYCHEEE' 
+                  {currentCategory === 'all'
+                    ? 'Tin tức LALA-LYCHEEE'
                     : categories.find(c => c.id === currentCategory)?.name || 'Tin tức'}
                 </h2>
-                <Link 
+                <Link
                   href={`/${locale}/news`}
                   className="text-red-600 text-sm font-medium hover:underline flex items-center"
                 >
-                  Xem tất cả <ChevronRight size={16}/>
+                  Xem tất cả <ChevronRight size={16} />
                 </Link>
               </div>
 
@@ -139,7 +138,7 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
                   <ArticleCard key={news._id} article={news} locale={locale} />
                 ))}
               </div>
-              
+
               {otherNews.length === 0 && (
                 <div className="text-center py-20 text-gray-500 bg-gray-50 rounded-xl">
                   Không có bài viết nào trong chuyên mục này.
@@ -164,11 +163,11 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
 
             {/* Right Sidebar */}
             <div className="lg:col-span-1 space-y-10">
-              
+
               {/* Trending Widget */}
               <div>
                 <h3 className="font-bold text-xl mb-5 flex items-center">
-                  <TrendingUp className="mr-2 text-red-600" size={24}/>
+                  <TrendingUp className="mr-2 text-red-600" size={24} />
                   Tin nổi bật
                 </h3>
                 <div className="flex flex-col space-y-4">
@@ -197,7 +196,7 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
               {/* Ads Banner Mock */}
               <div className="bg-gray-100 h-64 rounded-xl flex flex-col items-center justify-center text-gray-400 p-4 text-center border border-gray-200">
                 <span className="text-xs uppercase tracking-widest mb-2">Quảng cáo</span>
-                <span className="font-medium">Không gian dành cho nhà tài trợ</span>
+                <span className="font-medium"></span>
               </div>
 
               {/* Tags Cloud */}
@@ -205,8 +204,8 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
                 <h3 className="font-bold text-lg mb-4">Từ khóa hot</h3>
                 <div className="flex flex-wrap gap-2">
                   {['Vải thiều Vĩnh Lập', 'Thanh Hà', 'Nông sản sạch', 'Xuất khẩu', 'Bảo quản lạnh', 'Chất lượng cao'].map((tag, idx) => (
-                    <span 
-                      key={idx} 
+                    <span
+                      key={idx}
                       className="px-3 py-1 bg-gray-50 border border-gray-100 rounded-full text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 cursor-pointer transition-all"
                     >
                       {tag}
@@ -219,7 +218,7 @@ export default function NewsClient({ articles, locale }: NewsClientProps) {
           </div>
         </div>
       </main>
-      
+
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }

@@ -34,6 +34,7 @@ import {
   CreditCard,
   AlertCircle,
   UserCog,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import MenuItem from "./MenuItem";
@@ -157,6 +158,12 @@ export default function AdminDashboard({
       {
         category: "Cấu hình giao diện (CMS)",
         items: [
+          {
+            id: "pastoral",
+            label: "Khoảnh Khắc Đồng Quê",
+            icon: ImageIcon,
+            href: `/${locale}/admin/pastoral`,
+          },
           {
             id: "cms",
             label: "CMS Dashboard",

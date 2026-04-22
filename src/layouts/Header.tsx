@@ -71,7 +71,7 @@ const getNavLinks = (
     { label: t("nav.products"), href: `/${locale}/shop`, subItems: productSubItems },
     { href: `/${locale}/story`, label: t("nav.story") },
     { href: `/${locale}/news`, label: t("nav.news") },
-    { href: `/${locale}/activities`, label: t("nav.activities") },
+    { href: `/${locale}/pastoral`, label: t("nav.activities") },
     { href: `/${locale}/contact`, label: t("nav.contact") },
   ];
   return links;

@@ -37,7 +37,7 @@
     "lychee_products": "Sản phẩm Vải",
     "story": "Câu Chuyện",
     "news": "Tin Tức",
-    "activities": "Hoạt Động",
+    "activities": "Khoảnh Khắc",
     "contact": "Liên Hệ",
     "functions": "Chức Năng",
     "payment": "Thanh Toán",
@@ -859,5 +859,21 @@
     "empty_desc": "Danh mục này hiện chưa có sản phẩm. Vui lòng quay lại sau!",
     "view_category": "Xem danh mục",
     "loading_products": "Đang tải sản phẩm..."
+  },
+  "lychee_honey": {
+    "subtitle": "Đặc sản vùng Thanh Hà, Hải Dương",
+    "title": "Bí Mật Về Mật Ong Hoa Vải",
+    "characteristics": "ĐẶC TÍNH",
+    "characteristics_desc": "Hương thơm đặc biệt, được ví như dòng \"nước hoa ăn được\". Cực kỳ hoàn hảo khi kết hợp với sữa chua, cà phê hay hoa quả.",
+    "season": "MÙA HOA VẢI",
+    "season_desc": "Chỉ nở rộ một lần vào cuối tháng 2 đến cuối tháng 3. Chỉ thu hoạch 1-2 vòng mật mỗi năm nên cực kỳ quý hiếm.",
+    "origin": "XUẤT XỨ",
+    "origin_desc": "Khai thác 100% tự nhiên từ vải Thanh Hà, Hải Dương. Đa phần xuất khẩu nên rất ít khi được bán nội địa.",
+    "pure": "NGUYÊN CHẤT",
+    "pure_desc": "Bảo toàn nguyên vẹn lợi khuẩn sống, không thủy phần sấy nhiệt, tạo khí gas và tiếng nổ nhẹ khi mở nắp - minh chứng mật thô.",
+    "benefits": "CÔNG DỤNG",
+    "benefits_desc": "Làm đẹp da, ngăn ngừa nhiệt miệng, cảm cúm. Dùng 2 thìa uống trước khi ngủ mang lại giấc ngủ sâu và thư thái.",
+    "storage": "BẢO QUẢN",
+    "storage_desc": "Tránh ánh nắng trực tiếp. Mật có thể kết tủa dưới 10°C, ngâm qua nước ấm dưới 50°C sẽ trở lại trạng thái trong veo."
   }
 }

@@ -9,6 +9,9 @@ import { Search, SlidersHorizontal, Grid3X3, List, X, ChevronDown, Check } from 
 import { SearchOverlay } from "@/components/SearchOverlay";
 import ProductCard from "@/components/ProductCard";
 import type { Category, Brand } from "@/types/meta";
+import LycheeHoneyInfographic from "@/components/LycheeHoneyInfographic";
+import LeftAdSidebar from "./components/LeftAdSidebar";
+import RightPromoSidebar from "./components/RightPromoSidebar";
 
 type ViewMode = "grid" | "list";
 type SortOption = "newest" | "price-asc" | "price-desc" | "name-asc" | "name-desc";
@@ -281,10 +284,10 @@ function ShopPageInner() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] mt-25">
-
+      <LycheeHoneyInfographic />
       {/* TOP BAR */}
-      <div className="bg-white border-b border-gray-200 sticky top-[var(--header-height,64px)] z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
+      <div className="bg-white border-b border-gray-100 relative z-30 shadow-sm">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
           <button
             onClick={() => setShowSearchOverlay(true)}
             className="flex-1 flex items-center gap-2.5 h-11 px-4 bg-gray-100 hover:bg-gray-200/80 rounded-full text-sm text-gray-500 transition-colors text-left"
@@ -433,92 +436,106 @@ function ShopPageInner() {
         )}
       </div>
 
-      {/* CONTENT AREA */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {/* Active filter chips */}
-        {activeFilterCount > 0 && (
-          <div className="flex items-center gap-2 flex-wrap mb-5">
-            <span className="text-xs text-gray-500 font-medium">{t("active_filter_label", "Bộ lọc:")}</span>
-            {selectedCategory !== "all" && (
-              <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-rose-50 border border-rose-200 rounded-full text-xs text-rose-700 font-medium">
-                {catLabel(categories.find(c => catId(c) === selectedCategory)!)}
-                <button onClick={() => handleCategoryChange("all")} className="hover:text-rose-900"><X className="w-3 h-3" /></button>
-              </span>
-            )}
-            {selectedBrand !== "all" && (
-              <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-amber-50 border border-amber-200 rounded-full text-xs text-amber-700 font-medium">
-                {brandLabel(brands.find(b => brandId(b) === selectedBrand)!)}
-                <button onClick={() => handleBrandChange("all")} className="hover:text-amber-900"><X className="w-3 h-3" /></button>
-              </span>
-            )}
-            {hasPriceFilter && (
-              <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-purple-50 border border-purple-200 rounded-full text-xs text-purple-700 font-medium">
-                {fmtPrice(minPrice)} – {fmtPrice(maxPrice)}
-                <button onClick={() => { setMinPrice(0); setMaxPrice(MAX_PRICE); pushParams({ minPrice: 0, maxPrice: MAX_PRICE }); }} className="hover:text-purple-900"><X className="w-3 h-3" /></button>
-              </span>
-            )}
-            {sortBy !== "newest" && (
-              <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-gray-100 border border-gray-200 rounded-full text-xs text-gray-700 font-medium">
-                {sortLabels[sortBy]}
-                <button onClick={() => handleSortChange("newest")} className="hover:text-gray-900"><X className="w-3 h-3" /></button>
-              </span>
-            )}
-            <button onClick={clearAll} className="text-xs text-gray-400 hover:text-rose-600 underline transition-colors">{t("clear_all_filters", "Xóa tất cả")}</button>
-          </div>
-        )}
+      {/* MAIN LAYOUT WITH SIDEBARS */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-8 flex flex-col lg:flex-row gap-6 xl:gap-8 items-start">
 
-        <div className="flex items-center justify-between mb-5">
-          <p className="text-sm text-gray-500">
-            {loading ? t("results_loading") : (
-              <><span className="font-semibold text-gray-800">{sorted.length}</span> {t("products.shop.results_count", "{count} sản phẩm").replace("{count}", "")}
-                {hasPriceFilter && <span className="text-gray-400"> {t("products.shop.results_price_range", "trong khoảng {min}–{max}").replace("{min}", fmtPrice(minPrice)).replace("{max}", fmtPrice(maxPrice))}</span>}
-              </>
-            )}
-          </p>
-        </div>
+        {/* LEFT AD SIDEBAR */}
+        <aside className="w-full lg:w-[280px] xl:w-[320px] flex-shrink-0 lg:sticky lg:top-28">
+          <LeftAdSidebar />
+        </aside>
 
-        {loading ? (
-          <div className={`grid gap-4 ${viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"}`}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse shadow-sm">
-                <div className="aspect-square bg-gray-100" />
-                <div className="p-3 space-y-2">
-                  <div className="h-3.5 bg-gray-100 rounded-full w-4/5" />
-                  <div className="h-5 bg-gray-100 rounded-full w-2/5" />
-                </div>
-              </div>
-            ))}
+        {/* CENTER CONTENT */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Active filter chips */}
+          {activeFilterCount > 0 && (
+            <div className="flex items-center gap-2 flex-wrap mb-5">
+              <span className="text-xs text-gray-500 font-medium">{t("active_filter_label", "Bộ lọc:")}</span>
+              {selectedCategory !== "all" && (
+                <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-rose-50 border border-rose-200 rounded-full text-xs text-rose-700 font-medium">
+                  {catLabel(categories.find(c => catId(c) === selectedCategory)!)}
+                  <button onClick={() => handleCategoryChange("all")} className="hover:text-rose-900"><X className="w-3 h-3" /></button>
+                </span>
+              )}
+              {selectedBrand !== "all" && (
+                <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-amber-50 border border-amber-200 rounded-full text-xs text-amber-700 font-medium">
+                  {brandLabel(brands.find(b => brandId(b) === selectedBrand)!)}
+                  <button onClick={() => handleBrandChange("all")} className="hover:text-amber-900"><X className="w-3 h-3" /></button>
+                </span>
+              )}
+              {hasPriceFilter && (
+                <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-purple-50 border border-purple-200 rounded-full text-xs text-purple-700 font-medium">
+                  {fmtPrice(minPrice)} – {fmtPrice(maxPrice)}
+                  <button onClick={() => { setMinPrice(0); setMaxPrice(MAX_PRICE); pushParams({ minPrice: 0, maxPrice: MAX_PRICE }); }} className="hover:text-purple-900"><X className="w-3 h-3" /></button>
+                </span>
+              )}
+              {sortBy !== "newest" && (
+                <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-gray-100 border border-gray-200 rounded-full text-xs text-gray-700 font-medium">
+                  {sortLabels[sortBy]}
+                  <button onClick={() => handleSortChange("newest")} className="hover:text-gray-900"><X className="w-3 h-3" /></button>
+                </span>
+              )}
+              <button onClick={clearAll} className="text-xs text-gray-400 hover:text-rose-600 underline transition-colors">{t("clear_all_filters", "Xóa tất cả")}</button>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between mb-5">
+            <p className="text-sm text-gray-500">
+              {loading ? t("results_loading") : (
+                <><span className="font-semibold text-gray-800">{sorted.length}</span> {t("products.shop.results_count", "{count} sản phẩm").replace("{count}", "")}
+                  {hasPriceFilter && <span className="text-gray-400"> {t("products.shop.results_price_range", "trong khoảng {min}–{max}").replace("{min}", fmtPrice(minPrice)).replace("{max}", fmtPrice(maxPrice))}</span>}
+                </>
+              )}
+            </p>
           </div>
-        ) : sorted.length > 0 ? (
-          <div className={`grid gap-4 ${viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"}`}>
-            {sorted.map(product => (
-              <Suspense key={product._id} fallback={
-                <div className="bg-white rounded-2xl overflow-hidden animate-pulse shadow-sm">
+
+          {loading ? (
+            <div className={`grid gap-4 ${viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"}`}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse shadow-sm">
                   <div className="aspect-square bg-gray-100" />
                   <div className="p-3 space-y-2">
                     <div className="h-3.5 bg-gray-100 rounded-full w-4/5" />
                     <div className="h-5 bg-gray-100 rounded-full w-2/5" />
                   </div>
                 </div>
-              }>
-                <ProductCard product={product} locale={locale} viewMode={viewMode} />
-              </Suspense>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-              <Search className="w-7 h-7 text-gray-400" />
+              ))}
             </div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-1">{t("empty_title", "Không tìm thấy sản phẩm")}</h2>
-            <p className="text-sm text-gray-500 mb-6 max-w-xs">{t("empty_subtitle", "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm")}</p>
-            {activeFilterCount > 0 && (
-              <button onClick={clearAll} className="h-9 px-5 rounded-full bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 transition-colors shadow-sm">
-                {t("products.shop.clear_filters", "Xóa bộ lọc")}
-              </button>
-            )}
-          </div>
-        )}
+          ) : sorted.length > 0 ? (
+            <div className={`grid gap-4 ${viewMode === "grid" ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid-cols-1"}`}>
+              {sorted.map(product => (
+                <Suspense key={product._id} fallback={
+                  <div className="bg-white rounded-2xl overflow-hidden animate-pulse shadow-sm">
+                    <div className="aspect-square bg-gray-100" />
+                    <div className="p-3 space-y-2">
+                      <div className="h-3.5 bg-gray-100 rounded-full w-4/5" />
+                      <div className="h-5 bg-gray-100 rounded-full w-2/5" />
+                    </div>
+                  </div>
+                }>
+                  <ProductCard product={product} locale={locale} viewMode={viewMode} />
+                </Suspense>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                <Search className="w-7 h-7 text-gray-400" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">{t("empty_title", "Không tìm thấy sản phẩm")}</h2>
+              <p className="text-sm text-gray-500 mb-6 max-w-xs">{t("empty_subtitle", "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm")}</p>
+              {activeFilterCount > 0 && (
+                <button onClick={clearAll} className="h-9 px-5 rounded-full bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 transition-colors shadow-sm">
+                  {t("products.shop.clear_filters", "Xóa bộ lọc")}
+                </button>
+              )}
+            </div>
+          )}
+        </div> {/* END CENTER CONTENT */}
+
+        {/* RIGHT PROMO SIDEBAR */}
+        <aside className="w-full lg:w-[280px] xl:w-[320px] flex-shrink-0 lg:sticky lg:top-28 hidden xl:block">
+          <RightPromoSidebar />
+        </aside>
       </div>
 
       <SearchOverlay
