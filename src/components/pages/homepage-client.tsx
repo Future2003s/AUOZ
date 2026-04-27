@@ -109,31 +109,38 @@ export function HomePageClient({ settings }: HomePageClientProps) {
           />
         )}
 
-        {/* Value Proposition Section */}
-        <ValuePropositionSection />
+        <VideoSection />
 
-        {mergedSettings.sections.socialProof.enabled && <SocialProofSection />}
 
         {/* Certifications & Partners Section */}
         <CertificationsPartnersSection />
+
+        {mergedSettings.sections.socialProof.enabled && <SocialProofSection />}
+
 
         {mergedSettings.sections.featuredProducts.enabled && (
           <FeaturedProductsSection />
         )}
 
-        <VideoSection />
+        {/* Value Proposition Section */}
+        {/* <ValuePropositionSection /> */}
 
-        {/* News Preview Section */}
-        <NewsPreviewSection />
 
-        {mergedSettings.sections.collection.enabled && <CollectionSection />}
-        {mergedSettings.sections.craft.enabled && (
+
+        {/* {mergedSettings.sections.craft.enabled && (
           <OurCraftSection
             heading={craftData?.heading}
             subheading={craftData?.subheading}
             steps={craftData?.steps}
           />
-        )}
+        )} */}
+
+
+        {/* News Preview Section */}
+        {/* <NewsPreviewSection /> */}
+
+        {/* {mergedSettings.sections.collection.enabled && <CollectionSection />} */}
+
         {mergedSettings.sections.map.enabled && <MapsLocationCompany />}
       </main>
     </div>

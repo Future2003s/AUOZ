@@ -18,7 +18,6 @@ import { pastoralApi, PastoralImage } from '@/apiRequests/pastoral';
 // --- MOCK TEXT DATA ---
 const GALLERY_DATA = {
     vi: {
-        title: 'Thế Giới Đồng Quê',
         subtitle: 'Khám phá thế giới qua lăng kính của chúng tôi',
         storyTitle: 'Câu Chuyện Đằng Sau Ống Kính',
         storyText: 'Mỗi bức ảnh không chỉ là một khoảnh khắc được lưu giữ, mà còn là một câu chuyện chân thực về cuộc sống, con người và vẻ đẹp của tự nhiên.',
@@ -35,7 +34,6 @@ const GALLERY_DATA = {
         shareError: 'Không thể chia sẻ lúc này.'
     },
     en: {
-        title: 'Photography Masterpieces',
         subtitle: 'Explore the world through our lens',
         storyTitle: 'The Story Behind The Lens',
         storyText: 'Every photograph is more than just a captured moment; it is a true story about life, people, and the eternal beauty of nature. We are dedicated to translating the vast world into these emotionally resonant frames.',

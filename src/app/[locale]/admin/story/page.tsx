@@ -134,7 +134,7 @@ const defaultStorySettings: StorySettings = {
     smallImageLabel: "Cây Vải Tổ Thanh Hà",
     title: "Mang Vải Thiều Vươn Ra Thế Giới",
     content: [
-      "Sứ mệnh của LALA-LYCHEEE không chỉ là bán trái cây. Đó là hành trình khẳng định thương hiệu nông sản Việt. Để thế hệ trẻ Vĩnh Lập có thể dõng dạc nói: \"Tôi sinh ra ở Vĩnh Lập.\"",
+      " của LALA-LYCHEEE không chỉ là bán trái cây. Đó là hành trình khẳng định thương hiệu nông sản Việt. Để thế hệ trẻ Vĩnh Lập có thể dõng dạc nói: \"Tôi sinh ra ở Vĩnh Lập.\"",
     ],
     cards: [
       {
@@ -480,33 +480,29 @@ export default function StoryAdminPage() {
                         <button
                           key={section.id}
                           onClick={() => setActiveSection(section.id)}
-                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left group ${
-                            isActive
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left group ${isActive
                               ? "bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 shadow-sm"
                               : "hover:bg-gray-50 border-2 border-transparent"
-                          }`}
+                            }`}
                         >
                           <div
-                            className={`p-2 rounded-lg ${
-                              isActive
+                            className={`p-2 rounded-lg ${isActive
                                 ? `bg-gradient-to-br ${section.color} text-white`
                                 : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
-                            } transition-all`}
+                              } transition-all`}
                           >
                             <SectionIcon className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div
-                              className={`font-medium text-sm ${
-                                isActive ? "text-blue-900" : "text-gray-900"
-                              }`}
+                              className={`font-medium text-sm ${isActive ? "text-blue-900" : "text-gray-900"
+                                }`}
                             >
                               {section.title}
                             </div>
                             <div
-                              className={`text-xs mt-0.5 truncate ${
-                                isActive ? "text-blue-700" : "text-gray-500"
-                              }`}
+                              className={`text-xs mt-0.5 truncate ${isActive ? "text-blue-700" : "text-gray-500"
+                                }`}
                             >
                               {section.description}
                             </div>

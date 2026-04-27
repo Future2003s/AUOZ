@@ -57,9 +57,8 @@ const PartnerLogo = ({ partner, index }: { partner: Partner; index: number }) =>
           alt={partner.name}
           width={120}
           height={64}
-          className={`h-full w-auto object-contain ${
-            imageLoading ? "opacity-0" : "opacity-100"
-          }`}
+          className={`h-full w-auto object-contain ${imageLoading ? "opacity-0" : "opacity-100"
+            }`}
           unoptimized
           onLoad={() => setImageLoading(false)}
           onError={() => {
@@ -82,23 +81,7 @@ import useTranslations from "@/i18n/useTranslations";
 export const CertificationsPartnersSection: React.FC = () => {
   const t = useTranslations();
 
-  const certifications: Certification[] = [
-    {
-      name: t("certifications.items.cert1.name") || "Chứng Nhận Chất Lượng",
-      description: t("certifications.items.cert1.description") || "Đạt tiêu chuẩn chất lượng quốc tế",
-      icon: <Award className="w-6 h-6" />,
-    },
-    {
-      name: t("certifications.items.cert2.name") || "Xuất Khẩu Nhật Bản",
-      description: t("certifications.items.cert2.description") || "Được tin dùng tại thị trường Nhật Bản",
-      icon: <CheckCircle className="w-6 h-6" />,
-    },
-    {
-      name: t("certifications.items.cert3.name") || "ISO 22000:2018",
-      description: t("certifications.items.cert3.description") || "Hệ thống quản lý an toàn thực phẩm",
-      icon: <Award className="w-6 h-6" />,
-    },
-  ];
+  // Certifications are now using static images
 
   return (
     <section className="py-24 bg-white relative overflow-hidden">
@@ -120,25 +103,38 @@ export const CertificationsPartnersSection: React.FC = () => {
           <div className="w-20 h-1 bg-rose-600 mx-auto rounded-full mb-8" />
 
           {/* Certifications Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-16">
-            {certifications.map((cert, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-xl p-6 border border-rose-100 shadow-md hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-12 h-12 bg-rose-600 rounded-full flex items-center justify-center text-white">
-                    {cert.icon}
-                  </div>
-                </div>
-                <h3 className="font-bold text-slate-900 mb-2">{cert.name}</h3>
-                <p className="text-sm text-slate-600">{cert.description}</p>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow overflow-hidden border border-rose-100 p-2"
+            >
+              <Image
+                src="/images/giayISO.jpg"
+                alt="Giấy chứng nhận ISO 22000:2018"
+                width={800}
+                height={1130}
+                className="w-full h-auto object-contain rounded-lg"
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-shadow overflow-hidden border border-rose-100 p-2"
+            >
+              <Image
+                src="/images/quyetDinhISO.jpg"
+                alt="Quyết định chứng nhận ISO 22000:2018"
+                width={800}
+                height={1130}
+                className="w-full h-auto object-contain rounded-lg"
+              />
+            </motion.div>
           </div>
         </motion.div>
 
